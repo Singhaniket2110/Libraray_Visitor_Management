@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Visit Entry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .jc-fields {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #f59e0b;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        
+        .pg-note {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+            font-size: 14px;
+            color: #1e40af;
+            display: none;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .jc-badge {
+            display: inline-block;
+            background: #f59e0b;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .pg-badge {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .ug-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .level-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .form-container {
+            max-width: 520px;
+            margin: 3rem auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+        }
+        
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+            color: #1e293b;
+        }
+        
+        .form-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 2px;
+        }
+        
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+        
+        .form-label .icon {
+            color: #6366f1;
+            font-size: 1.1rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            color: #1e293b;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .auto-fields {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #6366f1;
+            border-right: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .auto-fields p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.75rem 0;
+            font-size: 1rem;
+        }
+        
+        .auto-fields strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .auto-fields span {
+            color: #6366f1;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .submit-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease infinite;
+            right: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        #formMsg {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        
+        #formMsg::before {
+            font-size: 1.2rem;
+        }
+        
+        #formMsg.success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        
+        #formMsg.success::before {
+            content: '✓';
+        }
+        
+        #formMsg.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        
+        #formMsg.error::before {
+            content: '✗';
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25rem;
+            padding-right: 2.5rem;
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 20px 10px !important;
+            }
+            
+            .form-container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+            
+            .form-container h2 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; position: relative;">
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%); z-index: -1; pointer-events: none;"></div>
+    
+    <div class="form-container">
+        <h2>📝 Library Visitor Entry</h2>
+        
+        <!-- PG Note -->
+        <div id="pgNote" class="pg-note">
+            <i class="fas fa-graduation-cap"></i>
+            <strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).
+        </div>
+        
+        <form id="visitorForm">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-graduate"></i>
+                    Student Name
+                </label>
+                <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-id-card"></i>
+                    Roll Number
+                </label>
+                <input type="text" id="roll_no" class="form-control" placeholder="Enter your roll number(For Eg. TYBSC-IT20)" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i>
+                    Education Level
+                </label>
+                <select id="level" class="form-control" required>
+                    <option value="">Select Level</option>
+                    <option value="JC">Junior College (JC)</option>
+                    <option value="UG">Undergraduate (UG)</option>
+                    <option value="PG">Postgraduate (PG)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-book-open"></i>
+                    Course / Stream
+                </label>
+                <select id="course" class="form-control" required>
+                    <option value="">Select Course / Stream</option>
+                </select>
+            </div>
+            
+            <!-- JC Specific Fields -->
+            <div id="jcFields" class="jc-fields">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        JC Year
+                    </label>
+                    <select id="jcYear" class="form-control">
+                        <option value="">Select JC Year</option>
+                        <option value="FYJC">First Year Junior College (FYJC)</option>
+                        <option value="SYJC">Second Year Junior College (SYJC)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-stream"></i>
+                        Stream
+                    </label>
+                    <select id="jcStream" class="form-control">
+                        <option value="">Select Stream</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Commerce">Commerce</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- UG/PG Year Field -->
+            <div class="form-group" id="yearGroup" style="display: none;">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    Year
+                </label>
+                <select id="year" class="form-control">
+                    <option value="">Select Year</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-bullseye"></i>
+                    Purpose of Visit
+                </label>
+                <select id="purpose" class="form-control" required>
+                    <option value="">Purpose of Visit</option>
+                    <option>Reading</option>
+                    <option>Book Issue</option>
+                    <option>Book Return</option>
+                    <option>Project / Assignment</option>
+                    <option>Reference</option>
+                    <option>Newspaper</option>
+                    <option>Internet / Research</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            
+            <div class="auto-fields">
+                <p><strong><i class="fas fa-calendar-day"></i> Date:</strong> <span id="currentDate"></span></p>
+                <p><strong><i class="fas fa-clock"></i> Day:</strong> <span id="currentDay"></span></p>
+                <p><strong><i class="fas fa-hourglass-start"></i> Entry Time:</strong> <span id="currentTime">Now</span></p>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-paper-plane"></i>
+                Submit Entry
+            </button>
+            <p id="formMsg"></p>
+        </form>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/student/exit" style="color: #ef4444; text-decoration: none; font-weight: 500;">
+                <i class="fas fa-door-open"></i> Need to Exit? Click here
+            </a>
+        </div>
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- DEBUG ELEMENT TO CHECK IF JS IS LOADING -->
+    <div id="debugInfo" style="display: none; text-align: center; color: #666; padding: 10px;">
+        JavaScript loaded: <span id="jsStatus">No</span>
+    </div>
+
+    <script>
+        // First, check if DOM elements exist
+        console.log("📢 Script loaded!");
+        console.log("Level select exists:", document.getElementById("level"));
+        console.log("Course select exists:", document.getElementById("course"));
+        console.log("Form exists:", document.getElementById("visitorForm"));
+        
+        // Update debug info
+        document.getElementById("debugInfo").style.display = "block";
+        document.getElementById("jsStatus").textContent = "Yes";
+        
+        // Define courses and years data FIRST
+        const courses = {
+            UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
+            PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
+            JC: ["Science", "Arts", "Commerce"]
+        };
+
+        const years = {
+            UG: ["First Year", "Second Year", "Third Year"],
+            PG: ["First Year", "Second Year"]
+        };
+
+        // Get DOM elements
+        const levelSelect = document.getElementById("level");
+        const courseSelect = document.getElementById("course");
+        const yearSelect = document.getElementById("year");
+        const jcFields = document.getElementById("jcFields");
+        const jcYearSelect = document.getElementById("jcYear");
+        const jcStreamSelect = document.getElementById("jcStream");
+        const dateSpan = document.getElementById("currentDate");
+        const daySpan = document.getElementById("currentDay");
+        const formMsg = document.getElementById("formMsg");
+        const visitorForm = document.getElementById("visitorForm");
+        const yearGroup = document.getElementById("yearGroup");
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const formattedDay = now.toLocaleDateString("en-US", { 
+                weekday: "long" 
+            });
+            
+            if (dateSpan) dateSpan.textContent = formattedDate;
+            if (daySpan) daySpan.textContent = formattedDay;
+            
+            setTimeout(updateDateTime, 60000);
+        }
+
+        // Initialize date/time
+        updateDateTime();
+
+        // Level change handler - SIMPLIFIED VERSION
+        levelSelect.addEventListener("change", function() {
+            const level = this.value;
+            console.log("Level changed to:", level);
+            
+            // Reset dependent fields
+            courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
+            yearSelect.innerHTML = '<option value="">Select Year</option>';
+            
+            // Hide all optional fields
+            jcFields.style.display = "none";
+            yearGroup.style.display = "none";
+            document.getElementById('pgNote').style.display = 'none';
+
+            if (!level) return;
+
+            // Populate courses
+            if (courses[level]) {
+                courses[level].forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+            }
+
+            // Show relevant fields
+            if (level === "JC") {
+                jcFields.style.display = "block";
+            } else if (level === "UG" || level === "PG") {
+                yearGroup.style.display = "block";
+                
+                // Populate years
+                if (years[level]) {
+                    years[level].forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        yearSelect.appendChild(option);
+                    });
+                }
+                
+                if (level === "PG") {
+                    document.getElementById('pgNote').style.display = 'block';
+                }
+            }
+        });
+
+        // Course change handler for JC
+        courseSelect.addEventListener("change", function() {
+            const level = levelSelect.value;
+            const selectedCourse = this.value;
+            
+            if (level === "JC" && selectedCourse) {
+                jcStreamSelect.value = selectedCourse;
+            }
+        });
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            const inputs = visitorForm.querySelectorAll('input[required], select[required]');
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.borderColor = '#ef4444';
+                    isValid = false;
+                } else {
+                    input.style.borderColor = '#10b981';
+                }
+            });
+            
+            if (levelSelect.value === "JC") {
+                if (!jcYearSelect.value || !jcStreamSelect.value) {
+                    jcFields.style.borderColor = '#ef4444';
+                    isValid = false;
+                }
+            }
+            
+            return isValid;
+        }
+
+        // Form submission
+        visitorForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            // Remove validation styles
+            const inputs = visitorForm.querySelectorAll('input, select');
+            inputs.forEach(input => input.style.borderColor = '');
+            jcFields.style.borderColor = '';
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            // Validate
+            if (!validateForm()) {
+                alert("Please fill all required fields");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+
+            // Prepare data
+            const formData = {
+                name: document.getElementById("name").value.trim(),
+                roll_no: document.getElementById("roll_no").value.trim().toUpperCase(),
+                level: levelSelect.value,
+                purpose: document.getElementById("purpose").value
+            };
+            
+            // Add course and year based on level
+            if (levelSelect.value === "JC") {
+                formData.course = "Junior College";
+                formData.jc_year = jcYearSelect.value;
+                formData.jc_stream = jcStreamSelect.value;
+                formData.year = null;
+            } else {
+                formData.course = courseSelect.value;
+                formData.year = yearSelect.value || null;
+                formData.jc_year = null;
+                formData.jc_stream = null;
+            }
+
+            console.log("Submitting data:", formData);
+
+            try {
+                const res = await fetch("/student/visit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await res.json();
+                console.log("Response:", result);
+
+                if (res.status === 201) {
+                    alert("Visit recorded successfully!");
+                    
+                    // Reset form
+                    visitorForm.reset();
+                    courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
+                    yearSelect.innerHTML = '<option value="">Select Year</option>';
+                    yearGroup.style.display = "none";
+                    jcFields.style.display = "none";
+                    jcYearSelect.value = "";
+                    jcStreamSelect.value = "";
+                    document.getElementById('pgNote').style.display = 'none';
+                    
+                    document.getElementById("name").focus();
+                } else {
+                    alert(result.error || "Failed to record visit");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Connection error. Please try again.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Auto-focus first input
+        window.addEventListener('load', () => {
+            if (document.getElementById("name")) {
+                document.getElementById("name").focus();
+            }
+        });
+    </script>
+
+</body>
+</html>

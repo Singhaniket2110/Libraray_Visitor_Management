@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use | Library System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+        
+        .guide-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            padding: 50px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .guide-section h3 {
+            text-align: center;
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 30px;
+        }
+        
+        .guide-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .step-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .step-number {
+            min-width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .step-content {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .step-content h4 {
+            color: #1e293b;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-content h4 i {
+            color: #6366f1;
+        }
+        
+        .step-content ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .step-content ul li {
+            color: #64748b;
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        .step-content ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: 700;
+        }
+        
+        .step-content ul ul {
+            margin-top: 8px;
+            margin-left: 20px;
+        }
+        
+        .step-content ul ul li::before {
+            content: '→';
+            color: #6366f1;
+        }
+        
+        .step-content strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .tips-section {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .tips-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #10b981, #059669, #047857);
+        }
+        
+        .tips-section h3 {
+            text-align: center;
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .tip-item {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            border-left: 4px solid #10b981;
+        }
+        
+        .tip-item i {
+            font-size: 2.5rem;
+            color: #10b981;
+            margin-bottom: 15px;
+        }
+        
+        .tip-item p {
+            color: #1e293b;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        
+        
+        .back-home {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: white;
+            color: #6366f1;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .guide-section,
+            .tips-section,
+            .admin-guide {
+                padding: 30px 20px;
+            }
+            
+            .step-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .step-content {
+                text-align: left;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-info-circle"></i> How to Use This System</h1>
+            <p>Complete guide to using the Library Visitor Management System</p>
+        </div>
+        
+        <!-- Student Guide Section -->
+        <div class="guide-section">
+            <h3><i class="fas fa-user-graduate"></i> For Students</h3>
+            
+            <div class="guide-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4><i class="fas fa-sign-in-alt"></i> Entry Process</h4>
+                        <ul>
+                            <li>Click on <strong>"Student Entry Portal"</strong> on homepage</li>
+                            <li>Fill in your <strong>Name</strong> and <strong>Roll Number</strong></li>
+                            <li>Select your <strong>Education Level</strong>:
+                                <ul>
+                                    <li><strong>JC (Junior College):</strong> Select year (FYJC/SYJC) and stream (Science/Arts/Commerce)</li>
+                                    <li><strong>UG (Undergraduate):</strong> Select course and year (First/Second/Third)</li>
+                                    <li><strong>PG (Postgraduate):</strong> Select course and year (First/Second)</li>
+                                </ul>
+                            </li>
+                            <li>Choose your <strong>Purpose of Visit</strong> (Reading, Book Issue, Reference, etc.)</li>
+                            <li>Click <strong>"Submit Entry"</strong></li>
+                            <li>Your entry time will be recorded automatically!</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4><i class="fas fa-sign-out-alt"></i> Exit Process</h4>
+                        <ul>
+                            <li>When leaving, click on <strong>"Student Exit"</strong> on homepage</li>
+                            <li>Enter your <strong>Roll Number</strong></li>
+                            <li>The system will show your details automatically</li>
+                            <li>Click <strong>"Mark Exit"</strong> to complete your visit</li>
+                            <li>Your exit time will be recorded!</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4><i class="fas fa-search"></i> Check Status</h4>
+                        <ul>
+                            <li>You can check if you're currently in the library by entering your Roll Number</li>
+                            <li>The system shows your entry time, purpose, and current status</li>
+                            <li>If you've already exited, it will show your complete visit history</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Important Tips Section -->
+        <div class="tips-section">
+            <h3><i class="fas fa-lightbulb"></i> Important Tips for Students</h3>
+            <div class="tips-grid">
+                <div class="tip-item">
+                    <i class="fas fa-door-open"></i>
+                    <p><strong>Always mark your exit</strong> when leaving the library</p>
+                </div>
+                
+                <div class="tip-item">
+                    <i class="fas fa-id-card"></i>
+                    <p>Use your <strong>correct Roll Number</strong> for accurate tracking</p>
+                </div>
+                
+                <div class="tip-item">
+                    <i class="fas fa-asterisk"></i>
+                    <p>Fill all required fields marked with <strong>*</strong></p>
+                </div>
+                
+                <div class="tip-item">
+                    <i class="fas fa-bullseye"></i>
+                    <p>Select the appropriate <strong>purpose</strong> for your visit</p>
+                </div>
+                
+                <div class="tip-item">
+                    <i class="fas fa-headset"></i>
+                    <p>If you face any issues, contact the library desk</p>
+                </div>
+                
+                <div class="tip-item">
+                    <i class="fas fa-history"></i>
+                    <p>Your visit history is stored securely for future reference</p>
+                </div>
+            </div>
+        </div>
+        
+       
+        
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* Add Visitor Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .add-visitor-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h2 {
+            color: #1e293b;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            background: #f1f5f9;
+            color: #ef4444;
+        }
+
+        .jc-fields-modal {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #f59e0b;
+            display: none;
+        }
+
+        .pg-note-modal {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+            font-size: 14px;
+            color: #1e40af;
+            display: none;
+        }
+
+        #addVisitorMessage {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        #addVisitorMessage.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        #addVisitorMessage.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="header-text">
+                <h1>📊 Library Analytics Admin Dashboard</h1>
+                <p>Welcome, {{ session.get('admin_username', 'Admin') }} | Real-time analytics & insights</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button onclick="openAddVisitorModal()" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Add New Visitor
+            </button>
+            <button onclick="loadAnalytics()" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i> Refresh Analytics
+            </button>
+            <button onclick="logoutUser()" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Date Range Picker -->
+    <section class="filters-section">
+        <h3 class="chart-title">
+            <i class="fas fa-calendar-alt"></i> Date Range Selection
+        </h3>
+        <div class="date-range-picker">
+            <div class="quick-dates">
+                <button class="active" onclick="selectDateRange('today')">
+                    <i class="fas fa-calendar-day"></i> Today
+                </button>
+                <button onclick="selectDateRange('yesterday')">
+                    <i class="fas fa-calendar-minus"></i> Yesterday
+                </button>
+                <button onclick="selectDateRange('week')">
+                    <i class="fas fa-calendar-week"></i> Last 7 Days
+                </button>
+                <button onclick="selectDateRange('month')">
+                    <i class="fas fa-calendar-alt"></i> Last 30 Days
+                </button>
+            </div>
+            
+            <div class="date-range-controls">
+                <label class="form-label">
+                    <i class="fas fa-calendar"></i> From:
+                </label>
+                <input type="date" id="startDate" class="form-control">
+                
+                <label class="form-label">To:</label>
+                <input type="date" id="endDate" class="form-control">
+                
+                <button onclick="applyCustomDateRange()" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply
+                </button>
+            </div>
+        </div>
+        
+        <div class="filter-grid">
+            <div>
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i> Level Filter
+                </label>
+                <select id="levelFilter" class="form-control" onchange="loadVisitors()">
+                    <option value="">All Levels</option>
+                    <option value="JC">Junior College</option>
+                    <option value="UG">Undergraduate</option>
+                    <option value="PG">Postgraduate</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">
+                    <i class="fas fa-door-open"></i> Status Filter
+                </label>
+                <select id="statusFilter" class="form-control" onchange="loadVisitors()">
+                    <option value="">All Status</option>
+                    <option value="active">Active Only</option>
+                    <option value="exited">Exited Only</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="data-actions">
+            <button onclick="loadVisitors()" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+            <button onclick="resetFilters()" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Clear Filters
+            </button>
+            <div class="export-buttons">
+                <button onclick="exportData('csv')" class="btn btn-success">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button onclick="exportData('excel')" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Cards -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="totalVisitors">0</div>
+            <div class="stat-label">TOTAL VISITORS</div>
+            <div class="stat-trend positive" id="visitorTrend">
+                <i class="fas fa-arrow-up"></i> 0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-value" id="currentVisitors">0</div>
+            <div class="stat-label">CURRENTLY INSIDE</div>
+            <div class="stat-trend positive" id="activeTrend">
+                <i class="fas fa-arrow-up"></i> 0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value" id="jcCount">0</div>
+            <div class="stat-label">JC STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-value" id="ugCount">0</div>
+            <div class="stat-label">UG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-value" id="pgCount">0</div>
+            <div class="stat-label">PG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value" id="avgDuration">0</div>
+            <div class="stat-label">AVG DURATION (MIN)</div>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
+                <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="pie">Pie Chart</option>
+                    <option value="doughnut">Doughnut Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="levelChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
+                <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
+                <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="bar">Vertical Bar Chart</option>
+                    <option value="horizontalBar">Horizontal Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="courseChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
+                <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="doughnut">Doughnut Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="purposeChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-clock"></i> Peak Hours</h3>
+                <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="peakHoursChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="durationChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visitor Table -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>
+                <i class="fas fa-table"></i> Visitor Records
+                <span class="record-count">
+                    Showing <span id="recordCount">0</span> records
+                </span>
+            </h2>
+            
+            <div class="table-actions">
+                <div class="bulk-actions">
+                    <select id="bulkAction" class="form-control bulk-select">
+                        <option value="">Bulk Actions</option>
+                        <option value="mark_exit">Mark as Exited</option>
+                        <option value="delete">Delete Selected</option>
+                    </select>
+                    <button onclick="applyBulkAction()" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Apply
+                    </button>
+                </div>
+                
+                <button onclick="selectAllRows()" class="btn btn-secondary">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                
+                <button onclick="loadVisitors()" class="btn btn-primary refresh-btn">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Name</th>
+                        <th>Roll No</th>
+                        <th>Level</th>
+                        <th>Course/Stream</th>
+                        <th>Year</th>
+                        <th>Purpose</th>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="visitorTable">
+                    <tr>
+                        <td colspan="13" class="loading-row">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <div>Loading visitor data...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination-container">
+            <div class="pagination-controls">
+                <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                </span>
+                <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Add Visitor Modal -->
+<div id="addVisitorModal" class="modal-overlay">
+    <div class="add-visitor-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-user-plus"></i> Add New Visitor</h2>
+            <button class="close-modal" onclick="closeAddVisitorModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="pgNoteModal" class="pg-note-modal">
+            <i class="fas fa-graduation-cap"></i>
+            <strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).
+        </div>
+
+        <form id="addVisitorForm">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-graduate"></i> Student Name
+                </label>
+                <input type="text" id="modalName" class="form-control" placeholder="Enter full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-id-card"></i> Roll Number
+                </label>
+                <input type="text" id="modalRollNo" class="form-control" placeholder="Enter roll number" required style="text-transform: uppercase;">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i> Education Level
+                </label>
+                <select id="modalLevel" class="form-control" required>
+                    <option value="">Select Level</option>
+                    <option value="JC">Junior College (JC)</option>
+                    <option value="UG">Undergraduate (UG)</option>
+                    <option value="PG">Postgraduate (PG)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-book-open"></i> Course / Stream
+                </label>
+                <select id="modalCourse" class="form-control" required>
+                    <option value="">Select Course / Stream</option>
+                </select>
+            </div>
+            
+            <!-- JC Specific Fields -->
+            <div id="jcFieldsModal" class="jc-fields-modal">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i> JC Year
+                    </label>
+                    <select id="modalJcYear" class="form-control">
+                        <option value="">Select JC Year</option>
+                        <option value="FYJC">First Year Junior College (FYJC)</option>
+                        <option value="SYJC">Second Year Junior College (SYJC)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-stream"></i> Stream
+                    </label>
+                    <select id="modalJcStream" class="form-control">
+                        <option value="">Select Stream</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Commerce">Commerce</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- UG/PG Year Field -->
+            <div class="form-group" id="modalYearGroup" style="display: none;">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Year
+                </label>
+                <select id="modalYear" class="form-control">
+                    <option value="">Select Year</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-bullseye"></i> Purpose of Visit
+                </label>
+                <select id="modalPurpose" class="form-control" required>
+                    <option value="">Purpose of Visit</option>
+                    <option>Reading</option>
+                    <option>Book Issue</option>
+                    <option>Book Return</option>
+                    <option>Project / Assignment</option>
+                    <option>Reference</option>
+                    <option>Newspaper</option>
+                    <option>Internet / Research</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <!-- Date and Time Fields -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-calendar"></i> Visit Date
+                </label>
+                <input type="date" id="modalVisitDate" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-clock"></i> Entry Time
+                </label>
+                <input type="time" id="modalEntryTime" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-door-open"></i> Exit Time (Optional)
+                </label>
+                <input type="time" id="modalExitTime" class="form-control">
+                <small style="color: #64748b; display: block; margin-top: 5px;">
+                    Leave empty if visitor is still inside
+                </small>
+            </div>
+
+            <div id="addVisitorMessage"></div>
+            
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 20px;">
+                <i class="fas fa-paper-plane"></i> Add Visitor
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    // Add Visitor Modal Functions
+    const courses = {
+        UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
+        PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
+        JC: ["Science", "Arts", "Commerce"]
+    };
+
+    const years = {
+        UG: ["First Year", "Second Year", "Third Year"],
+        PG: ["First Year", "Second Year"]
+    };
+
+    function openAddVisitorModal() {
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('modalVisitDate').value = today;
+        
+        // Set default entry time to current time
+        const now = new Date();
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
+                           now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('modalEntryTime').value = currentTime;
+        
+        document.getElementById('addVisitorModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddVisitorModal() {
+        document.getElementById('addVisitorModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+        document.getElementById('addVisitorForm').reset();
+        document.getElementById('jcFieldsModal').style.display = 'none';
+        document.getElementById('modalYearGroup').style.display = 'none';
+        document.getElementById('pgNoteModal').style.display = 'none';
+        document.getElementById('addVisitorMessage').style.display = 'none';
+    }
+
+    // Level change handler for modal
+    document.getElementById('modalLevel').addEventListener('change', function() {
+        const level = this.value;
+        const courseSelect = document.getElementById('modalCourse');
+        const yearSelect = document.getElementById('modalYear');
+        const jcFields = document.getElementById('jcFieldsModal');
+        const yearGroup = document.getElementById('modalYearGroup');
+        const pgNote = document.getElementById('pgNoteModal');
+        
+        // Reset fields
+        courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
+        yearSelect.innerHTML = '<option value="">Select Year</option>';
+        jcFields.style.display = 'none';
+        yearGroup.style.display = 'none';
+        pgNote.style.display = 'none';
+
+        if (!level) return;
+
+        // Populate courses
+        if (courses[level]) {
+            courses[level].forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                courseSelect.appendChild(option);
+            });
+        }
+
+        // Show relevant fields
+        if (level === 'JC') {
+            jcFields.style.display = 'block';
+        } else if (level === 'UG' || level === 'PG') {
+            yearGroup.style.display = 'block';
+            
+            if (years[level]) {
+                years[level].forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+            
+            if (level === 'PG') {
+                pgNote.style.display = 'block';
+            }
+        }
+    });
+
+    // Form submission for modal
+    document.getElementById('addVisitorForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const messageDiv = document.getElementById('addVisitorMessage');
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        
+        const visitDate = document.getElementById('modalVisitDate').value;
+        const entryTime = document.getElementById('modalEntryTime').value;
+        const exitTime = document.getElementById('modalExitTime').value;
+        
+        const formData = {
+            name: document.getElementById('modalName').value.trim(),
+            roll_no: document.getElementById('modalRollNo').value.trim().toUpperCase(),
+            level: document.getElementById('modalLevel').value,
+            purpose: document.getElementById('modalPurpose').value,
+            visit_date: visitDate,
+            entry_time: entryTime,
+            exit_time: exitTime || null
+        };
+        
+        if (formData.level === 'JC') {
+            formData.course = 'Junior College';
+            formData.jc_year = document.getElementById('modalJcYear').value;
+            formData.jc_stream = document.getElementById('modalJcStream').value;
+            formData.year = null;
+        } else {
+            formData.course = document.getElementById('modalCourse').value;
+            formData.year = document.getElementById('modalYear').value || null;
+            formData.jc_year = null;
+            formData.jc_stream = null;
+        }
+        
+        try {
+            const response = await fetch('/admin/add_visitor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                messageDiv.textContent = 'Visitor added successfully!';
+                messageDiv.className = 'success';
+                messageDiv.style.display = 'block';
+                
+                // Refresh the visitor table
+                loadVisitors();
+                loadAnalytics();
+                
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    closeAddVisitorModal();
+                }, 2000);
+            } else {
+                messageDiv.textContent = result.error || 'Failed to add visitor';
+                messageDiv.className = 'error';
+                messageDiv.style.display = 'block';
+            }
+        } catch (error) {
+            messageDiv.textContent = 'Connection error. Please try again.';
+            messageDiv.className = 'error';
+            messageDiv.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddVisitorModal();
+        }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('addVisitorModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddVisitorModal();
+        }
+    });
+</script>
+</body>
+</html>

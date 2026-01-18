@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Our Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+        
+        .college-info {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            margin-bottom: 40px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .college-logo-large {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border: 3px solid #6366f1;
+        }
+        
+        .college-logo-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        
+        .college-info h2 {
+            font-size: 2.2rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .college-motto {
+            font-size: 1.3rem;
+            color: #6366f1;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 15px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            display: inline-block;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease;
+            position: relative;
+        }
+        
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+        }
+        
+        .section-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-section h3 {
+            text-align: center;
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 30px;
+        }
+        
+        .info-section p {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .info-section ul {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .info-section ol {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .info-section li {
+            margin-bottom: 10px;
+        }
+        
+        .info-section strong {
+            color: #1e293b;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            border-left: 4px solid #6366f1;
+        }
+        
+        .stat-title {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            color: #6366f1;
+            font-weight: 700;
+        }
+        
+        .stat-subtitle {
+            font-size: 1rem;
+            color: #64748b;
+            margin-top: 10px;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .service-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            border-color: #10b981;
+        }
+        
+        .service-card i {
+            font-size: 2.5rem;
+            color: #10b981;
+            margin-bottom: 15px;
+        }
+        
+        .service-card h4 {
+            color: #1e293b;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .rule-item {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .rule-item i {
+            font-size: 2rem;
+            color: #ef4444;
+            margin-bottom: 15px;
+        }
+        
+        .rule-item p {
+            color: #1e293b;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .sub-heading {
+            color: #1e293b;
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .back-home {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: white;
+            color: #6366f1;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .info-section {
+                padding: 30px 20px;
+            }
+            
+            .info-section h3 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid,
+            .services-grid,
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-book"></i> About Our Library</h1>
+            <p>Smt. Kesardevi Mishra Memorial Library - A Digital Transformation</p>
+        </div>
+        
+        <div class="college-info">
+            <div class="college-logo-large">
+                <img src="https://nesedu.in/wp-content/uploads/2025/03/d_logo@4x.png" 
+                     alt="College Logo" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9Ijc1IiBjeT0iNzUiIHI9IjYwIiBmaWxsPSIjNjM2NmYxIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI4IiBmaWxsPSJ3aGl0ZSI+TkVTPC90ZXh0Pgo8L3N2Zz4K'">
+            </div>
+            <h2>Navneet Education Society's<br>Navneet College of Arts, Science & Commerce</h2>
+            <div class="college-motto">"विद्या ददाति विनयं"<br>(Knowledge Bestows Humility)</div>
+        </div>
+        
+        <!-- Library Introduction -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <h3>About Us</h3>
+            
+            <p>The library which has now become an essential part of the social fabric has been a product of the actual needs of modern civilization.</p>
+            
+            <p>Culture is essentially a social communication of experience of our predecessors. Books have preserved this experience & the library has been disseminating it to the living individuals for further progress. Each individual has the 'Right to information'. Our library tries to do its best by satisfying the hunger for information.</p>
+            
+            <p>Navneet College Library was set up in the year 2010. The library in 2018 was named after our mentor<b> "Smt. Kesardevi R. Mishra" </b> and hence is now popularly known as <b> "Smt. Kesardevi Mishra Memorial Library".</b> The motive behind renaming the college library happens to be Smt. Kesardevi Mishra's dedication, commitment and passionately curious nature towards the "Education" even though being only a primary education recipient in her student days but she stood firmly for the cause of "Education" and helped it reach to great heights and our college happens to be a small example of her mammoth efforts. Over the years, it has been flourished in to an up to date system and fully automated library.</p>
+            
+            <p>The library was operated in a manual manner but in the year 2015 the library was automated. The software used in automation was Khoa. As per emerging needs of students the college decided to migrate the library data to KOHA Library Software in 2021.</p>
+            
+            <p>Our library has total collection of books 5808, 10 journals & magazines, 04 newspapers & 32 CD-ROMs. The facility of reading room & CD-ROM facility at digital library are made available to the students & teachers. Library also subscribes the N-LIST Program of INFLIBNET. Through N-LIST Program more than 6000+ e-journals and 3135000+ e-books in various subjects is available for the users. Digital library is well-equipped with latest infrastructure of computers, headphones & CDs. Library also provide Book Bank Scheme for economically backward and needy students.</p>
+            
+            <p>Newspapers are mirror of the world. Important articles from the newspapers are displayed on the notice board regularly. Newspaper clippings file is maintained in the library which provides a good source of references to the students as well as the staff.</p>
+            
+            <p>It is no doubt that library is the ocean of knowledge & our college strives hard to add more drops of knowledge by increasing number of books, dictionaries, encyclopaedias, yearbooks, atlases, journals, magazines, newspapers & audio-visual materials & make readily accessible to the students for improving their intellectual level.</p>
+        </div>
+        
+        <!-- Library Working Hours -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3>Library Working Hours</h3>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Library Timing</div>
+                    <div class="stat-value">9:00 AM - 5:00 PM</div>
+                    <div class="stat-subtitle">Monday to Saturday</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Reading Section</div>
+                    <div class="stat-value">9:00 AM - 4:30 PM</div>
+                    <div class="stat-subtitle">Study Facilities</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Circulation Section</div>
+                    <div class="stat-value">9:00 AM - 4:30 PM</div>
+                    <div class="stat-subtitle">Book Issue/Return</div>
+                </div>
+            </div>
+            
+            <p><strong>Note:</strong> Library will be closed on Sunday and Public Holidays.</p>
+        </div>
+        
+        <!-- Statistics of Library -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Statistics of Library</h3>
+            
+            <div class="sub-heading">Degree College Books:</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Books</div>
+                    <div class="stat-value">5808</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Volumes</div>
+                    <div class="stat-value">4640</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Titles</div>
+                    <div class="stat-value">1027</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Reference Books</div>
+                    <div class="stat-value">452</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. Text Books</div>
+                    <div class="stat-value">3944</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Donated Books</div>
+                    <div class="stat-value">1545</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Project Reports</div>
+                    <div class="stat-value">266</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Total No. books Weeded out (old Syllabus)</div>
+                    <div class="stat-value">1957</div>
+                </div>
+            </div>
+            
+            <div class="sub-heading">Junior College Books:</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total No. of Books</div>
+                    <div class="stat-value">889</div>
+                </div>
+            </div>
+            
+            <div class="sub-heading">Journal/Magazines (Printed):</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Subscriptions</div>
+                    <div class="stat-value">09</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reference and Information Service -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                <i class="fas fa-concierge-bell"></i>
+            </div>
+            <h3>Reference and Information Service</h3>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <i class="fas fa-book"></i>
+                    <h4>Book Bank</h4>
+                    <p>For economically backward students</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-user-graduate"></i>
+                    <h4>User Orientation</h4>
+                    <p>Library usage guidance</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-newspaper"></i>
+                    <h4>News Clipping Service</h4>
+                    <p>Important article collections</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-print"></i>
+                    <h4>Photo Copying and Printout</h4>
+                    <p>Document services</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-file-alt"></i>
+                    <h4>Article Indexing</h4>
+                    <p>Organized article database</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h4>Previous Year Question Papers</h4>
+                    <p>Exam preparation resources</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-star"></i>
+                    <h4>New Arrivals</h4>
+                    <p>Latest book additions</p>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-bookmark"></i>
+                    <h4>Book Corner</h4>
+                    <p>Specialized reading area</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Rules and Regulation -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>New Rules and Regulation</h3>
+            
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <i class="fas fa-calendar"></i>
+                    <p>Open 9:00 AM - 4:30 PM, Monday to Saturday</p>
+                </div>
+                
+                <div class="rule-item">
+                    <i class="fas fa-book-open"></i>
+                    <p>Open shelf facilities available</p>
+                </div>
+                
+                <div class="rule-item">
+                    <i class="fas fa-id-card"></i>
+                    <p>ID Card/Library Card mandatory</p>
+                </div>
+                
+                <div class="rule-item">
+                    <i class="fas fa-volume-mute"></i>
+                    <p>Maintain silence in reading areas</p>
+                </div>
+            </div>
+            
+            <div class="sub-heading">Library Rules:</div>
+            <ol>
+                <li>The college library is open to members of staff and students from 9.00 am to 4.30 pm. from Monday to Saturday. Library will be closed on Sunday and Public Holidays.</li>
+                <li>The library provides open shelf facilities.</li>
+                <li>In order to make use of the library, students are required to produce their identity cards / library cards.</li>
+                <li>Silence is to be maintained in and around the reading room areas of the library.</li>
+                <li>Students are requested not to upset the order of arrangement of books in the cupboards.</li>
+                <li>Smoking, eating and chewing gum in the library are not permitted.</li>
+            </ol>
+            
+            <div class="sub-heading">Circulation Section Rules:</div>
+            <ul>
+                <li><strong>Reference Books:</strong> These include encyclopaedia, dictionaries, atlases, multi volumes, art books etc. which cannot be borrowed.</li>
+                <li><strong>Senior College and Post Graduate Students:</strong> Can borrow two books which they can renew one time more.</li>
+                <li><strong>Junior College Students:</strong> Can borrow one book which they can renew one time more.</li>
+                <li><strong>Periodicals, files and projects:</strong> Are to be used only in the library.</li>
+                <li>Students must, on receiving a book, examine it, and report to the clerk any damage found therein. If they fail to do so, they will be responsible for any damaged that may be detected later.</li>
+                <li>Books lost, damaged or defaced must be paid for by the reader on whose name they were issued. The value of the books will be assigned by the librarian.</li>
+                <li>On the late submission of books fine of Rs. 5/- per day will be charged.</li>
+                <li>Ex-students of the college can become members of the library. No books are allowed for home issue, but they can do reference in the library only. Xeroxing is permitted.</li>
+            </ul>
+        </div>
+        
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>

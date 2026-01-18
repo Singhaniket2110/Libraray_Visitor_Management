@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Developer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+        
+        .developer-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            padding: 50px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .developer-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .developer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+        }
+        
+        .developer-avatar {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .developer-card:hover .developer-avatar {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .developer-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .developer-role {
+            font-size: 1.2rem;
+            color: #6366f1;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding: 8px 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .developer-description {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin: 25px 0;
+            text-align: left;
+            padding: 0 20px;
+        }
+        
+        .developer-skills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 25px 0;
+        }
+        
+        .skill-tag {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: #0369a1;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid #bae6fd;
+        }
+        
+        /* Developer Links */
+        .developer-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .dev-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        
+        .dev-github {
+            background: linear-gradient(135deg, #24292e 0%, #000000 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dev-linkedin {
+            background: linear-gradient(135deg, #0077b5 0%, #00a0dc 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 119, 181, 0.3);
+        }
+        
+        .dev-portfolio {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .dev-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Acknowledgments Section - Friends */
+        .acknowledgments-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 50px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .acknowledgments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+        
+        .acknowledgment-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-top: 4px solid #f59e0b;
+        }
+        
+        .acknowledgment-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.2);
+        }
+        
+        .friend-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+        
+        .friend-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #24292e;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 180px;
+            margin: 0 auto;
+        }
+        
+        .github-link:hover {
+            background: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-home {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: white;
+            color: #6366f1;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .developer-card {
+                padding: 30px 20px;
+            }
+            
+            .developer-name {
+                font-size: 1.6rem;
+            }
+            
+            .acknowledgments-section {
+                padding: 30px 20px;
+            }
+            
+            .developer-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .dev-link {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .acknowledgments-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-laptop-code"></i> Student Developer</h1>
+            <p>Meet the creator behind this Library Management System</p>
+        </div>
+        
+        <!-- Developer Section -->
+        <div class="developer-section">
+            <div class="developer-card">
+                <div class="developer-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="developer-name">Aniket Singh</div>
+                <div class="developer-role">B.Sc-IT Student Batch(2023-2026)</div>
+                
+                <div class="developer-description">
+                    <p>I developed this Library Visitor Management System as an independent project to help digitize our college library. Created entirely from scratch, this system features real-time entry/exit tracking, detailed reporting, and an intuitive user interface.</p>
+                    <p style="margin-top: 15px;">This project serves as a key initiative in digitizing our College Library, replacing paper-based registers with an efficient, secure, and scalable digital platform. By automating visitor management, we're enhancing security, improving data accuracy, and providing valuable insights into library usage patterns.</p>
+                </div>
+                    
+                <div class="developer-skills">
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">Flask</span>
+                    <span class="skill-tag">HTML/CSS</span>
+                    <span class="skill-tag">JavaScript</span>
+                    <span class="skill-tag">SQLite</span>
+                    <span class="skill-tag">REST API</span>
+                    <span class="skill-tag">Responsive Design</span>
+                    <span class="skill-tag">UI/UX</span>
+                    <span class="skill-tag">MySQL</span>
+                    <span class="skill-tag">Chart.js</span>
+                    <span class="skill-tag">Git</span>
+                    <span class="skill-tag">Full-Stack Development</span>
+                </div>
+                
+                <!-- Developer Links -->
+                <div class="developer-links">
+                    <a href="https://github.com/Singhaniket2110" target="_blank" class="dev-link dev-github">
+                        <i class="fab fa-github"></i>
+                        GitHub
+                    </a>
+                    
+                    <a href="https://linkedin.com/in/YOUR-LINKEDIN" target="_blank" class="dev-link dev-linkedin">
+                        <i class="fab fa-linkedin"></i>
+                        LinkedIn
+                    </a>
+                    
+                    <a href="https://singhaniket2110.github.io/Singh-Aniket/" target="_blank" class="dev-link dev-portfolio">
+                        <i class="fas fa-briefcase"></i>
+                        Portfolio
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acknowledgments Section - Friends -->
+        <div class="acknowledgments-section">
+            <h3 style="text-align: center; font-size: 2rem; color: #1e293b; margin-bottom: 30px;">
+                <i class="fas fa-star"></i> Shoutouts & Thanks
+            </h3>
+            <div class="acknowledgments-grid">
+                <!-- Friend 1 -->
+                <div class="acknowledgment-card">
+                    <div class="friend-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="friend-name">Mr. Rahul Nag</div>
+                    <a href="https://github.com/rahulnag502" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i>
+                        View GitHub
+                    </a>
+                </div>
+                
+                <!-- Friend 2 -->
+                <div class="acknowledgment-card">
+                    <div class="friend-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="friend-name">Mr. Arvind Kumar Varma</div>
+                    <a href="https://github.com/ArvindKumar24" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i>
+                        View GitHub
+                    </a>
+                </div>
+                
+                <!-- Friend 3 -->
+                <div class="acknowledgment-card">
+                    <div class="friend-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="friend-name">Ms. Jayshree Matala</div>
+                    <a href="https://github.com/friend3github" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i>
+                        View GitHub
+                    </a>
+                </div>
+                
+                <!-- Friend 4 -->
+                <div class="acknowledgment-card">
+                    <div class="friend-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="friend-name">Mr. Fakhruddin Dohadwala</div>
+                    <a href="https://github.com/friend4github" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i>
+                        View GitHub
+                    </a>
+                </div>
+                
+                <!-- Friend 5 -->
+                <div class="acknowledgment-card">
+                    <div class="friend-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="friend-name">Mr. Krishna Rai</div>
+                    <a href="https://github.com/friend5github" target="_blank" class="github-link">
+                        <i class="fab fa-github"></i>
+                        View GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>

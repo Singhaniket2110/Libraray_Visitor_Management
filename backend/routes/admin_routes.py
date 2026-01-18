@@ -1,0 +1,585 @@
+from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for, send_file
+from functools import wraps
+from datetime import datetime, timedelta
+from collections import Counter
+import json
+import io
+import csv
+import pandas as pd
+
+# First define the Blueprint
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+# Custom login_required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            return jsonify({'error': 'Authentication required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Import Supabase database and models
+from backend.supabase_db import SupabaseDatabase as Database
+from backend.models.visitor_model import get_all_visitors, get_today_visitors, get_filtered_visitors, get_visitors_by_date_range
+
+# ==================== AUTHENTICATION ROUTES ====================
+
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def admin_login():
+    """Admin login page and authentication"""
+    if request.method == 'GET':
+        return render_template('login.html')
+    
+    # POST: Process login
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Check credentials in Supabase
+        query = "SELECT * FROM admin WHERE username = %s AND password = %s"
+        admin = Database.execute_query(query, (username, password), fetch=True)
+        
+        if admin:
+            # Set session
+            session['admin_logged_in'] = True
+            session['admin_username'] = username
+            session.permanent = True
+            
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'redirect': '/admin/dashboard'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid credentials'
+            }), 401
+            
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return jsonify({'error': 'Login failed'}), 500
+
+# ==================== ADD VISITOR (ADMIN ONLY) ====================
+
+@admin_bp.route('/add_visitor', methods=['POST'])
+@login_required
+def add_visitor_admin():
+    """Add visitor with custom date and time - Admin only"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['name', 'roll_no', 'level', 'purpose', 'visit_date', 'entry_time']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"error": f"{field} is required"}), 400
+        
+        # Additional validation for JC
+        if data.get('level') == 'JC':
+            if not data.get('jc_year') or not data.get('jc_stream'):
+                return jsonify({"error": "JC Year and Stream are required for JC students"}), 400
+        else:
+            if not data.get('course'):
+                return jsonify({"error": "Course is required for UG/PG students"}), 400
+        
+        # Calculate visit day from date
+        visit_date_obj = datetime.strptime(data['visit_date'], '%Y-%m-%d')
+        visit_day = visit_date_obj.strftime('%A')
+        
+        # Prepare query based on level
+        if data['level'] == 'JC':
+            query = """
+                INSERT INTO visitors
+                (name, roll_no, level, course, jc_year, jc_stream, purpose, entry_time, exit_time, visit_date, visit_day)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """
+            
+            values = (
+                data['name'].strip(),
+                data['roll_no'].strip().upper(),
+                data['level'],
+                data.get('course', 'Junior College'),
+                data.get('jc_year'),
+                data.get('jc_stream'),
+                data['purpose'],
+                data['entry_time'],
+                data.get('exit_time'),
+                data['visit_date'],
+                visit_day
+            )
+        else:
+            query = """
+                INSERT INTO visitors
+                (name, roll_no, level, course, year, purpose, entry_time, exit_time, visit_date, visit_day)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """
+            
+            values = (
+                data['name'].strip(),
+                data['roll_no'].strip().upper(),
+                data['level'],
+                data['course'],
+                data.get('year'),
+                data['purpose'],
+                data['entry_time'],
+                data.get('exit_time'),
+                data['visit_date'],
+                visit_day
+            )
+        
+        result = Database.execute_query(query, values, fetch=True)
+        visitor_id = result['id'] if result else None
+        
+        return jsonify({
+            "success": True,
+            "message": "Visitor added successfully",
+            "visitor_id": visitor_id
+        }), 201
+        
+    except Exception as e:
+        print(f"Error adding visitor: {e}")
+        return jsonify({"error": f"Failed to add visitor: {str(e)}"}), 500
+
+@admin_bp.route('/logout')
+def admin_logout():
+    """Logout admin"""
+    session.clear()
+    return redirect('/admin/login')
+
+@admin_bp.route('/check_session')
+def check_session():
+    """Check if admin is logged in"""
+    return jsonify({
+        'logged_in': session.get('admin_logged_in', False),
+        'username': session.get('admin_username')
+    })
+
+# ==================== DASHBOARD ROUTES ====================
+
+@admin_bp.route('/dashboard')
+@login_required
+def admin_dashboard():
+    """Admin dashboard"""
+    return render_template('dashboard.html')
+
+# ==================== VISITOR MANAGEMENT ROUTES ====================
+
+@admin_bp.route('/visitors/today')
+@login_required
+def today_visitors():
+    """Get today's visitors"""
+    try:
+        visitors = get_today_visitors()
+        return jsonify(visitors), 200
+    except Exception as e:
+        print(f"Error getting today's visitors: {e}")
+        return jsonify({"error": "Error fetching data"}), 500
+
+@admin_bp.route('/visitors/all')
+@login_required
+def all_visitors():
+    """Get all visitors"""
+    try:
+        visitors = get_all_visitors()
+        return jsonify(visitors), 200
+    except Exception as e:
+        print(f"Error getting all visitors: {e}")
+        return jsonify({"error": "Error fetching data"}), 500
+
+@admin_bp.route('/visitors/filter')
+@login_required
+def filtered_visitors():
+    """Get filtered visitors"""
+    try:
+        level = request.args.get('level', '')
+        date = request.args.get('date', '')
+        
+        visitors = get_filtered_visitors(level, date)
+        return jsonify(visitors), 200
+    except Exception as e:
+        print(f"Error filtering visitors: {e}")
+        return jsonify({"error": "Error filtering data"}), 500
+
+# ==================== ANALYTICS ROUTES ====================
+
+@admin_bp.route('/analytics/advanced')
+@login_required
+def advanced_analytics():
+    """Get advanced analytics data"""
+    try:
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        
+        # Validate dates
+        if not start_date or start_date == 'null':
+            start_date = datetime.now().date().isoformat()
+        if not end_date or end_date == 'null':
+            end_date = datetime.now().date().isoformat()
+        
+        # Get visitors for date range
+        visitors = get_visitors_by_date_range(start_date, end_date)
+        
+        # Basic stats
+        total = len(visitors)
+        active = sum(1 for v in visitors if v.get('exit_time') is None)
+        
+        # Level distribution
+        level_counts = Counter(v.get('level', 'Unknown') for v in visitors)
+        
+        # Course distribution
+        course_counts = Counter()
+        for v in visitors:
+            if v.get('level') == 'JC':
+                course = v.get('jc_stream', 'Unknown')
+            else:
+                course = v.get('course', 'Unknown')
+            course_counts[course] += 1
+        
+        # Purpose distribution
+        purpose_counts = Counter(v.get('purpose', 'Other') for v in visitors)
+        
+        # Daily trend
+        daily_counts = {}
+        for v in visitors:
+            date = v.get('visit_date')
+            if date:
+                date_str = str(date)
+                daily_counts[date_str] = daily_counts.get(date_str, 0) + 1
+        
+        # Sort dates
+        sorted_dates = sorted(daily_counts.keys())
+        
+        # Peak hours analysis
+        hour_counts = {hour: 0 for hour in range(8, 21)}
+        for v in visitors:
+            if v.get('entry_time'):
+                try:
+                    entry_time = str(v['entry_time'])
+                    hour = int(entry_time.split(':')[0])
+                    if 8 <= hour <= 20:
+                        hour_counts[hour] = hour_counts.get(hour, 0) + 1
+                except:
+                    pass
+        
+        # Average duration
+        durations = []
+        for v in visitors:
+            if v.get('entry_time') and v.get('exit_time'):
+                try:
+                    entry_str = str(v['entry_time'])
+                    exit_str = str(v['exit_time'])
+                    
+                    entry = datetime.strptime(entry_str, '%H:%M:%S')
+                    exit_time = datetime.strptime(exit_str, '%H:%M:%S')
+                    
+                    if exit_time < entry:
+                        exit_time = datetime.combine(
+                            exit_time.date() + timedelta(days=1),
+                            exit_time.time()
+                        )
+                    
+                    duration = (exit_time - entry).total_seconds() / 60
+                    if duration >= 0:
+                        durations.append(duration)
+                except:
+                    pass
+        
+        avg_duration = sum(durations) / len(durations) if durations else 0
+        
+        # Prepare response
+        response_data = {
+            'stats': {
+                'total': total,
+                'active': active,
+                'avgDuration': round(avg_duration, 1)
+            },
+            'levelData': {
+                'labels': list(level_counts.keys()),
+                'values': list(level_counts.values()),
+                'colors': ['#f59e0b', '#10b981', '#8b5cf6']
+            },
+            'courseData': {
+                'labels': [c[0] for c in course_counts.most_common(10)],
+                'values': [c[1] for c in course_counts.most_common(10)]
+            },
+            'purposeData': {
+                'labels': list(purpose_counts.keys()),
+                'values': list(purpose_counts.values())
+            },
+            'dailyTrend': {
+                'labels': [str(d) for d in sorted_dates],
+                'values': [daily_counts[d] for d in sorted_dates]
+            },
+            'peakHours': {
+                'labels': [f"{h}:00" for h in range(8, 21)],
+                'values': [hour_counts[h] for h in range(8, 21)]
+            },
+            'visitors': visitors
+        }
+        
+        return jsonify(response_data), 200
+        
+    except Exception as e:
+        print(f"Analytics error: {e}")
+        return jsonify({"error": f"Error fetching analytics: {str(e)}"}), 500
+
+# ==================== DATA IMPORT/EXPORT ROUTES ====================
+
+@admin_bp.route('/import_data', methods=['POST'])
+@login_required
+def import_data():
+    """Import data from CSV or Excel"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file uploaded"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+        
+        # Check file extension
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        elif file.filename.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file)
+        else:
+            return jsonify({"error": "Unsupported file format. Use CSV or Excel."}), 400
+        
+        # Validate required columns
+        required_columns = ['name', 'roll_no', 'level', 'purpose']
+        for col in required_columns:
+            if col not in df.columns:
+                return jsonify({"error": f"Missing required column: {col}"}), 400
+        
+        # Process and insert data
+        imported_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Prepare visitor data
+                visitor_data = {
+                    'name': str(row['name']).strip(),
+                    'roll_no': str(row['roll_no']).strip().upper(),
+                    'level': str(row['level']).strip().upper(),
+                    'purpose': str(row['purpose']).strip()
+                }
+                
+                # Add optional fields
+                if 'course' in df.columns:
+                    visitor_data['course'] = str(row['course']).strip()
+                else:
+                    visitor_data['course'] = 'Not Specified'
+                
+                if 'year' in df.columns:
+                    visitor_data['year'] = str(row['year']).strip() if pd.notna(row['year']) else None
+                
+                if 'jc_year' in df.columns and pd.notna(row.get('jc_year')):
+                    visitor_data['jc_year'] = str(row['jc_year']).strip()
+                
+                if 'jc_stream' in df.columns and pd.notna(row.get('jc_stream')):
+                    visitor_data['jc_stream'] = str(row['jc_stream']).strip()
+                
+                # Set visit day
+                visit_day = datetime.now().strftime('%A')
+                
+                # Insert into database
+                if visitor_data['level'] == 'JC':
+                    query = """
+                        INSERT INTO visitors
+                        (name, roll_no, level, course, jc_year, jc_stream, purpose, visit_day)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    values = (
+                        visitor_data['name'],
+                        visitor_data['roll_no'],
+                        visitor_data['level'],
+                        visitor_data.get('course', 'Junior College'),
+                        visitor_data.get('jc_year'),
+                        visitor_data.get('jc_stream'),
+                        visitor_data['purpose'],
+                        visit_day
+                    )
+                else:
+                    query = """
+                        INSERT INTO visitors
+                        (name, roll_no, level, course, year, purpose, visit_day)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """
+                    values = (
+                        visitor_data['name'],
+                        visitor_data['roll_no'],
+                        visitor_data['level'],
+                        visitor_data['course'],
+                        visitor_data.get('year'),
+                        visitor_data['purpose'],
+                        visit_day
+                    )
+                
+                Database.execute_query(query, values)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Row {index + 1}: {str(e)}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Imported {imported_count} records successfully",
+            "errors": errors[:10] if errors else []
+        }), 200
+        
+    except Exception as e:
+        print(f"Import error: {e}")
+        return jsonify({"error": f"Import failed: {str(e)}"}), 500
+
+@admin_bp.route('/export_data', methods=['GET'])
+@login_required
+def export_data():
+    """Export data to CSV or Excel"""
+    try:
+        format_type = request.args.get('format', 'csv')
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        
+        # Get data
+        if start_date and end_date:
+            visitors = get_visitors_by_date_range(start_date, end_date)
+        else:
+            visitors = get_all_visitors()
+        
+        if format_type == 'csv':
+            # Create CSV
+            output = io.StringIO()
+            writer = csv.writer(output)
+            
+            # Write header
+            writer.writerow([
+                'ID', 'Name', 'Roll No', 'Level', 'Course', 
+                'Year', 'JC Year', 'JC Stream', 'Purpose',
+                'Entry Time', 'Exit Time', 'Visit Date', 'Day'
+            ])
+            
+            # Write data
+            for v in visitors:
+                writer.writerow([
+                    v.get('id', ''),
+                    v.get('name', ''),
+                    v.get('roll_no', ''),
+                    v.get('level', ''),
+                    v.get('course', ''),
+                    v.get('year', ''),
+                    v.get('jc_year', ''),
+                    v.get('jc_stream', ''),
+                    v.get('purpose', ''),
+                    str(v.get('entry_time', '')),
+                    str(v.get('exit_time', '')),
+                    str(v.get('visit_date', '')),
+                    v.get('visit_day', '')
+                ])
+            
+            output.seek(0)
+            return send_file(
+                io.BytesIO(output.getvalue().encode('utf-8')),
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.csv'
+            )
+        
+        elif format_type == 'excel':
+            # Create Excel using pandas
+            data = []
+            for v in visitors:
+                data.append({
+                    'ID': v.get('id', ''),
+                    'Name': v.get('name', ''),
+                    'Roll No': v.get('roll_no', ''),
+                    'Level': v.get('level', ''),
+                    'Course': v.get('course', ''),
+                    'Year': v.get('year', ''),
+                    'JC Year': v.get('jc_year', ''),
+                    'JC Stream': v.get('jc_stream', ''),
+                    'Purpose': v.get('purpose', ''),
+                    'Entry Time': str(v.get('entry_time', '')),
+                    'Exit Time': str(v.get('exit_time', '')),
+                    'Visit Date': str(v.get('visit_date', '')),
+                    'Day': v.get('visit_day', '')
+                })
+            
+            df = pd.DataFrame(data)
+            output = io.BytesIO()
+            
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Visitors', index=False)
+            
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.xlsx'
+            )
+        
+        else:
+            return jsonify({"error": "Invalid format"}), 400
+            
+    except Exception as e:
+        print(f"Export error: {e}")
+        return jsonify({"error": "Export failed"}), 500
+
+# ==================== BULK ACTIONS ROUTE ====================
+
+@admin_bp.route('/bulk_actions', methods=['POST'])
+@login_required
+def bulk_actions():
+    """Perform bulk actions on visitors"""
+    try:
+        data = request.json
+        action = data.get('action')
+        visitor_ids = data.get('visitor_ids', [])
+        
+        if not visitor_ids:
+            return jsonify({"error": "No visitors selected"}), 400
+        
+        if action == 'mark_exit':
+            # Mark multiple visitors as exited
+            success_count = 0
+            for visitor_id in visitor_ids:
+                try:
+                    query = "UPDATE visitors SET exit_time = CURRENT_TIME WHERE id = %s"
+                    Database.execute_query(query, (visitor_id,))
+                    success_count += 1
+                except:
+                    pass
+            
+            return jsonify({
+                "success": True,
+                "message": f"Marked {success_count} visitors as exited"
+            }), 200
+        
+        elif action == 'delete':
+            # Delete multiple visitors
+            success_count = 0
+            for visitor_id in visitor_ids:
+                try:
+                    query = "DELETE FROM visitors WHERE id = %s"
+                    Database.execute_query(query, (visitor_id,))
+                    success_count += 1
+                except:
+                    pass
+            
+            return jsonify({
+                "success": True,
+                "message": f"Deleted {success_count} visitors"
+            }), 200
+        
+        else:
+            return jsonify({"error": "Invalid action"}), 400
+            
+    except Exception as e:
+        print(f"Bulk action error: {e}")
+        return jsonify({"error": "Bulk action failed"}), 500

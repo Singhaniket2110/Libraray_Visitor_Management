@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Services | Navneet College</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+        
+        .college-info {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            margin-bottom: 40px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .college-logo-large {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border: 3px solid #6366f1;
+        }
+        
+        .college-logo-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        
+        .college-info h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .college-motto {
+            font-size: 1.1rem;
+            color: #6366f1;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 15px;
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            display: inline-block;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--card-color-1), var(--card-color-2));
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            border-color: var(--card-color-1);
+        }
+        
+        /* Color schemes for different cards */
+        .service-card:nth-child(1) { --card-color-1: #6366f1; --card-color-2: #8b5cf6; }
+        .service-card:nth-child(2) { --card-color-1: #10b981; --card-color-2: #059669; }
+        .service-card:nth-child(3) { --card-color-1: #f59e0b; --card-color-2: #f97316; }
+        .service-card:nth-child(4) { --card-color-1: #ec4899; --card-color-2: #db2777; }
+        .service-card:nth-child(5) { --card-color-1: #3b82f6; --card-color-2: #2563eb; }
+        .service-card:nth-child(6) { --card-color-1: #ef4444; --card-color-2: #dc2626; }
+        .service-card:nth-child(7) { --card-color-1: #8b5cf6; --card-color-2: #7c3aed; }
+        .service-card:nth-child(8) { --card-color-1: #14b8a6; --card-color-2: #0d9488; }
+        
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .service-card h3 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .service-card p {
+            color: #64748b;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .service-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .service-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .service-link i {
+            font-size: 1.2rem;
+        }
+        
+        .back-home {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: white;
+            color: #6366f1;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .service-card {
+                padding: 25px;
+            }
+            
+            .service-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-book-reader"></i> Library Services</h1>
+            <p>Access Digital Resources & Collections</p>
+        </div>
+        
+        <div class="college-info">
+            <div class="college-logo-large">
+                <img src="https://nesedu.in/wp-content/uploads/2025/03/d_logo@4x.png" 
+                     alt="College Logo" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjUwIiBmaWxsPSIjNjM2NmYxIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSI+TkVTPC90ZXh0Pgo8L3N2Zz4K'">
+            </div>
+            <h2>Smt. Kesardevi Mishra Memorial Library</h2>
+            <div class="college-motto">Navneet College of Arts, Science & Commerce</div>
+        </div>
+        
+        <div class="services-grid">
+            <!-- Service 1: News Clippings -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <h3>News Clippings</h3>
+                <p>Access curated collection of important newspaper articles and current affairs</p>
+                <a href="https://drive.google.com/drive/u/1/folders/15COPU9iwEZeNcIxWFTB_Y_F01Aiuqy7u" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    View Collection
+                </a>
+            </div>
+            
+            <!-- Service 2: Previous Year Question Papers -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Previous Year Question Papers</h3>
+                <p>Browse through past examination papers for effective exam preparation</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1cWMxnHeYu6Tjmv3HNV6smNjS6nE3mnSE" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    View Papers
+                </a>
+            </div>
+            
+            <!-- Service 3: Article Indexing -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h3>Article Indexing</h3>
+                <p>Organized database of indexed articles for quick research and reference</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1vGxQjc9Nxz8QKBlRKMjYPkvL_Fki0mE3" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    Browse Index
+                </a>
+            </div>
+            
+            <!-- Service 4: Journal and Magazine -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>Journals & Magazines</h3>
+                <p>Digital collection of academic journals and educational magazines</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1tpj_klju4bGVu-FmrrBL7wB2chZigPek" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    Access Journals
+                </a>
+            </div>
+            
+            <!-- Service 5: Online Resources -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Online Resources</h3>
+                <p>Comprehensive collection of digital learning materials and e-resources</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1wVmj2sSfX-sZzeQDLyWjR0Rli4yzqdFu" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    Explore Resources
+                </a>
+            </div>
+            
+            <!-- Service 6: Library Notice -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <h3>Library Notices</h3>
+                <p>Latest announcements, updates, and important information from the library</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1IWlp4JTyKHvY7fgTvsPnUVnJvfCerMLc" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    View Notices
+                </a>
+            </div>
+            
+            <!-- Service 7: New Arrivals Books -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>New Arrivals</h3>
+                <p>Discover the latest books and materials added to our library collection</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1kTC0xpSBByNWA8xHPz58BJh8iSHROLpY" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    View New Books
+                </a>
+            </div>
+            
+            <!-- Service 8: Book Corner -->
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <h3>Book Corner</h3>
+                <p>Curated recommendations and featured books from our special collection</p>
+                <a href="https://drive.google.com/drive/u/1/folders/1sIvOsKeeXrbKn6P0601KLhwPFODCXs2L" 
+                   target="_blank" 
+                   class="service-link">
+                    <i class="fab fa-google-drive"></i>
+                    Visit Corner
+                </a>
+            </div>
+        </div>
+        
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>
