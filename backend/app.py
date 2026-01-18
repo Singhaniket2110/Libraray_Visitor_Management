@@ -4,25 +4,15 @@ from backend.config import Config
 import os
 
 def create_app():
-    # Get the base directory (project root)
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     
     app = Flask(__name__, 
                 template_folder=os.path.join(basedir, 'templates'),
                 static_folder=os.path.join(basedir, 'static'))
     
-    # Load configuration
     app.config.from_object(Config)
     
-    # Create flask_session directory if it doesn't exist
-    session_dir = os.path.join(basedir, 'flask_session')
-    if not os.path.exists(session_dir):
-        os.makedirs(session_dir)
-    
-    # Set session directory
-    app.config['SESSION_FILE_DIR'] = session_dir
-    
-    # Initialize Session BEFORE registering blueprints
+    # ⚠️ VERCEL FIX: Initialize session BEFORE any route
     sess = Session()
     sess.init_app(app)
     
@@ -31,20 +21,10 @@ def create_app():
     def before_request():
         session.modified = True
     
-    print("✅ Session initialized successfully")
+    print("✅ Session initialized for Vercel")
     
-    # Debug route to check session
-    @app.route('/debug_session')
-    def debug_session():
-        return {
-            'session_id': session.sid if hasattr(session, 'sid') else 'no sid',
-            'session_data': dict(session),
-            'admin_logged_in': session.get('admin_logged_in', False),
-            'admin_username': session.get('admin_username', None)
-        }
-    print("✅ Debug session route added")
     
-    # Import and register blueprints
+    # Import blueprints
     from backend.routes.student_routes import student_bp
     from backend.routes.admin_routes import admin_bp
     
@@ -622,6 +602,10 @@ def create_app():
     @app.route('/services')
     def services():
         return render_template('library_services.html')
+
+     @app.route('/api/health')
+    def health():
+        return {'status': 'ok', 'message': 'Server is running'}
     
     # Error handlers
     @app.errorhandler(404)
@@ -651,5 +635,6 @@ def create_app():
         </body>
         </html>
         ''', 500
+
 
     return app
