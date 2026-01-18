@@ -4,15 +4,22 @@ from backend.config import Config
 import os
 
 def create_app():
+    # Get the base directory (project root)
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     
     app = Flask(__name__, 
                 template_folder=os.path.join(basedir, 'templates'),
                 static_folder=os.path.join(basedir, 'static'))
     
+    # Load configuration
     app.config.from_object(Config)
     
-    # ⚠️ VERCEL FIX: Initialize session BEFORE any route
+    # 🚀 VERCEL FIX: No file system access in serverless
+    # Remove all file system session code
+    
+    print("🚀 Starting Library Visitor System on Vercel...")
+    
+    # Initialize Session BEFORE registering blueprints
     sess = Session()
     sess.init_app(app)
     
@@ -21,10 +28,9 @@ def create_app():
     def before_request():
         session.modified = True
     
-    print("✅ Session initialized for Vercel")
+    print("✅ Session initialized successfully for Vercel")
     
-    
-    # Import blueprints
+    # Import and register blueprints
     from backend.routes.student_routes import student_bp
     from backend.routes.admin_routes import admin_bp
     
@@ -36,8 +42,7 @@ def create_app():
     # Home route with college logo
     @app.route('/')
     def index():
-        return '''
-<!DOCTYPE html>
+        return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -580,8 +585,7 @@ def create_app():
         </div>
     </div>
 </body>
-</html>
-        '''
+</html>'''
     
     # About page route
     @app.route('/about')
@@ -602,39 +606,39 @@ def create_app():
     @app.route('/services')
     def services():
         return render_template('library_services.html')
-
-     @app.route('/api/health')
+    
+    # Health check endpoint for Vercel
+    @app.route('/health')
     def health():
-        return {'status': 'ok', 'message': 'Server is running'}
+        return {'status': 'healthy', 'message': 'Library Visitor System is running on Vercel'}
     
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):
-        return '''
-        <html>
-        <body style="font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc;">
-            <div style="text-align: center;">
-                <h1 style="font-size: 72px; margin: 0; color: #ef4444;">404</h1>
-                <p style="font-size: 24px; color: #64748b;">Page Not Found</p>
-                <a href="/" style="color: #6366f1; text-decoration: none; font-weight: bold;">← Go Home</a>
-            </div>
-        </body>
-        </html>
-        ''', 404
+        return '''<!DOCTYPE html>
+<html>
+<head><title>404 - Page Not Found</title></head>
+<body style="font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc;">
+    <div style="text-align: center;">
+        <h1 style="font-size: 72px; margin: 0; color: #ef4444;">404</h1>
+        <p style="font-size: 24px; color: #64748b;">Page Not Found</p>
+        <a href="/" style="color: #6366f1; text-decoration: none; font-weight: bold;">← Go Home</a>
+    </div>
+</body>
+</html>''', 404
     
     @app.errorhandler(500)
     def internal_error(e):
-        return '''
-        <html>
-        <body style="font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc;">
-            <div style="text-align: center;">
-                <h1 style="font-size: 72px; margin: 0; color: #ef4444;">500</h1>
-                <p style="font-size: 24px; color: #64748b;">Internal Server Error</p>
-                <a href="/" style="color: #6366f1; text-decoration: none; font-weight: bold;">← Go Home</a>
-            </div>
-        </body>
-        </html>
-        ''', 500
-
+        return '''<!DOCTYPE html>
+<html>
+<head><title>500 - Server Error</title></head>
+<body style="font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc;">
+    <div style="text-align: center;">
+        <h1 style="font-size: 72px; margin: 0; color: #ef4444;">500</h1>
+        <p style="font-size: 24px; color: #64748b;">Internal Server Error</p>
+        <a href="/" style="color: #6366f1; text-decoration: none; font-weight: bold;">← Go Home</a>
+    </div>
+</body>
+</html>''', 500
 
     return app
