@@ -3,7 +3,8 @@ import psycopg2
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-from datetime import datetime
+from urllib.parse import urlparse
+import time
 
 load_dotenv()
 
@@ -11,66 +12,65 @@ class SupabaseDatabase:
     _connection_pool = None
     
     @classmethod
-    def get_pool(cls):
-        """Create connection pool to Supabase"""
-        if cls._connection_pool is None:
-            try:
-                # Try DATABASE_URL first
-                database_url = os.getenv('DATABASE_URL')
-                
-                if not database_url:
-                    # Construct from Supabase components
-                    supabase_url = os.getenv('SUPABASE_URL', '').replace('https://', '')
-                    password = os.getenv('SUPABASE_DB_PASSWORD', '')
-                    
-                    if supabase_url and password:
-                        database_url = f"postgresql://postgres:{password}@db.{supabase_url}:5432/postgres"
-                    else:
-                        raise ValueError("Database connection details not found in .env")
-                
-                print(f"🔗 Connecting to: {database_url.split('@')[1] if '@' in database_url else database_url}")
-                
-                cls._connection_pool = psycopg2.pool.SimpleConnectionPool(
-                    1, 20,  # min 1, max 20 connections
-                    database_url,
-                    cursor_factory=RealDictCursor
-                )
-                print("✅ Supabase connection pool created successfully")
-                
-                # Test connection
-                conn = cls._connection_pool.getconn()
-                cur = conn.cursor()
-                cur.execute("SELECT version();")
-                db_version = cur.fetchone()
-                print(f"📊 Database version: {db_version['version'][:50]}...")
-                cur.close()
-                cls._connection_pool.putconn(conn)
-                
-            except Exception as e:
-                print(f"❌ Error creating connection pool: {str(e)}")
-                raise
+    def get_connection_string(cls):
+        """Get connection string with proper URL encoding"""
+        database_url = os.getenv('DATABASE_URL')
         
-        return cls._connection_pool
+        if database_url:
+            return database_url
+        
+        # Build from components
+        supabase_url = os.getenv('SUPABASE_URL', '').replace('https://', '')
+        password = os.getenv('SUPABASE_DB_PASSWORD', '')
+        
+        # URL encode special characters in password
+        import urllib.parse
+        encoded_password = urllib.parse.quote(password, safe='')
+        
+        return f"postgresql://postgres:{encoded_password}@db.{supabase_url}:5432/postgres"
     
     @classmethod
-    def get_connection(cls):
-        """Get connection from pool"""
-        pool = cls.get_pool()
-        return pool.getconn()
+    def get_pool(cls):
+        """Create connection pool to Supabase with retry"""
+        if cls._connection_pool is None:
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    conn_string = cls.get_connection_string()
+                    print(f"🔗 Attempt {attempt + 1}: Connecting to Supabase...")
+                    
+                    cls._connection_pool = psycopg2.pool.SimpleConnectionPool(
+                        1, 10,  # min 1, max 10 connections
+                        conn_string,
+                        cursor_factory=RealDictCursor
+                    )
+                    
+                    # Test connection
+                    conn = cls._connection_pool.getconn()
+                    cur = conn.cursor()
+                    cur.execute("SELECT 1 as test")
+                    result = cur.fetchone()
+                    cur.close()
+                    cls._connection_pool.putconn(conn)
+                    
+                    print("✅ Supabase connection established successfully!")
+                    break
+                    
+                except Exception as e:
+                    print(f"❌ Connection attempt {attempt + 1} failed: {str(e)[:100]}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2)  # Wait before retry
+                    else:
+                        raise
     
     @classmethod
-    def return_connection(cls, connection):
-        """Return connection to pool"""
-        pool = cls.get_pool()
-        pool.putconn(connection)
-    
-    @classmethod
-    def execute_query(cls, query, params=None, fetch=False, fetch_all=False):
-        """Execute query with connection pooling"""
+    def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
+        """Execute query with error handling"""
         connection = None
         cursor = None
         try:
-            connection = cls.get_connection()
+            cls.get_pool()
+            connection = cls._connection_pool.getconn()
             cursor = connection.cursor()
             
             if params:
@@ -83,29 +83,31 @@ class SupabaseDatabase:
             elif fetch_all:
                 result = cursor.fetchall()
             else:
-                connection.commit()
-                result = cursor.rowcount if 'INSERT' not in query.upper() else cursor.fetchone()
+                if commit:
+                    connection.commit()
+                result = cursor.rowcount
             
             return result
             
         except Exception as e:
-            print(f"❌ Database query error: {e}")
-            print(f"Query: {query}")
-            print(f"Params: {params}")
+            print(f"❌ Database error: {str(e)}")
+            print(f"Query: {query[:100]}...")
             if connection:
                 connection.rollback()
+            # Recreate pool if connection failed
+            cls._connection_pool = None
             raise
         finally:
             if cursor:
                 cursor.close()
-            if connection:
-                cls.return_connection(connection)
+            if connection and cls._connection_pool:
+                cls._connection_pool.putconn(connection)
     
     @classmethod
-    def create_tables(cls):
-        """Create necessary tables if they don't exist"""
+    def init_database(cls):
+        """Initialize database tables"""
         try:
-            # Create admin table
+            # Create admin table if not exists
             cls.execute_query("""
                 CREATE TABLE IF NOT EXISTS admin (
                     id SERIAL PRIMARY KEY,
@@ -113,14 +115,14 @@ class SupabaseDatabase:
                     password VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """)
+            """, commit=False)
             
-            # Insert default admin
+            # Insert default admin (plain text password for now)
             cls.execute_query("""
                 INSERT INTO admin (username, password) 
                 VALUES ('admin', 'admin123')
                 ON CONFLICT (username) DO NOTHING
-            """)
+            """, commit=False)
             
             # Create visitors table
             cls.execute_query("""
@@ -140,27 +142,23 @@ class SupabaseDatabase:
                     visit_day VARCHAR(10) NOT NULL,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """)
+            """, commit=False)
             
             # Create indexes
-            cls.execute_query("CREATE INDEX IF NOT EXISTS idx_visit_date ON visitors(visit_date)")
-            cls.execute_query("CREATE INDEX IF NOT EXISTS idx_level ON visitors(level)")
-            cls.execute_query("CREATE INDEX IF NOT EXISTS idx_roll_no ON visitors(roll_no)")
+            for index_query in [
+                "CREATE INDEX IF NOT EXISTS idx_visit_date ON visitors(visit_date)",
+                "CREATE INDEX IF NOT EXISTS idx_level ON visitors(level)",
+                "CREATE INDEX IF NOT EXISTS idx_roll_no ON visitors(roll_no)"
+            ]:
+                cls.execute_query(index_query, commit=False)
             
-            print("✅ Supabase tables created/verified successfully")
+            print("✅ Database tables initialized successfully")
             
         except Exception as e:
-            print(f"⚠️  Note: {e}")
-    
-    @classmethod
-    def close_pool(cls):
-        """Close all connections in pool"""
-        if cls._connection_pool:
-            cls._connection_pool.closeall()
-            print("✅ Connection pool closed")
+            print(f"⚠️ Database init note: {str(e)[:100]}")
 
-# Initialize database on import
+# Initialize on import
 try:
-    SupabaseDatabase.create_tables()
+    SupabaseDatabase.init_database()
 except Exception as e:
-    print(f"ℹ️  Database initialization note: {e}")
+    print(f"ℹ️ Database initialization: {str(e)[:100]}")
