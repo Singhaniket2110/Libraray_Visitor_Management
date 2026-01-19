@@ -1,60 +1,49 @@
-from flask import Flask, render_template, session
-from flask_session import Session
+from flask import Flask, render_template, session, jsonify
 from backend.config import Config
 import os
 
 def create_app():
-    # Get the base directory
-    basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    
     app = Flask(__name__, 
-                template_folder=os.path.join(basedir, 'templates'),
-                static_folder=os.path.join(basedir, 'static'))
+                static_folder='static',
+                template_folder='templates')
     
-    # Load configuration
+    # Load config
     app.config.from_object(Config)
     
-    # ✅ IMPORTANT: Initialize Session BEFORE any route
-    # This fixes Vercel session issues
-    Session(app)
+    # ✅ FIX: For Vercel serverless, use simple session
+    app.config.update(
+        SECRET_KEY=os.getenv('SECRET_KEY', 'fallback-secret-key'),
+        SESSION_TYPE='null',  # No session storage for serverless
+        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax'
+    )
     
-    print("✅ Flask app initialized with session support")
+    # Simple in-memory session (works for Vercel)
+    from flask.sessions import SecureCookieSessionInterface
+    app.session_interface = SecureCookieSessionInterface()
     
-    # Test route
-    @app.route('/test')
-    def test():
-        return {
-            'session_working': True,
-            'session_id': session.sid if hasattr(session, 'sid') else 'N/A',
-            'session_type': app.config.get('SESSION_TYPE', 'unknown')
-        }
+    # Test endpoint
+    @app.route('/test-api')
+    def test_api():
+        return jsonify({'status': 'ok', 'message': 'API is working'})
     
-    # Health check
-    @app.route('/health')
-    def health():
-        return {'status': 'healthy', 'message': 'Library System API is running'}
-    
-    # Database test
-    @app.route('/db-test')
-    def db_test():
+    # Database test endpoint
+    @app.route('/test-db')
+    def test_db():
         try:
             from backend.supabase_db import SupabaseDatabase
-            result = SupabaseDatabase.execute_query("SELECT COUNT(*) as count FROM admin", fetch=True)
-            return {
-                'db_status': 'connected',
-                'admin_count': result['count'] if result else 0
-            }
+            result = SupabaseDatabase.execute_query("SELECT 1 as test", fetch=True)
+            return jsonify({'db': 'connected', 'result': result})
         except Exception as e:
-            return {'db_status': 'error', 'message': str(e)}
+            return jsonify({'db': 'error', 'message': str(e)[:100]})
     
-    # Import and register blueprints
+    # Register blueprints
     from backend.routes.student_routes import student_bp
     from backend.routes.admin_routes import admin_bp
     
     app.register_blueprint(student_bp)
     app.register_blueprint(admin_bp)
-    
-    print("✅ Blueprints registered")
     
     # Home route (your hardcoded HTML)
     @app.route('/')
@@ -672,4 +661,5 @@ def create_app():
 </html>''', 500
 
     return app
+
 
