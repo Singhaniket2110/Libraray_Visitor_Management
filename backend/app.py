@@ -4,7 +4,7 @@ from backend.config import Config
 import os
 
 def create_app():
-    # Get the base directory (project root)
+    # Get the base directory
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     
     app = Flask(__name__, 
@@ -14,21 +14,38 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
-    # 🚀 VERCEL FIX: No file system access in serverless
-    # Remove all file system session code
+    # ✅ IMPORTANT: Initialize Session BEFORE any route
+    # This fixes Vercel session issues
+    Session(app)
     
-    print("🚀 Starting Library Visitor System on Vercel...")
+    print("✅ Flask app initialized with session support")
     
-    # Initialize Session BEFORE registering blueprints
-    sess = Session()
-    sess.init_app(app)
+    # Test route
+    @app.route('/test')
+    def test():
+        return {
+            'session_working': True,
+            'session_id': session.sid if hasattr(session, 'sid') else 'N/A',
+            'session_type': app.config.get('SESSION_TYPE', 'unknown')
+        }
     
-    # Force session to save
-    @app.before_request
-    def before_request():
-        session.modified = True
+    # Health check
+    @app.route('/health')
+    def health():
+        return {'status': 'healthy', 'message': 'Library System API is running'}
     
-    print("✅ Session initialized successfully for Vercel")
+    # Database test
+    @app.route('/db-test')
+    def db_test():
+        try:
+            from backend.supabase_db import SupabaseDatabase
+            result = SupabaseDatabase.execute_query("SELECT COUNT(*) as count FROM admin", fetch=True)
+            return {
+                'db_status': 'connected',
+                'admin_count': result['count'] if result else 0
+            }
+        except Exception as e:
+            return {'db_status': 'error', 'message': str(e)}
     
     # Import and register blueprints
     from backend.routes.student_routes import student_bp
@@ -37,9 +54,9 @@ def create_app():
     app.register_blueprint(student_bp)
     app.register_blueprint(admin_bp)
     
-    print("✅ Blueprints registered successfully")
+    print("✅ Blueprints registered")
     
-    # Home route with college logo
+    # Home route (your hardcoded HTML)
     @app.route('/')
     def index():
         return '''<!DOCTYPE html>
@@ -299,7 +316,7 @@ def create_app():
         .hero h1 {
             color: var(--dark);
             margin-bottom: 25px;
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 900;
             background: linear-gradient(135deg, 
                 #6366f1 0%, 
@@ -530,6 +547,16 @@ def create_app():
                 font-size: 0.9rem;
             }
         }
+        @media (max-width: 768px) {
+    .hero h1.hero-title {
+        font-size: 2.2rem;
+    }
+
+    .hero h1.hero-title span {
+        font-size: 1.6rem;
+    }
+}
+
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -549,7 +576,10 @@ def create_app():
             </div>
             
             <div class="hero-icon">📚</div>
-            <h1>Library Visitor Management System</h1>
+           <h1 class="hero-title">
+    Smt. Kesardevi Mishra Memorial Library<br>
+    <span>Visitors and Digital Resource Management System</span>
+</h1>
             <p>Welcome to our advanced library management platform. Streamline visitor tracking, enhance security, and optimize library operations with our intuitive, feature-rich system designed for modern educational institutions.</p>
             
             <div class="hero-buttons">
@@ -642,3 +672,4 @@ def create_app():
 </html>''', 500
 
     return app
+
