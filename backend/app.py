@@ -3,40 +3,60 @@ from backend.config import Config
 import os
 
 def create_app():
+    # ✅ FIX: Get ABSOLUTE path for Vercel
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)  # Go up one level
+    
+    template_path = os.path.join(project_root, 'templates')
+    static_path = os.path.join(project_root, 'static')
+    
+    # Debug print (check Vercel logs)
+    print(f"🔍 Current dir: {current_dir}")
+    print(f"🔍 Project root: {project_root}")
+    print(f"📁 Template path: {template_path}")
+    print(f"📁 Static path: {static_path}")
+    print(f"📁 Templates exist: {os.path.exists(template_path)}")
+    
+    # List files in templates (debug)
+    if os.path.exists(template_path):
+        print(f"📄 Template files: {os.listdir(template_path)}")
+    
     app = Flask(__name__, 
-                static_folder='static',
-                template_folder='templates')
+                static_folder=static_path,
+                template_folder=template_path)
     
     # Load config
     app.config.from_object(Config)
     
-    # ✅ FIX: For Vercel serverless, use simple session
+    # ✅ FIX: For Vercel serverless
     app.config.update(
         SECRET_KEY=os.getenv('SECRET_KEY', 'fallback-secret-key'),
-        SESSION_TYPE='null',  # No session storage for serverless
+        SESSION_TYPE='null',
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax'
     )
     
-    # Simple in-memory session (works for Vercel)
+    # Simple session for Vercel
     from flask.sessions import SecureCookieSessionInterface
     app.session_interface = SecureCookieSessionInterface()
     
-    # Test endpoint
-    @app.route('/test-api')
-    def test_api():
-        return jsonify({'status': 'ok', 'message': 'API is working'})
-    
-    # Database test endpoint
-    @app.route('/test-db')
-    def test_db():
+    # ✅ TEST ROUTE - Check if templates work
+    @app.route('/test-template')
+    def test_template():
         try:
-            from backend.supabase_db import SupabaseDatabase
-            result = SupabaseDatabase.execute_query("SELECT 1 as test", fetch=True)
-            return jsonify({'db': 'connected', 'result': result})
+            return render_template('login.html')
         except Exception as e:
-            return jsonify({'db': 'error', 'message': str(e)[:100]})
+            return jsonify({
+                'error': str(e),
+                'template_path': template_path,
+                'templates_exist': os.path.exists(template_path)
+            }), 500
+    
+    # Health check
+    @app.route('/health')
+    def health():
+        return jsonify({'status': 'healthy'})
     
     # Register blueprints
     from backend.routes.student_routes import student_bp
@@ -661,5 +681,6 @@ def create_app():
 </html>''', 500
 
     return app
+
 
 
