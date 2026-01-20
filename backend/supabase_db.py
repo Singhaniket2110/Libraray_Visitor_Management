@@ -1,15 +1,14 @@
 import os
 import psycopg2
-from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-from urllib.parse import urlparse
 import time
 
 load_dotenv()
 
 class SupabaseDatabase:
-    _connection_pool = None
+    # ❌ Don't use connection pooling in serverless
+    # Each function invocation should create/close its own connection
     
     @classmethod
     def get_connection_string(cls):
@@ -30,47 +29,23 @@ class SupabaseDatabase:
         return f"postgresql://postgres:{encoded_password}@db.{supabase_url}:5432/postgres"
     
     @classmethod
-    def get_pool(cls):
-        """Create connection pool to Supabase with retry"""
-        if cls._connection_pool is None:
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    conn_string = cls.get_connection_string()
-                    print(f"🔗 Attempt {attempt + 1}: Connecting to Supabase...")
-                    
-                    cls._connection_pool = psycopg2.pool.SimpleConnectionPool(
-                        1, 10,  # min 1, max 10 connections
-                        conn_string,
-                        cursor_factory=RealDictCursor
-                    )
-                    
-                    # Test connection
-                    conn = cls._connection_pool.getconn()
-                    cur = conn.cursor()
-                    cur.execute("SELECT 1 as test")
-                    result = cur.fetchone()
-                    cur.close()
-                    cls._connection_pool.putconn(conn)
-                    
-                    print("✅ Supabase connection established successfully!")
-                    break
-                    
-                except Exception as e:
-                    print(f"❌ Connection attempt {attempt + 1} failed: {str(e)[:100]}")
-                    if attempt < max_retries - 1:
-                        time.sleep(2)  # Wait before retry
-                    else:
-                        raise
+    def get_connection(cls):
+        """Get a fresh database connection (serverless-friendly)"""
+        try:
+            conn_string = cls.get_connection_string()
+            conn = psycopg2.connect(conn_string, cursor_factory=RealDictCursor)
+            return conn
+        except Exception as e:
+            print(f"❌ Connection failed: {str(e)[:100]}")
+            raise
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
-        """Execute query with error handling"""
+        """Execute query with automatic connection management"""
         connection = None
         cursor = None
         try:
-            cls.get_pool()
-            connection = cls._connection_pool.getconn()
+            connection = cls.get_connection()
             cursor = connection.cursor()
             
             if params:
@@ -94,14 +69,12 @@ class SupabaseDatabase:
             print(f"Query: {query[:100]}...")
             if connection:
                 connection.rollback()
-            # Recreate pool if connection failed
-            cls._connection_pool = None
             raise
         finally:
             if cursor:
                 cursor.close()
-            if connection and cls._connection_pool:
-                cls._connection_pool.putconn(connection)
+            if connection:
+                connection.close()  # Always close in serverless
     
     @classmethod
     def init_database(cls):
@@ -115,14 +88,14 @@ class SupabaseDatabase:
                     password VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """, commit=False)
+            """)
             
-            # Insert default admin (plain text password for now)
+            # Insert default admin
             cls.execute_query("""
                 INSERT INTO admin (username, password) 
                 VALUES ('admin', 'admin123')
                 ON CONFLICT (username) DO NOTHING
-            """, commit=False)
+            """)
             
             # Create visitors table
             cls.execute_query("""
@@ -142,7 +115,7 @@ class SupabaseDatabase:
                     visit_day VARCHAR(10) NOT NULL,
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """, commit=False)
+            """)
             
             # Create indexes
             for index_query in [
@@ -150,15 +123,12 @@ class SupabaseDatabase:
                 "CREATE INDEX IF NOT EXISTS idx_level ON visitors(level)",
                 "CREATE INDEX IF NOT EXISTS idx_roll_no ON visitors(roll_no)"
             ]:
-                cls.execute_query(index_query, commit=False)
+                cls.execute_query(index_query)
             
             print("✅ Database tables initialized successfully")
             
         except Exception as e:
-            print(f"⚠️ Database init note: {str(e)[:100]}")
+            print(f"⚠️ Database init: {str(e)[:100]}")
 
-# Initialize on import
-try:
-    SupabaseDatabase.init_database()
-except Exception as e:
-    print(f"ℹ️ Database initialization: {str(e)[:100]}")
+# ❌ DON'T initialize on import in serverless
+# Initialize only when needed
