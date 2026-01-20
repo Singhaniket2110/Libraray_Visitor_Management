@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 import urllib.parse
+import ssl
 
 load_dotenv()
 
@@ -12,44 +13,52 @@ class SupabaseDatabase:
     def get_connection(cls):
         """Get a fresh database connection - Vercel optimized"""
         try:
-            # Method 1: Try DATABASE_URL first
+            # Use DATABASE_URL from your .env
             database_url = os.getenv('DATABASE_URL')
             
-            if database_url:
-                print(f"🔗 Using DATABASE_URL...")
-                conn = psycopg2.connect(
-                    database_url,
-                    cursor_factory=RealDictCursor,
-                    connect_timeout=10
-                )
-                print("✅ Connected via DATABASE_URL")
-                return conn
+            if not database_url:
+                print("❌ DATABASE_URL not found in environment")
+                raise Exception("DATABASE_URL not configured")
             
-            # Method 2: Build connection string manually
-            password = os.getenv('SUPABASE_DB_PASSWORD', '')
-            encoded_password = urllib.parse.quote(password, safe='')
+            print(f"🔗 Connecting via DATABASE_URL...")
             
-            # IMPORTANT: Use port 5432 for direct connection (not pooler)
-            connection_string = f"postgresql://postgres:{encoded_password}@db.wboxcfmizfkapdslzkks.supabase.co:5432/postgres"
+            # IMPORTANT: Parse the URL to extract components
+            parsed_url = urllib.parse.urlparse(database_url)
             
-            print(f"🔗 Connecting to Supabase directly...")
+            # Decode password if it's URL encoded
+            password = urllib.parse.unquote(parsed_url.password)
+            
+            # Build connection parameters for Vercel
+            db_params = {
+                'host': parsed_url.hostname,
+                'port': parsed_url.port or 5432,
+                'database': parsed_url.path[1:],  # Remove leading '/'
+                'user': parsed_url.username,
+                'password': password,
+                'connect_timeout': 10,
+                'sslmode': 'require',  # IMPORTANT: Supabase requires SSL
+                'sslrootcert': '/etc/ssl/certs/ca-certificates.crt',  # Vercel's cert path
+            }
             
             conn = psycopg2.connect(
-                connection_string,
-                cursor_factory=RealDictCursor,
-                connect_timeout=10
+                **db_params,
+                cursor_factory=RealDictCursor
             )
             
-            print("✅ Connected to Supabase")
+            print("✅ Connected to Supabase Database")
             return conn
             
         except Exception as e:
             print(f"❌ Connection failed: {str(e)}")
-            raise Exception(f"Database connection failed: {str(e)}")
+            # For better debugging
+            if "DATABASE_URL" in os.environ:
+                print(f"📝 DATABASE_URL present in env")
+                # Don't show full URL for security, just confirm it exists
+            raise Exception(f"Database connection failed: {str(e)[:200]}")
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
-        """Execute query with automatic connection management"""
+        """Execute query with automatic connection management - Vercel optimized"""
         connection = None
         cursor = None
         
@@ -57,11 +66,18 @@ class SupabaseDatabase:
             connection = cls.get_connection()
             cursor = connection.cursor()
             
+            # Print query for debugging (truncated)
+            if len(query) > 100:
+                print(f"📝 Executing: {query[:100]}...")
+            else:
+                print(f"📝 Executing: {query}")
+            
             if params:
                 cursor.execute(query, params)
             else:
                 cursor.execute(query)
             
+            # Handle results based on query type
             if fetch:
                 result = cursor.fetchone()
             elif fetch_all:
@@ -73,22 +89,49 @@ class SupabaseDatabase:
             
             return result
             
+        except psycopg2.OperationalError as e:
+            print(f"❌ Database operational error: {str(e)}")
+            if connection:
+                connection.rollback()
+            raise Exception(f"Database connection issue. Please try again.")
+            
         except Exception as e:
             print(f"❌ Query error: {str(e)}")
             if connection:
                 connection.rollback()
-            raise
+            raise Exception(f"Database error: {str(e)[:100]}")
             
         finally:
+            # IMPORTANT: Always close connections on Vercel
             if cursor:
                 cursor.close()
             if connection:
                 connection.close()
+                print("🔌 Connection closed")
+    
+    @classmethod
+    def test_connection(cls):
+        """Test database connection"""
+        try:
+            result = cls.execute_query("SELECT NOW() as current_time", fetch=True)
+            if result:
+                print(f"✅ Database test successful: {result}")
+                return True
+            return False
+        except Exception as e:
+            print(f"❌ Database test failed: {e}")
+            return False
     
     @classmethod
     def init_database(cls):
-        """Initialize database tables"""
+        """Initialize database tables - Vercel compatible version"""
         try:
+            print("🔄 Initializing database tables...")
+            
+            # Test connection first
+            if not cls.test_connection():
+                raise Exception("Cannot initialize - database connection failed")
+            
             # Create admin table
             cls.execute_query("""
                 CREATE TABLE IF NOT EXISTS admin (
@@ -99,7 +142,7 @@ class SupabaseDatabase:
                 )
             """)
             
-            # Insert default admin
+            # Insert default admin if not exists
             cls.execute_query("""
                 INSERT INTO admin (username, password) 
                 VALUES ('admin', 'admin123')
@@ -134,7 +177,9 @@ class SupabaseDatabase:
             ]:
                 cls.execute_query(index_query)
             
-            print("✅ Database initialized")
+            print("✅ Database initialization complete")
+            return True
             
         except Exception as e:
-            print(f"⚠️ DB init: {str(e)[:100]}")
+            print(f"⚠️ DB init error: {str(e)[:200]}")
+            return False
