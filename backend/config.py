@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
+
 load_dotenv()
 
 class Config:
@@ -7,12 +9,14 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "supabase-library-system-2024-aniket")
     DEBUG = False
     
-    # ✅ VERCEL FIX: Disable Flask-Session completely
-    SESSION_TYPE = None  # Don't use Flask-Session in serverless
-    SESSION_PERMANENT = True
-    PERMANENT_SESSION_LIFETIME = 1800  # 30 minutes
+    # JWT Configuration for serverless
+    JWT_SECRET_KEY = os.getenv("SECRET_KEY", "supabase-library-system-2024-aniket")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=12)
     
-    # Use standard Flask sessions (cookie-based)
+    # Session settings (backup)
+    SESSION_TYPE = None
+    SESSION_PERMANENT = True
+    PERMANENT_SESSION_LIFETIME = 43200  # 12 hours
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
