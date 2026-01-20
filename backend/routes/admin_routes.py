@@ -1,27 +1,62 @@
-from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for, send_file
+from flask import Blueprint, jsonify, request, render_template, make_response
 from functools import wraps
 from datetime import datetime, timedelta
-from collections import Counter
 import json
 import io
 import csv
 import pandas as pd
+import jwt
 
-# First define the Blueprint
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-# Custom login_required decorator
+# Import database and models
+from backend.supabase_db import SupabaseDatabase as Database
+from backend.models.visitor_model import get_all_visitors, get_today_visitors, get_filtered_visitors, get_visitors_by_date_range
+from backend.config import Config
+
+# ==================== JWT HELPER FUNCTIONS ====================
+
+def create_jwt_token(username):
+    """Create JWT token for authentication"""
+    payload = {
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(hours=12),
+        'iat': datetime.utcnow()
+    }
+    token = jwt.encode(payload, Config.JWT_SECRET_KEY, algorithm='HS256')
+    return token
+
+def verify_jwt_token(token):
+    """Verify JWT token"""
+    try:
+        payload = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=['HS256'])
+        return payload['username']
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+# ==================== LOGIN REQUIRED DECORATOR ====================
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('admin_logged_in'):
-            return jsonify({'error': 'Authentication required'}), 401
+        # Get token from cookie
+        token = request.cookies.get('admin_token')
+        
+        if not token:
+            return jsonify({'error': 'Authentication required', 'redirect': '/admin/login'}), 401
+        
+        # Verify token
+        username = verify_jwt_token(token)
+        if not username:
+            return jsonify({'error': 'Invalid or expired token', 'redirect': '/admin/login'}), 401
+        
+        # Add username to request context
+        request.admin_username = username
         return f(*args, **kwargs)
+    
     return decorated_function
-
-# Import Supabase database and models
-from backend.supabase_db import SupabaseDatabase as Database
-from backend.models.visitor_model import get_all_visitors, get_today_visitors, get_filtered_visitors, get_visitors_by_date_range
 
 # ==================== AUTHENTICATION ROUTES ====================
 
@@ -34,33 +69,80 @@ def admin_login():
     # POST: Process login
     try:
         data = request.json
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({
+                'success': False,
+                'error': 'Username and password are required'
+            }), 400
         
         # Check credentials in Supabase
         query = "SELECT * FROM admin WHERE username = %s AND password = %s"
         admin = Database.execute_query(query, (username, password), fetch=True)
         
         if admin:
-            # Set session
-            session['admin_logged_in'] = True
-            session['admin_username'] = username
-            session.permanent = True
+            # Create JWT token
+            token = create_jwt_token(username)
             
-            return jsonify({
+            # Create response with token in cookie
+            response = make_response(jsonify({
                 'success': True,
                 'message': 'Login successful',
                 'redirect': '/admin/dashboard'
-            }), 200
+            }))
+            
+            # Set token in HTTP-only cookie
+            response.set_cookie(
+                'admin_token',
+                token,
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+                max_age=43200  # 12 hours
+            )
+            
+            return response, 200
         else:
             return jsonify({
                 'success': False,
-                'error': 'Invalid credentials'
+                'error': 'Invalid username or password'
             }), 401
             
     except Exception as e:
         print(f"❌ Login error: {e}")
-        return jsonify({'error': 'Login failed'}), 500
+        return jsonify({'success': False, 'error': 'Login failed. Please try again.'}), 500
+
+@admin_bp.route('/logout')
+def admin_logout():
+    """Logout admin"""
+    response = make_response(jsonify({'success': True, 'redirect': '/admin/login'}))
+    response.set_cookie('admin_token', '', expires=0)
+    return response
+
+@admin_bp.route('/check_session')
+def check_session():
+    """Check if admin is logged in"""
+    token = request.cookies.get('admin_token')
+    
+    if not token:
+        return jsonify({'logged_in': False, 'username': None})
+    
+    username = verify_jwt_token(token)
+    
+    if username:
+        return jsonify({'logged_in': True, 'username': username})
+    else:
+        return jsonify({'logged_in': False, 'username': None})
+
+# ==================== DASHBOARD ROUTES ====================
+
+@admin_bp.route('/dashboard')
+@login_required
+def admin_dashboard():
+    """Admin dashboard"""
+    return render_template('dashboard.html')
 
 # ==================== ADD VISITOR (ADMIN ONLY) ====================
 
@@ -145,28 +227,6 @@ def add_visitor_admin():
         print(f"Error adding visitor: {e}")
         return jsonify({"error": f"Failed to add visitor: {str(e)}"}), 500
 
-@admin_bp.route('/logout')
-def admin_logout():
-    """Logout admin"""
-    session.clear()
-    return redirect('/admin/login')
-
-@admin_bp.route('/check_session')
-def check_session():
-    """Check if admin is logged in"""
-    return jsonify({
-        'logged_in': session.get('admin_logged_in', False),
-        'username': session.get('admin_username')
-    })
-
-# ==================== DASHBOARD ROUTES ====================
-
-@admin_bp.route('/dashboard')
-@login_required
-def admin_dashboard():
-    """Admin dashboard"""
-    return render_template('dashboard.html')
-
 # ==================== VISITOR MANAGEMENT ROUTES ====================
 
 @admin_bp.route('/visitors/today')
@@ -225,6 +285,8 @@ def advanced_analytics():
         visitors = get_visitors_by_date_range(start_date, end_date)
         
         # Basic stats
+        from collections import Counter
+        
         total = len(visitors)
         active = sum(1 for v in visitors if v.get('exit_time') is None)
         
@@ -251,7 +313,6 @@ def advanced_analytics():
                 date_str = str(date)
                 daily_counts[date_str] = daily_counts.get(date_str, 0) + 1
         
-        # Sort dates
         sorted_dates = sorted(daily_counts.keys())
         
         # Peak hours analysis
@@ -291,7 +352,6 @@ def advanced_analytics():
         
         avg_duration = sum(durations) / len(durations) if durations else 0
         
-        # Prepare response
         response_data = {
             'stats': {
                 'total': total,
@@ -335,6 +395,8 @@ def advanced_analytics():
 def import_data():
     """Import data from CSV or Excel"""
     try:
+        from flask import send_file
+        
         if 'file' not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
         
@@ -348,7 +410,7 @@ def import_data():
         elif file.filename.endswith(('.xlsx', '.xls')):
             df = pd.read_excel(file)
         else:
-            return jsonify({"error": "Unsupported file format. Use CSV or Excel."}), 400
+            return jsonify({"error": "Unsupported file format"}), 400
         
         # Validate required columns
         required_columns = ['name', 'roll_no', 'level', 'purpose']
@@ -356,13 +418,11 @@ def import_data():
             if col not in df.columns:
                 return jsonify({"error": f"Missing required column: {col}"}), 400
         
-        # Process and insert data
         imported_count = 0
         errors = []
         
         for index, row in df.iterrows():
             try:
-                # Prepare visitor data
                 visitor_data = {
                     'name': str(row['name']).strip(),
                     'roll_no': str(row['roll_no']).strip().upper(),
@@ -370,7 +430,6 @@ def import_data():
                     'purpose': str(row['purpose']).strip()
                 }
                 
-                # Add optional fields
                 if 'course' in df.columns:
                     visitor_data['course'] = str(row['course']).strip()
                 else:
@@ -385,10 +444,8 @@ def import_data():
                 if 'jc_stream' in df.columns and pd.notna(row.get('jc_stream')):
                     visitor_data['jc_stream'] = str(row['jc_stream']).strip()
                 
-                # Set visit day
                 visit_day = datetime.now().strftime('%A')
                 
-                # Insert into database
                 if visitor_data['level'] == 'JC':
                     query = """
                         INSERT INTO visitors
@@ -442,29 +499,27 @@ def import_data():
 def export_data():
     """Export data to CSV or Excel"""
     try:
+        from flask import send_file
+        
         format_type = request.args.get('format', 'csv')
         start_date = request.args.get('start_date', '')
         end_date = request.args.get('end_date', '')
         
-        # Get data
         if start_date and end_date:
             visitors = get_visitors_by_date_range(start_date, end_date)
         else:
             visitors = get_all_visitors()
         
         if format_type == 'csv':
-            # Create CSV
             output = io.StringIO()
             writer = csv.writer(output)
             
-            # Write header
             writer.writerow([
                 'ID', 'Name', 'Roll No', 'Level', 'Course', 
                 'Year', 'JC Year', 'JC Stream', 'Purpose',
                 'Entry Time', 'Exit Time', 'Visit Date', 'Day'
             ])
             
-            # Write data
             for v in visitors:
                 writer.writerow([
                     v.get('id', ''),
@@ -491,7 +546,6 @@ def export_data():
             )
         
         elif format_type == 'excel':
-            # Create Excel using pandas
             data = []
             for v in visitors:
                 data.append({
@@ -531,8 +585,6 @@ def export_data():
         print(f"Export error: {e}")
         return jsonify({"error": "Export failed"}), 500
 
-# ==================== BULK ACTIONS ROUTE ====================
-
 @admin_bp.route('/bulk_actions', methods=['POST'])
 @login_required
 def bulk_actions():
@@ -546,7 +598,6 @@ def bulk_actions():
             return jsonify({"error": "No visitors selected"}), 400
         
         if action == 'mark_exit':
-            # Mark multiple visitors as exited
             success_count = 0
             for visitor_id in visitor_ids:
                 try:
@@ -562,7 +613,6 @@ def bulk_actions():
             }), 200
         
         elif action == 'delete':
-            # Delete multiple visitors
             success_count = 0
             for visitor_id in visitor_ids:
                 try:
