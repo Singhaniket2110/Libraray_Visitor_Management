@@ -5,16 +5,16 @@ class SupabaseDatabase:
     
     @classmethod
     def get_connection(cls):
-        """Direct connection with hardcoded Supabase credentials"""
+        """Connect via Supabase Connection Pooler (port 6543) for Vercel"""
         try:
-            # HARDCODED CREDENTIALS - from your .env file
+            # Use connection pooler port 6543 instead of 5432
             conn = psycopg2.connect(
-                host="db.wboxcfmizfkapdslzkks.supabase.co",
-                port=5432,
+                host="aws-0-ap-south-1.pooler.supabase.com",  # Pooler host
+                port=6543,  # Connection pooler port
                 database="postgres",
-                user="postgres",
+                user="postgres.wboxcfmizfkapdslzkks",  # Format: postgres.{project-ref}
                 password="pqjEH49+W*-3RfJ",
-                sslmode="require",  # REQUIRED for Supabase
+                sslmode="require",
                 connect_timeout=10,
                 cursor_factory=RealDictCursor
             )
