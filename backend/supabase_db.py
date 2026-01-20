@@ -2,44 +2,57 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+import urllib.parse
 
 load_dotenv()
 
 class SupabaseDatabase:
     
     @classmethod
-    def get_connection_string(cls):
-        """Get connection string - force IPv4"""
-        database_url = os.getenv('DATABASE_URL')
-        
-        if database_url:
-            # Force IPv4 by using host IP directly
-            return database_url.replace('db.wboxcfmizfkapdslzkks.supabase.co', 'aws-0-ap-south-1.pooler.supabase.com')
-        
-        # Build from components with IPv4 pooler
-        password = os.getenv('SUPABASE_DB_PASSWORD', '')
-        import urllib.parse
-        encoded_password = urllib.parse.quote(password, safe='')
-        
-        # Use IPv4 pooler instead of direct db connection
-        return f"postgresql://postgres.wboxcfmizfkapdslzkks:{encoded_password}@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
-    
-    @classmethod
     def get_connection(cls):
-        """Get a fresh database connection"""
+        """Get a fresh database connection - Vercel optimized"""
         try:
-            conn_string = cls.get_connection_string()
-            conn = psycopg2.connect(conn_string, cursor_factory=RealDictCursor, connect_timeout=5)
+            # Method 1: Try DATABASE_URL first
+            database_url = os.getenv('DATABASE_URL')
+            
+            if database_url:
+                print(f"🔗 Using DATABASE_URL...")
+                conn = psycopg2.connect(
+                    database_url,
+                    cursor_factory=RealDictCursor,
+                    connect_timeout=10
+                )
+                print("✅ Connected via DATABASE_URL")
+                return conn
+            
+            # Method 2: Build connection string manually
+            password = os.getenv('SUPABASE_DB_PASSWORD', '')
+            encoded_password = urllib.parse.quote(password, safe='')
+            
+            # IMPORTANT: Use port 5432 for direct connection (not pooler)
+            connection_string = f"postgresql://postgres:{encoded_password}@db.wboxcfmizfkapdslzkks.supabase.co:5432/postgres"
+            
+            print(f"🔗 Connecting to Supabase directly...")
+            
+            conn = psycopg2.connect(
+                connection_string,
+                cursor_factory=RealDictCursor,
+                connect_timeout=10
+            )
+            
+            print("✅ Connected to Supabase")
             return conn
+            
         except Exception as e:
-            print(f"❌ Connection failed: {str(e)[:200]}")
-            raise
+            print(f"❌ Connection failed: {str(e)}")
+            raise Exception(f"Database connection failed: {str(e)}")
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
         """Execute query with automatic connection management"""
         connection = None
         cursor = None
+        
         try:
             connection = cls.get_connection()
             cursor = connection.cursor()
@@ -61,10 +74,11 @@ class SupabaseDatabase:
             return result
             
         except Exception as e:
-            print(f"❌ Database error: {str(e)[:200]}")
+            print(f"❌ Query error: {str(e)}")
             if connection:
                 connection.rollback()
             raise
+            
         finally:
             if cursor:
                 cursor.close()
@@ -73,7 +87,7 @@ class SupabaseDatabase:
     
     @classmethod
     def init_database(cls):
-        """Initialize database tables - only if they don't exist"""
+        """Initialize database tables"""
         try:
             # Create admin table
             cls.execute_query("""
