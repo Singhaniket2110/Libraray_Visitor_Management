@@ -1,22 +1,30 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import socket
 
 class SupabaseDatabase:
     
     @classmethod
     def get_connection(cls):
-        """Connect via Supabase Connection Pooler (port 6543) for Vercel"""
+        """Force IPv4 connection to fix Vercel-Supabase connectivity"""
         try:
-            # Use connection pooler port 6543 instead of 5432
+            # Create connection with forced IPv4 and no DNS timeout
             conn = psycopg2.connect(
-                host="aws-0-ap-south-1.pooler.supabase.com",  # Pooler host
-                port=6543,  # Connection pooler port
+                host="db.wboxcfmizfkapdslzkks.supabase.co",
+                port=5432,
                 database="postgres",
-                user="postgres.wboxcfmizfkapdslzkks",  # Format: postgres.{project-ref}
+                user="postgres",
                 password="pqjEH49+W*-3RfJ",
                 sslmode="require",
-                connect_timeout=10,
-                cursor_factory=RealDictCursor
+                connect_timeout=15,
+                cursor_factory=RealDictCursor,
+                # Force IPv4 to avoid IPv6 issues
+                hostaddr=socket.gethostbyname("db.wboxcfmizfkapdslzkks.supabase.co"),
+                # Add keepalive settings
+                keepalives=1,
+                keepalives_idle=30,
+                keepalives_interval=10,
+                keepalives_count=5
             )
             return conn
             
@@ -25,7 +33,7 @@ class SupabaseDatabase:
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
-        """Execute query with connection management"""
+        """Execute query with connection management - keep your existing code"""
         connection = None
         cursor = None
         
