@@ -88,21 +88,37 @@ body {
     overflow-x: hidden;
 }
 
-/* ================= MAIN CONTAINER ================= */
+/* BACKGROUND FLOAT */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,.15) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(255,255,255,.15) 0%, transparent 25%);
+    animation: float 20s infinite ease-in-out;
+    z-index: 1;
+}
 
+@keyframes float {
+    0%,100% { transform: translate(0,0); }
+    50% { transform: translate(20px,-20px); }
+}
+
+/* MAIN */
 .main-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px;
+    position: relative;
+    z-index: 2;
 }
 
-/* ================= HERO CARD ================= */
-
 .hero {
-    background: rgba(255, 255, 255, 0.97);
-    padding: 70px 60px;
+    background: rgba(255,255,255,0.97);
+    padding: 80px 70px;
     border-radius: 32px;
     max-width: 1100px;
     width: 100%;
@@ -110,12 +126,11 @@ body {
     box-shadow: 0 35px 70px rgba(0,0,0,0.3);
 }
 
-/* ================= COLLEGE HEADER ================= */
-
+/* COLLEGE HEADER */
 .college-header {
-    margin-bottom: 40px;
+    margin-bottom: 50px;
+    padding-bottom: 30px;
     border-bottom: 3px solid #e2e8f0;
-    padding-bottom: 25px;
 }
 
 .college-logo {
@@ -137,54 +152,54 @@ body {
 }
 
 .college-name {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: #1e293b;
 }
 
 .college-subtitle {
+    font-size: 1.3rem;
     margin-top: 10px;
-    font-size: 1.2rem;
-    font-style: italic;
     color: #6366f1;
+    font-style: italic;
 }
 
-/* ================= FIXED LIBRARY HEADING ================= */
+/* ===== FIXED HEADING (ONLY CHANGE) ===== */
 
-.library-heading {
+.hero h1 {
     margin: 40px 0 25px;
+    font-size: 2.8rem;     /* reduced */
+    font-weight: 900;
+    background: linear-gradient(135deg,
+        #6366f1 0%,
+        #8b5cf6 33%,
+        #ec4899 66%,
+        #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     line-height: 1.25;
 }
 
-.library-name {
-    display: block;
-    font-size: 2.6rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.library-subtitle {
+.hero h1 span {
     display: block;
     margin-top: 12px;
-    font-size: 1.45rem;
+    font-size: 1.5rem;     /* subtitle reduced */
     font-weight: 600;
     color: #475569;
+    -webkit-text-fill-color: initial;
+    background: none;
 }
 
-/* ================= DESCRIPTION ================= */
-
+/* DESCRIPTION */
 .hero p {
-    margin: 25px auto 50px;
+    margin: 25px auto 55px;
     max-width: 750px;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: #64748b;
     line-height: 1.8;
 }
 
-/* ================= BUTTONS ================= */
-
+/* BUTTONS */
 .hero-buttons {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -192,15 +207,15 @@ body {
 }
 
 .hero-btn {
-    padding: 20px;
+    padding: 22px;
     color: white;
-    border-radius: 16px;
     text-decoration: none;
+    border-radius: 16px;
     font-weight: 700;
     display: flex;
-    gap: 12px;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    gap: 12px;
     transition: 0.3s;
 }
 
@@ -208,27 +223,26 @@ body {
     transform: translateY(-5px);
 }
 
-.hero-btn:nth-child(1) { background: #6366f1; }
-.hero-btn:nth-child(2) { background: #f59e0b; }
-.hero-btn:nth-child(3) { background: #ef4444; }
-.hero-btn:nth-child(4) { background: #10b981; }
-.hero-btn:nth-child(5) { background: #8b5cf6; }
-.hero-btn:nth-child(6) { background: #ec4899; }
-.hero-btn:nth-child(7) { background: #3b82f6; grid-column: 2; }
+.hero-btn:nth-child(1){background:#6366f1;}
+.hero-btn:nth-child(2){background:#f59e0b;}
+.hero-btn:nth-child(3){background:#ef4444;}
+.hero-btn:nth-child(4){background:#10b981;}
+.hero-btn:nth-child(5){background:#8b5cf6;}
+.hero-btn:nth-child(6){background:#ec4899;}
+.hero-btn:nth-child(7){background:#3b82f6; grid-column:2;}
 
-/* ================= MOBILE ================= */
-
-@media (max-width: 768px) {
-    .hero { padding: 45px 25px; }
-    .library-name { font-size: 2rem; }
-    .library-subtitle { font-size: 1.15rem; }
-    .hero-buttons { grid-template-columns: 1fr; }
-    .hero-btn:nth-child(7) { grid-column: auto; }
+/* MOBILE */
+@media(max-width:768px){
+    .hero{padding:50px 30px;}
+    .hero h1{font-size:2.2rem;}
+    .hero h1 span{font-size:1.2rem;}
+    .hero-buttons{grid-template-columns:1fr;}
+    .hero-btn:nth-child(7){grid-column:auto;}
 }
 
-@media (max-width: 480px) {
-    .library-name { font-size: 1.7rem; }
-    .library-subtitle { font-size: 1rem; }
+@media(max-width:480px){
+    .hero h1{font-size:1.9rem;}
+    .hero h1 span{font-size:1.05rem;}
 }
 </style>
 </head>
@@ -249,23 +263,19 @@ body {
         <div class="college-subtitle">"विद्या ददाति विनयं"</div>
     </div>
 
-    <div class="library-heading">
-        <span class="library-name">
-            Smt Kesardevi Mishra Memorial Library
-        </span>
-        <span class="library-subtitle">
-            Visitor and Digital Resource Management System
-        </span>
-    </div>
+    <h1>
+        Smt Kesardevi Mishra Memorial Library
+        <span>Visitor and Digital Resource Management System</span>
+    </h1>
 
     <p>
-        Welcome to our advanced library management platform designed to streamline visitor tracking,
-        enhance security, and digitize library operations for modern academic institutions.
+        Welcome to our advanced library management platform. Streamline visitor tracking,
+        enhance security, and optimize library operations with our intuitive system.
     </p>
 
     <div class="hero-buttons">
         <a href="/student/" class="hero-btn"><i class="fas fa-graduation-cap"></i> Student Entry</a>
-        <a href="/admin/login" class="hero-btn"><i class="fas fa-lock"></i> Admin Login</a>
+        <a href="/admin/login" class="hero-btn"><i class="fas fa-lock"></i> Admin Dashboard</a>
         <a href="/student/exit" class="hero-btn"><i class="fas fa-door-open"></i> Exit</a>
         <a href="/about" class="hero-btn"><i class="fas fa-book"></i> About</a>
         <a href="/services" class="hero-btn"><i class="fas fa-cloud"></i> Services</a>
@@ -278,6 +288,7 @@ body {
 
 </body>
 </html>
+
 '''
     
     # ==================== OTHER PAGE ROUTES ====================
@@ -329,4 +340,5 @@ body {
 </html>''', 500
 
     return app
+
 
