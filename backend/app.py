@@ -13,9 +13,14 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
-    print("✅ Flask app initialized with session support")
+    print("✅ Flask app initialized")
     
-    # Test route
+    # ==================== HEALTH & TEST ROUTES ====================
+    
+    @app.route('/health')
+    def health():
+        return {'status': 'healthy', 'message': 'Library System API is running'}
+    
     @app.route('/test')
     def test():
         return {
@@ -24,12 +29,6 @@ def create_app():
             'app_ready': True
         }
     
-   # Health check
-    @app.route('/health')
-    def health():
-        return {'status': 'healthy', 'message': 'Library System API is running'}
-    
-    # Database test
     @app.route('/db-test')
     def db_test():
         try:
@@ -42,18 +41,21 @@ def create_app():
         except Exception as e:
             return {'db_status': 'error', 'message': str(e)}, 500
     
-    # Import and register blueprints
-    from backend.routes.student_routes import student_bp
-    from backend.routes.admin_routes import admin_bp
+    # ==================== REGISTER BLUEPRINTS ====================
     
-    app.register_blueprint(student_bp)
-    app.register_blueprint(admin_bp)
-    
-    print("✅ Blueprints registered")
+    try:
+        from backend.routes.student_routes import student_bp
+        from backend.routes.admin_routes import admin_bp
+        
+        app.register_blueprint(student_bp)
+        app.register_blueprint(admin_bp)
+        
+        print("✅ Blueprints registered")
     except Exception as e:
         print(f"❌ Blueprint registration error: {e}")
     
-    # Home route (your hardcoded HTML)
+    # ==================== HOME ROUTE ====================
+    
     @app.route('/')
     def index():
         return '''<!DOCTYPE html>
@@ -167,35 +169,11 @@ def create_app():
             100% { background-position: -200% 0; }
         }
         
-        .hero::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120%;
-            height: 120%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-        
         .college-header {
             margin-bottom: 50px;
             padding-bottom: 30px;
             border-bottom: 3px solid rgba(226, 232, 240, 0.8);
             position: relative;
-        }
-        
-        .college-header::after {
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #6366f1, transparent);
         }
         
         .college-logo-container {
@@ -222,19 +200,13 @@ def create_app():
             overflow: hidden;
         }
         
-        .college-logo::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(transparent, rgba(99, 102, 241, 0.1), transparent 30%);
-            animation: rotate 10s linear infinite;
-        }
-        
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.03);
+            }
         }
         
         .college-logo img {
@@ -248,23 +220,6 @@ def create_app():
             padding: 5px;
         }
         
-        @keyframes pulse {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 
-                    0 20px 40px rgba(0, 0, 0, 0.15),
-                    0 0 0 8px rgba(255, 255, 255, 0.8),
-                    0 0 0 12px rgba(99, 102, 241, 0.1);
-            }
-            50% { 
-                transform: scale(1.03);
-                box-shadow: 
-                    0 25px 50px rgba(0, 0, 0, 0.2),
-                    0 0 0 8px rgba(255, 255, 255, 0.9),
-                    0 0 0 12px rgba(99, 102, 241, 0.15);
-            }
-        }
-        
         .college-name {
             font-size: 1.8rem;
             font-weight: 800;
@@ -274,7 +229,6 @@ def create_app():
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             letter-spacing: -0.5px;
         }
         
@@ -296,17 +250,14 @@ def create_app():
             margin: 40px 0;
             display: inline-block;
             animation: floatIcon 3s infinite ease-in-out;
-            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
         }
         
         @keyframes floatIcon {
             0%, 100% { 
-                transform: translateY(0) rotate(0deg); 
-                filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+                transform: translateY(0); 
             }
             50% { 
-                transform: translateY(-20px) rotate(5deg); 
-                filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.2));
+                transform: translateY(-20px); 
             }
         }
         
@@ -322,7 +273,6 @@ def create_app():
                 #6366f1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             background-size: 300% 100%;
             animation: gradientShift 8s infinite linear;
             letter-spacing: -1px;
@@ -372,36 +322,15 @@ def create_app():
             min-height: 75px;
         }
         
-        .hero-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.7s ease;
-        }
-        
-        .hero-btn:hover::before {
-            left: 100%;
-        }
-        
         .hero-btn:hover {
             transform: translateY(-6px) scale(1.02);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .hero-btn:active {
-            transform: translateY(-3px) scale(1.01);
         }
         
         .hero-btn i {
             font-size: 1.5rem;
             min-width: 30px;
             text-align: center;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         
         .hero-btn span {
@@ -411,7 +340,6 @@ def create_app():
             line-height: 1.3;
         }
         
-        /* Button Colors */
         .hero-btn:nth-child(1) {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         }
@@ -441,7 +369,6 @@ def create_app():
             grid-column: 2 / 3;
         }
         
-        /* Responsive Design */
         @media (max-width: 968px) {
             .hero-buttons {
                 grid-template-columns: repeat(2, 1fr);
@@ -495,10 +422,6 @@ def create_app():
                 font-size: 0.9rem;
             }
             
-            .hero-btn i {
-                font-size: 1.3rem;
-            }
-            
             .hero-icon {
                 font-size: 70px;
                 margin: 30px 0;
@@ -535,14 +458,6 @@ def create_app():
                 padding: 18px 15px;
                 min-height: 65px;
             }
-            
-            .hero-btn i {
-                font-size: 1.3rem;
-            }
-            
-            .hero-btn span {
-                font-size: 0.9rem;
-            }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -563,7 +478,7 @@ def create_app():
             </div>
             
             <div class="hero-icon">📚</div>
-            <h1>Library Visitor Management System</h1>
+            <h1>Smt Kesardevi Mishra Memorial Library <br> Visitor and Digital Resource Management System</h1>
             <p>Welcome to our advanced library management platform. Streamline visitor tracking, enhance security, and optimize library operations with our intuitive, feature-rich system designed for modern educational institutions.</p>
             
             <div class="hero-buttons">
@@ -601,32 +516,26 @@ def create_app():
 </body>
 </html>'''
     
-    # About page route
+    # ==================== OTHER PAGE ROUTES ====================
+    
     @app.route('/about')
     def about():
         return render_template('about.html')
     
-    # Developer page route
     @app.route('/developer')
     def developer():
         return render_template('developer.html')
 
-    # Guide page route  
     @app.route('/guide')
     def guide():
         return render_template('guide.html')
     
-    # Library Services page route  
     @app.route('/services')
     def services():
         return render_template('library_services.html')
     
-    # Health check endpoint for Vercel
-    @app.route('/health')
-    def health():
-        return {'status': 'healthy', 'message': 'Library Visitor System is running on Vercel'}
+    # ==================== ERROR HANDLERS ====================
     
-    # Error handlers
     @app.errorhandler(404)
     def not_found(e):
         return '''<!DOCTYPE html>
@@ -656,4 +565,3 @@ def create_app():
 </html>''', 500
 
     return app
-
