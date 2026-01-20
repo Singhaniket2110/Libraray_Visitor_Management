@@ -56,9 +56,9 @@ def create_app():
     
     # ==================== HOME ROUTE ====================
     
-    @app.route('/')
-    def index():
-        return '''<!DOCTYPE html>
+   @app.route('/')
+def index():
+    return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -261,10 +261,11 @@ def create_app():
             }
         }
         
+        /* REDUCED FONT SIZE FOR MAIN HEADING */
         .hero h1 {
             color: var(--dark);
             margin-bottom: 25px;
-            font-size: 3.5rem;
+            font-size: 2.8rem; /* Changed from 3.5rem to 2.8rem */
             font-weight: 900;
             background: linear-gradient(135deg, 
                 #6366f1 0%, 
@@ -276,7 +277,7 @@ def create_app():
             background-size: 300% 100%;
             animation: gradientShift 8s infinite linear;
             letter-spacing: -1px;
-            line-height: 1.1;
+            line-height: 1.2;
         }
         
         @keyframes gradientShift {
@@ -377,6 +378,11 @@ def create_app():
             .hero-btn:nth-child(7) {
                 grid-column: auto;
             }
+            
+            /* REDUCED FONT SIZE FOR MOBILE */
+            .hero h1 {
+                font-size: 2.2rem; /* Changed from 2.5rem to 2.2rem */
+            }
         }
         
         @media (max-width: 768px) {
@@ -404,7 +410,7 @@ def create_app():
             }
             
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 2rem; /* Changed from 2.5rem to 2rem */
             }
             
             .hero p {
@@ -442,7 +448,8 @@ def create_app():
             }
             
             .hero h1 {
-                font-size: 2rem;
+                font-size: 1.7rem; /* Changed from 2rem to 1.7rem */
+                line-height: 1.3;
             }
             
             .hero p {
@@ -514,8 +521,7 @@ def create_app():
         </div>
     </div>
 </body>
-</html>'''
-    
+</html>''' 
     # ==================== OTHER PAGE ROUTES ====================
     
     @app.route('/about')
@@ -565,3 +571,4 @@ def create_app():
 </html>''', 500
 
     return app  
+
