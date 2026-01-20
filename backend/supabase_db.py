@@ -14,7 +14,7 @@ class SupabaseDatabase:
         """Get a fresh database connection - Vercel optimized"""
         try:
             # Use DATABASE_URL from your .env
-            database_url = os.getenv('DATABASE_URL')
+            database_url = os.getenv('postgresql://postgres:pqjEH49%2BW%2A-3RfJ@db.wboxcfmizfkapdslzkks.supabase.co:5432/postgres')
             
             if not database_url:
                 print("❌ DATABASE_URL not found in environment")
@@ -183,3 +183,4 @@ class SupabaseDatabase:
         except Exception as e:
             print(f"⚠️ DB init error: {str(e)[:200]}")
             return False
+
