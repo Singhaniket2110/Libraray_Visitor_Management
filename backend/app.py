@@ -15,32 +15,36 @@ def create_app():
     
     print("✅ Flask app initialized")
     
+    # ==================== DATABASE INITIALIZATION ====================
+    try:
+        from backend.supabase_db import SupabaseDatabase
+        # Test connection
+        if SupabaseDatabase.test_connection():
+            print("✅ Database connection successful")
+        else:
+            print("⚠️ Database connection test failed - some features may not work")
+    except Exception as e:
+        print(f"⚠️ Database initialization error: {e}")
+    
     # ==================== HEALTH & TEST ROUTES ====================
     
     @app.route('/health')
     def health():
         return {'status': 'healthy', 'message': 'Library System API is running'}
     
-    @app.route('/test')
-    def test():
-        return {
-            'session_working': True,
-            'session_type': 'cookie-based',
-            'app_ready': True
-        }
-    
-    @app.route('/db-test')
-    def db_test():
+    @app.route('/test-db')
+    def test_db():
+        """Test database endpoint"""
         try:
             from backend.supabase_db import SupabaseDatabase
-            result = SupabaseDatabase.execute_query("SELECT COUNT(*) as count FROM admin", fetch=True)
+            result = SupabaseDatabase.execute_query("SELECT NOW() as time", fetch=True)
             return {
                 'db_status': 'connected',
-                'admin_count': result['count'] if result else 0
+                'current_time': result['time'] if result else None,
+                'message': 'Database is working'
             }
         except Exception as e:
-            return {'db_status': 'error', 'message': str(e)}, 500
-    
+            return {'db_status': 'error', 'message': str(e)[:200]}, 500    
     # ==================== REGISTER BLUEPRINTS ====================
     
     try:
@@ -566,4 +570,5 @@ def create_app():
 </html>''', 500
 
     return app 
+
 
