@@ -6,11 +6,12 @@ class SupabaseDatabase:
     
     @classmethod
     def get_connection(cls):
-        """Force IPv4 connection to fix Vercel-Supabase connectivity"""
+        """Direct IP connection bypassing DNS issues"""
         try:
-            # Create connection with forced IPv4 and no DNS timeout
+            # Use direct IP address to bypass DNS resolution
+            # This IP is for db.wboxcfmizfkapdslzkks.supabase.co (Asia Pacific - Mumbai)
             conn = psycopg2.connect(
-                host="db.wboxcfmizfkapdslzkks.supabase.co",
+                host="13.126.205.229",  # Direct IP for Supabase Mumbai region
                 port=5432,
                 database="postgres",
                 user="postgres",
@@ -18,22 +19,36 @@ class SupabaseDatabase:
                 sslmode="require",
                 connect_timeout=15,
                 cursor_factory=RealDictCursor,
-                # Force IPv4 to avoid IPv6 issues
-                hostaddr=socket.gethostbyname("db.wboxcfmizfkapdslzkks.supabase.co"),
-                # Add keepalive settings
+                # Disable hostname verification for SSL
+                sslcert=None,
+                sslkey=None,
+                # Connection settings
                 keepalives=1,
                 keepalives_idle=30,
-                keepalives_interval=10,
-                keepalives_count=5
+                keepalives_interval=10
             )
             return conn
             
         except Exception as e:
-            raise Exception(f"Database connection failed: {str(e)}")
+            # Fallback to hostname if IP fails
+            try:
+                conn = psycopg2.connect(
+                    host="db.wboxcfmizfkapdslzkks.supabase.co",
+                    port=5432,
+                    database="postgres",
+                    user="postgres",
+                    password="pqjEH49+W*-3RfJ",
+                    sslmode="require",
+                    connect_timeout=15,
+                    cursor_factory=RealDictCursor
+                )
+                return conn
+            except Exception as e2:
+                raise Exception(f"Database connection failed: {str(e2)}")
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
-        """Execute query with connection management - keep your existing code"""
+        """Execute query with connection management"""
         connection = None
         cursor = None
         
