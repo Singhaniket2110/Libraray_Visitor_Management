@@ -2,41 +2,37 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-import time
 
 load_dotenv()
 
 class SupabaseDatabase:
-    # ❌ Don't use connection pooling in serverless
-    # Each function invocation should create/close its own connection
     
     @classmethod
     def get_connection_string(cls):
-        """Get connection string with proper URL encoding"""
+        """Get connection string - force IPv4"""
         database_url = os.getenv('DATABASE_URL')
         
         if database_url:
-            return database_url
+            # Force IPv4 by using host IP directly
+            return database_url.replace('db.wboxcfmizfkapdslzkks.supabase.co', 'aws-0-ap-south-1.pooler.supabase.com')
         
-        # Build from components
-        supabase_url = os.getenv('SUPABASE_URL', '').replace('https://', '')
+        # Build from components with IPv4 pooler
         password = os.getenv('SUPABASE_DB_PASSWORD', '')
-        
-        # URL encode special characters in password
         import urllib.parse
         encoded_password = urllib.parse.quote(password, safe='')
         
-        return f"postgresql://postgres:{encoded_password}@db.{supabase_url}:5432/postgres"
+        # Use IPv4 pooler instead of direct db connection
+        return f"postgresql://postgres.wboxcfmizfkapdslzkks:{encoded_password}@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
     
     @classmethod
     def get_connection(cls):
-        """Get a fresh database connection (serverless-friendly)"""
+        """Get a fresh database connection"""
         try:
             conn_string = cls.get_connection_string()
-            conn = psycopg2.connect(conn_string, cursor_factory=RealDictCursor)
+            conn = psycopg2.connect(conn_string, cursor_factory=RealDictCursor, connect_timeout=5)
             return conn
         except Exception as e:
-            print(f"❌ Connection failed: {str(e)[:100]}")
+            print(f"❌ Connection failed: {str(e)[:200]}")
             raise
     
     @classmethod
@@ -65,8 +61,7 @@ class SupabaseDatabase:
             return result
             
         except Exception as e:
-            print(f"❌ Database error: {str(e)}")
-            print(f"Query: {query[:100]}...")
+            print(f"❌ Database error: {str(e)[:200]}")
             if connection:
                 connection.rollback()
             raise
@@ -74,13 +69,13 @@ class SupabaseDatabase:
             if cursor:
                 cursor.close()
             if connection:
-                connection.close()  # Always close in serverless
+                connection.close()
     
     @classmethod
     def init_database(cls):
-        """Initialize database tables"""
+        """Initialize database tables - only if they don't exist"""
         try:
-            # Create admin table if not exists
+            # Create admin table
             cls.execute_query("""
                 CREATE TABLE IF NOT EXISTS admin (
                     id SERIAL PRIMARY KEY,
@@ -125,10 +120,7 @@ class SupabaseDatabase:
             ]:
                 cls.execute_query(index_query)
             
-            print("✅ Database tables initialized successfully")
+            print("✅ Database initialized")
             
         except Exception as e:
-            print(f"⚠️ Database init: {str(e)[:100]}")
-
-# ❌ DON'T initialize on import in serverless
-# Initialize only when needed
+            print(f"⚠️ DB init: {str(e)[:100]}")
