@@ -1,5 +1,4 @@
 from flask import Flask, render_template, session
-from flask_session import Session
 from backend.config import Config
 import os
 
@@ -14,10 +13,6 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
-    # ✅ IMPORTANT: Initialize Session BEFORE any route
-    # This fixes Vercel session issues
-    Session(app)
-    
     print("✅ Flask app initialized with session support")
     
     # Test route
@@ -25,11 +20,11 @@ def create_app():
     def test():
         return {
             'session_working': True,
-            'session_id': session.sid if hasattr(session, 'sid') else 'N/A',
-            'session_type': app.config.get('SESSION_TYPE', 'unknown')
+            'session_type': 'cookie-based',
+            'app_ready': True
         }
     
-    # Health check
+   # Health check
     @app.route('/health')
     def health():
         return {'status': 'healthy', 'message': 'Library System API is running'}
@@ -45,7 +40,7 @@ def create_app():
                 'admin_count': result['count'] if result else 0
             }
         except Exception as e:
-            return {'db_status': 'error', 'message': str(e)}
+            return {'db_status': 'error', 'message': str(e)}, 500
     
     # Import and register blueprints
     from backend.routes.student_routes import student_bp
@@ -55,6 +50,8 @@ def create_app():
     app.register_blueprint(admin_bp)
     
     print("✅ Blueprints registered")
+    except Exception as e:
+        print(f"❌ Blueprint registration error: {e}")
     
     # Home route (your hardcoded HTML)
     @app.route('/')
@@ -659,3 +656,4 @@ def create_app():
 </html>''', 500
 
     return app
+
