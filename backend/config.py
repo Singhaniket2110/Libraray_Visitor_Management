@@ -6,7 +6,7 @@ load_dotenv()
 
 class Config:
     # Flask Configuration
-    SECRET_KEY = os.getenv("SECRET_KEY", "supabase-library-system-2024-aniket")
+    SECRET_KEY = os.getenv("SECRET_KEY", "cb27657c0b11c917e64c88e06f703540c44b84673dc5b1dff649c2631a9b3027")
     DEBUG = False
     
     # JWT Configuration for serverless
@@ -21,3 +21,4 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_NAME = 'library_session'
+
