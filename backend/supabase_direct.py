@@ -110,25 +110,24 @@ class SupabaseDirect:
     
     @classmethod
     def insert_visitor(cls, visitor_data):
-        """Insert visitor record"""
+        """Insert visitor record - FIXED TIME VERSION"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
             
-            # Prepare data
+            # Get current time
+            now = datetime.now()
+            
+            # ALWAYS set current time (don't trust frontend time)
             data = {
                 'name': visitor_data.get('name', '').strip(),
                 'roll_no': visitor_data.get('roll_no', '').strip().upper(),
                 'level': visitor_data.get('level', ''),
                 'course': visitor_data.get('course', 'Not Specified'),
                 'purpose': visitor_data.get('purpose', 'Study'),
-                'visit_day': visitor_data.get('visit_day', datetime.now().strftime('%A')),
-                'entry_time': visitor_data.get('entry_time', current_time.time().isoformat()[:8]),
-                'visit_date': visitor_data.get('visit_date', datetime.now().date().isoformat())
+                'visit_day': now.strftime('%A'),  # Monday, Tuesday, etc.
+                'entry_time': now.strftime('%H:%M:%S'),  # 14:30:45 format
+                'visit_date': now.date().isoformat()  # 2024-01-21 format
             }
-            
-            # Add optional fields
-            if 'exit_time' in visitor_data and visitor_data['exit_time']:
-                data['exit_time'] = visitor_data['exit_time']
             
             # Add year based on level
             if visitor_data.get('level') == 'JC':
@@ -139,6 +138,7 @@ class SupabaseDirect:
             elif 'year' in visitor_data:
                 data['year'] = visitor_data['year']
             
+            # Send to Supabase
             response = requests.post(
                 url, 
                 headers=cls._get_headers(),
@@ -189,8 +189,11 @@ class SupabaseDirect:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
             params = {'id': f'eq.{visitor_id}'}
             
+            # Use current time for exit
+            exit_time = datetime.now().strftime('%H:%M:%S')
+            
             data = {
-                'exit_time': datetime.now().time().strftime('%H:%M:%S')
+                'exit_time': exit_time
             }
             
             response = requests.patch(
