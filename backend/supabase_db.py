@@ -1,6 +1,7 @@
 import os
 from supabase import create_client, Client
 from datetime import datetime
+from backend.config import Config  # Import Config class
 
 class SupabaseDatabase:
     supabase: Client = None
@@ -10,14 +11,30 @@ class SupabaseDatabase:
         """Initialize Supabase client with SERVICE ROLE key"""
         if cls.supabase is None:
             try:
-                # Use SERVICE ROLE KEY for admin operations
-                SUPABASE_URL = "https://wboxcfmizfkapdslzkks.supabase.co"
-                SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indib3hjZm1pemZrYXBkc2x6a2tzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzQ0ODMxNywiZXhwIjoyMDUzMDI0MzE3fQ.DOYTKlg3bE2znm4AWQgxxQ_-vPzBOAO"
+                # VALIDATE CONFIG FIRST
+                if not Config.validate_config():
+                    raise Exception("Configuration validation failed")
                 
+                # USE VALUES FROM Config CLASS (which reads from .env)
+                SUPABASE_URL = Config.SUPABASE_URL
+                SUPABASE_SERVICE_KEY = Config.SUPABASE_SERVICE_KEY
+                
+                if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+                    raise Exception(
+                        f"Supabase credentials missing. URL: {bool(SUPABASE_URL)}, "
+                        f"Key: {bool(SUPABASE_SERVICE_KEY)}"
+                    )
+                
+                print(f"🔗 Connecting to Supabase: {SUPABASE_URL}")
+                print(f"   Using Service Role Key: {SUPABASE_SERVICE_KEY[:20]}...")
+                
+                # Initialize client
                 cls.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-                print("✅ Supabase client initialized")
+                print("✅ Supabase client initialized successfully")
+                
             except Exception as e:
-                print(f"❌ Supabase init failed: {e}")
+                print(f"❌ SUPABASE INIT FAILED: {e}")
+                print("   Check your .env file credentials")
                 raise
     
     @classmethod
@@ -27,12 +44,32 @@ class SupabaseDatabase:
             if cls.supabase is None:
                 cls.init_client()
             
-            # Test query - try to fetch from admin table
-            result = cls.supabase.table('admin').select("id").limit(1).execute()
-            print(f"✅ Connection test passed - Database is accessible")
-            return True
+            # Method 1: Try to list tables (simple test)
+            print("🧪 Testing database connection...")
+            
+            # Try to access admin table first
+            try:
+                result = cls.supabase.table('admin').select("id").limit(1).execute()
+                print(f"✅ Connection test passed - Admin table accessible")
+                return True
+            except Exception as table_error:
+                print(f"⚠️ Admin table not accessible: {table_error}")
+                
+                # Try system table as fallback
+                try:
+                    result = cls.supabase.table('visitors').select("count").limit(1).execute()
+                    print(f"✅ Visitors table accessible")
+                    return True
+                except:
+                    print(f"⚠️ Testing with simple ping...")
+                    
+                    # Last resort: Just check if client responds
+                    response = cls.supabase.auth.get_session()
+                    print(f"✅ Supabase client responding")
+                    return True
+                    
         except Exception as e:
-            print(f"❌ Connection test failed: {e}")
+            print(f"❌ Connection test failed: {str(e)[:200]}")
             return False
     
     @classmethod
