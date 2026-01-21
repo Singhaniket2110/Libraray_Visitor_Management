@@ -7,36 +7,33 @@ class SupabaseDatabase:
     supabase: Client = None
     
     @classmethod
-    def init_client(cls):
-        """Initialize Supabase client with SERVICE ROLE key"""
-        if cls.supabase is None:
-            try:
-                # VALIDATE CONFIG FIRST
-                if not Config.validate_config():
-                    raise Exception("Configuration validation failed")
-                
-                # USE VALUES FROM Config CLASS (which reads from .env)
-                SUPABASE_URL = Config.SUPABASE_URL
-                SUPABASE_SERVICE_KEY = Config.SUPABASE_SERVICE_KEY
-                
-                if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-                    raise Exception(
-                        f"Supabase credentials missing. URL: {bool(SUPABASE_URL)}, "
-                        f"Key: {bool(SUPABASE_SERVICE_KEY)}"
-                    )
-                
-                print(f"🔗 Connecting to Supabase: {SUPABASE_URL}")
-                print(f"   Using Service Role Key: {SUPABASE_SERVICE_KEY[:20]}...")
-                
-                # Initialize client
-                cls.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-                print("✅ Supabase client initialized successfully")
-                
-            except Exception as e:
-                print(f"❌ SUPABASE INIT FAILED: {e}")
-                print("   Check your .env file credentials")
-                raise
-    
+def init_client(cls):
+    """Initialize Supabase client with SERVICE ROLE key"""
+    if cls.supabase is None:
+        try:
+            print(f"🔍 DEBUG: Config.SUPABASE_URL = {Config.SUPABASE_URL}")
+            print(f"🔍 DEBUG: Config.SUPABASE_SERVICE_KEY = {Config.SUPABASE_SERVICE_KEY[:20]}...")
+            
+            if not Config.SUPABASE_URL:
+                raise Exception("SUPABASE_URL is EMPTY!")
+            if not Config.SUPABASE_SERVICE_KEY:
+                raise Exception("SUPABASE_SERVICE_KEY is EMPTY!")
+            
+            # Validate URL format
+            if not Config.SUPABASE_URL.startswith("https://"):
+                raise Exception(f"Invalid SUPABASE_URL format: {Config.SUPABASE_URL}")
+            
+            SUPABASE_URL = Config.SUPABASE_URL
+            SUPABASE_SERVICE_KEY = Config.SUPABASE_SERVICE_KEY
+            
+            cls.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+            print(f"✅ Supabase client initialized for: {SUPABASE_URL}")
+            
+        except Exception as e:
+            print(f"❌ SUPABASE INIT ERROR: {str(e)}")
+            print(f"   URL: {Config.SUPABASE_URL}")
+            print(f"   Key exists: {bool(Config.SUPABASE_SERVICE_KEY)}")
+            raise    
     @classmethod
     def test_connection(cls):
         """Test database connection"""
@@ -279,3 +276,4 @@ class SupabaseDatabase:
         except Exception as e:
             print(f"⚠️ Database init error: {e}")
             return False
+
