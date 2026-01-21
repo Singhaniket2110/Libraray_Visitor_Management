@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, make_response
+from flask import Blueprint, jsonify, request, render_template, make_response,session
 from functools import wraps
 from datetime import datetime, timedelta
 import json
@@ -635,4 +635,5 @@ def bulk_actions():
     except Exception as e:
         print(f"Bulk action error: {e}")
         return jsonify({"error": "Bulk action failed"}), 500
+
 
