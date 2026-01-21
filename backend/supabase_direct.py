@@ -1,7 +1,7 @@
 import os
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from backend.config import Config
 
 class SupabaseDirect:
@@ -16,6 +16,15 @@ class SupabaseDirect:
             'Content-Type': 'application/json',
             'Prefer': 'return=representation'
         }
+    
+    @classmethod
+    def _get_indian_time(cls):
+        """Get current Indian Standard Time (IST)"""
+        # Get UTC time
+        utc_now = datetime.now(timezone.utc)
+        # Convert to IST (UTC + 5 hours 30 minutes)
+        ist_now = utc_now + timedelta(hours=5, minutes=30)
+        return ist_now
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
@@ -39,11 +48,7 @@ class SupabaseDirect:
                             'roll_no': str(params[1]).strip().upper(),
                             'level': str(params[2]),
                             'course': str(params[3]) if params[3] else 'Not Specified',
-                            'purpose': str(params[6]) if len(params) > 6 else 'Study',
-                            'visit_day': str(params[7]) if len(params) > 7 else datetime.now().strftime('%A'),
-                            'entry_time': str(params[8]) if len(params) > 8 else datetime.now().time().strftime('%H:%M:%S'),
-                            'exit_time': str(params[9]) if len(params) > 9 else None,
-                            'visit_date': str(params[10]) if len(params) > 10 else datetime.now().date().isoformat()
+                            'purpose': str(params[6]) if len(params) > 6 else 'Study'
                         }
                         
                         # Handle year fields
@@ -110,24 +115,26 @@ class SupabaseDirect:
     
     @classmethod
     def insert_visitor(cls, visitor_data):
-        """Insert visitor record - FIXED TIME VERSION"""
+        """Insert visitor record with INDIAN TIME (IST)"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
             
-            # Get current time
-            now = datetime.now()
+            # Get Indian Standard Time
+            ist_now = cls._get_indian_time()
             
-            # ALWAYS set current time (don't trust frontend time)
+            # Prepare data with Indian time
             data = {
                 'name': visitor_data.get('name', '').strip(),
                 'roll_no': visitor_data.get('roll_no', '').strip().upper(),
                 'level': visitor_data.get('level', ''),
                 'course': visitor_data.get('course', 'Not Specified'),
                 'purpose': visitor_data.get('purpose', 'Study'),
-                'visit_day': now.strftime('%A'),  # Monday, Tuesday, etc.
-                'entry_time': now.strftime('%H:%M:%S'),  # 14:30:45 format
-                'visit_date': now.date().isoformat()  # 2024-01-21 format
+                'visit_day': ist_now.strftime('%A'),  # Monday, Tuesday, etc.
+                'entry_time': ist_now.strftime('%H:%M:%S'),  # HH:MM:SS format
+                'visit_date': ist_now.date().isoformat()  # YYYY-MM-DD format
             }
+            
+            print(f"🇮🇳 INDIAN TIME SET: {data['entry_time']} IST on {data['visit_date']}")
             
             # Add year based on level
             if visitor_data.get('level') == 'JC':
@@ -146,6 +153,7 @@ class SupabaseDirect:
             )
             
             if response.status_code == 201:
+                print(f"✅ Visitor inserted successfully with Indian time")
                 return response.json()[0]
             else:
                 print(f"❌ Insert failed: {response.status_code} - {response.text}")
@@ -160,7 +168,9 @@ class SupabaseDirect:
         """Get active visitor by roll number"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
-            today = datetime.now().date().isoformat()
+            # Use Indian date for today
+            ist_now = cls._get_indian_time()
+            today = ist_now.date().isoformat()
             
             params = {
                 'roll_no': f'eq.{roll_no.upper()}',
@@ -184,17 +194,20 @@ class SupabaseDirect:
     
     @classmethod
     def update_exit_by_id(cls, visitor_id):
-        """Update exit time by ID"""
+        """Update exit time by ID with INDIAN TIME"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
             params = {'id': f'eq.{visitor_id}'}
             
-            # Use current time for exit
-            exit_time = datetime.now().strftime('%H:%M:%S')
+            # Use Indian time for exit
+            ist_now = cls._get_indian_time()
+            exit_time = ist_now.strftime('%H:%M:%S')
             
             data = {
                 'exit_time': exit_time
             }
+            
+            print(f"🕐 Setting exit time: {exit_time} IST")
             
             response = requests.patch(
                 url,
@@ -216,7 +229,8 @@ class SupabaseDirect:
         """Update exit time by roll number"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
-            today = datetime.now().date().isoformat()
+            ist_now = cls._get_indian_time()
+            today = ist_now.date().isoformat()
             
             # First get active visitor
             params = {
@@ -241,10 +255,11 @@ class SupabaseDirect:
     
     @classmethod
     def get_today_visitors(cls):
-        """Get today's visitors"""
+        """Get today's visitors (Indian date)"""
         try:
             url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
-            today = datetime.now().date().isoformat()
+            ist_now = cls._get_indian_time()
+            today = ist_now.date().isoformat()
             
             params = {
                 'visit_date': f'eq.{today}',
@@ -339,4 +354,18 @@ class SupabaseDirect:
                 
         except Exception as e:
             print(f"❌ Connection failed: {e}")
+            return False
+    
+    @classmethod
+    def test_indian_time(cls):
+        """Test Indian time function"""
+        try:
+            ist_now = cls._get_indian_time()
+            print(f"🕐 INDIAN TIME TEST:")
+            print(f"   IST Time: {ist_now.strftime('%H:%M:%S')}")
+            print(f"   IST Date: {ist_now.date().isoformat()}")
+            print(f"   IST Day:  {ist_now.strftime('%A')}")
+            return True
+        except Exception as e:
+            print(f"❌ Time test failed: {e}")
             return False
