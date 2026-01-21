@@ -1451,9 +1451,16 @@ function closeModal() {
 }
 
 function logoutUser() {
-    if (confirm('Are you sure you want to logout?')) {
-        window.location.href = '/admin/logout';
-    }
+    if (!confirm('Are you sure you want to logout?')) return;
+    
+    // Direct redirect to logout endpoint
+    window.location.href = '/admin/logout';
+    
+    // OR with timeout to ensure cookies cleared
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 1000);
 }
+
 
 console.log("✅ Admin.js loaded successfully!");
