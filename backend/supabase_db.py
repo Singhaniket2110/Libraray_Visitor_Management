@@ -1,4 +1,3 @@
-
 import os
 from supabase import create_client, Client
 from datetime import datetime
@@ -83,7 +82,6 @@ class SupabaseDatabase:
             
             # Try a simple query - get server timestamp
             print("   Sending test query...")
-            response = cls.supabase.rpc('get_server_timestamp', {}).execute()
             
             # Alternative: Try to list tables
             try:
@@ -101,7 +99,8 @@ class SupabaseDatabase:
                 except:
                     print(f"⚠️ Tables not accessible, but connection established")
                     print(f"   Error: {str(table_error)[:100]}")
-                    return True  # Connection still works
+                    # Even if tables don't exist, connection is successful
+                    return True
                     
         except Exception as e:
             print(f"❌ Connection FAILED: {str(e)[:200]}")
@@ -115,7 +114,9 @@ class SupabaseDatabase:
         try:
             # Ensure client is initialized
             if cls.supabase is None:
-                cls.init_client()lower()
+                cls.init_client()
+            
+            query_lower = query.strip().lower()
             
             # ============ SELECT QUERIES ============
             if query_lower.startswith('select'):
@@ -297,9 +298,7 @@ class SupabaseDatabase:
                         .execute()
                     return result.data
             
-            return None
-            
-# If no specific handler matched
+            # If no specific handler matched
             print(f"⚠️ No handler for query: {query[:100]}...")
             return None
             
