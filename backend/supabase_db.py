@@ -1,3 +1,4 @@
+
 import os
 from supabase import create_client, Client
 from datetime import datetime
@@ -7,79 +8,114 @@ class SupabaseDatabase:
     supabase: Client = None
     
     @classmethod
-def init_client(cls):
-    """Initialize Supabase client with SERVICE ROLE key"""
-    if cls.supabase is None:
-        try:
-            print(f"🔍 DEBUG: Config.SUPABASE_URL = {Config.SUPABASE_URL}")
-            print(f"🔍 DEBUG: Config.SUPABASE_SERVICE_KEY = {Config.SUPABASE_SERVICE_KEY[:20]}...")
-            
-            if not Config.SUPABASE_URL:
-                raise Exception("SUPABASE_URL is EMPTY!")
-            if not Config.SUPABASE_SERVICE_KEY:
-                raise Exception("SUPABASE_SERVICE_KEY is EMPTY!")
-            
-            # Validate URL format
-            if not Config.SUPABASE_URL.startswith("https://"):
-                raise Exception(f"Invalid SUPABASE_URL format: {Config.SUPABASE_URL}")
-            
-            SUPABASE_URL = Config.SUPABASE_URL
-            SUPABASE_SERVICE_KEY = Config.SUPABASE_SERVICE_KEY
-            
-            cls.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-            print(f"✅ Supabase client initialized for: {SUPABASE_URL}")
-            
-        except Exception as e:
-            print(f"❌ SUPABASE INIT ERROR: {str(e)}")
-            print(f"   URL: {Config.SUPABASE_URL}")
-            print(f"   Key exists: {bool(Config.SUPABASE_SERVICE_KEY)}")
-            raise    
+    def init_client(cls):
+        """Initialize Supabase client with SERVICE ROLE key"""
+        if cls.supabase is None:
+            try:
+                print("=" * 50)
+                print("🔄 INITIALIZING SUPABASE CLIENT")
+                print("=" * 50)
+                
+                # Step 1: Validate config
+                if not Config.validate_config():
+                    raise Exception("Config validation failed")
+                
+                # Step 2: Get cleaned values
+                SUPABASE_URL = Config.SUPABASE_URL
+                SUPABASE_SERVICE_KEY = Config.SUPABASE_SERVICE_KEY
+                
+                # Step 3: Extra cleaning (safety)
+                SUPABASE_URL = SUPABASE_URL.strip()
+                SUPABASE_SERVICE_KEY = SUPABASE_SERVICE_KEY.strip()
+                
+                # Remove any accidental prefixes
+                if "SUPABASE_URL=" in SUPABASE_URL:
+                    SUPABASE_URL = SUPABASE_URL.replace("SUPABASE_URL=", "")
+                if "SUPABASE_SERVICE_ROLE_KEY=" in SUPABASE_SERVICE_KEY:
+                    SUPABASE_SERVICE_KEY = SUPABASE_SERVICE_KEY.replace("SUPABASE_SERVICE_ROLE_KEY=", "")
+                
+                SUPABASE_URL = SUPABASE_URL.strip('"').strip("'")
+                SUPABASE_SERVICE_KEY = SUPABASE_SERVICE_KEY.strip('"').strip("'")
+                
+                # Step 4: Validate before creating client
+                if not SUPABASE_URL:
+                    raise Exception("SUPABASE_URL is EMPTY after cleaning")
+                
+                if not SUPABASE_URL.startswith("https://"):
+                    raise Exception(f"URL must start with https://. Got: {SUPABASE_URL[:50]}")
+                
+                if not SUPABASE_SERVICE_KEY:
+                    raise Exception("SUPABASE_SERVICE_KEY is EMPTY after cleaning")
+                
+                if len(SUPABASE_SERVICE_KEY) < 20:
+                    raise Exception(f"Service key too short: {len(SUPABASE_SERVICE_KEY)} chars")
+                
+                # Step 5: Debug info
+                print(f"🔗 URL (cleaned): {SUPABASE_URL}")
+                print(f"🔑 Key (first 20 chars): {SUPABASE_SERVICE_KEY[:20]}...")
+                print(f"📏 Key length: {len(SUPABASE_SERVICE_KEY)} characters")
+                
+                # Step 6: Create client
+                print("🛠️ Creating Supabase client...")
+                cls.supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+                print("✅ Supabase client created successfully")
+                print("=" * 50)
+                
+            except Exception as e:
+                print("=" * 50)
+                print(f"❌ SUPABASE INIT FAILED: {e}")
+                print("=" * 50)
+                print("TROUBLESHOOTING:")
+                print(f"1. SUPABASE_URL: '{Config.SUPABASE_URL[:80] if Config.SUPABASE_URL else 'EMPTY'}'")
+                print(f"2. Starts with https://: {Config.SUPABASE_URL.startswith('https://') if Config.SUPABASE_URL else False}")
+                print(f"3. Key exists: {bool(Config.SUPABASE_SERVICE_KEY)}")
+                print("=" * 50)
+                raise
+    
     @classmethod
     def test_connection(cls):
-        """Test database connection"""
+        """Test database connection - SIMPLIFIED VERSION"""
         try:
+            print("🧪 Testing Supabase connection...")
+            
             if cls.supabase is None:
                 cls.init_client()
             
-            # Method 1: Try to list tables (simple test)
-            print("🧪 Testing database connection...")
+            # Try a simple query - get server timestamp
+            print("   Sending test query...")
+            response = cls.supabase.rpc('get_server_timestamp', {}).execute()
             
-            # Try to access admin table first
+            # Alternative: Try to list tables
             try:
-                result = cls.supabase.table('admin').select("id").limit(1).execute()
-                print(f"✅ Connection test passed - Admin table accessible")
+                # Get first visitor record
+                result = cls.supabase.table('visitors').select('id').limit(1).execute()
+                print(f"✅ Connection SUCCESS - Visitors table accessible")
+                print(f"   Found {len(result.data)} records")
                 return True
             except Exception as table_error:
-                print(f"⚠️ Admin table not accessible: {table_error}")
-                
-                # Try system table as fallback
+                # Try admin table
                 try:
-                    result = cls.supabase.table('visitors').select("count").limit(1).execute()
-                    print(f"✅ Visitors table accessible")
+                    result = cls.supabase.table('admin').select('id').limit(1).execute()
+                    print(f"✅ Connection SUCCESS - Admin table accessible")
                     return True
                 except:
-                    print(f"⚠️ Testing with simple ping...")
-                    
-                    # Last resort: Just check if client responds
-                    response = cls.supabase.auth.get_session()
-                    print(f"✅ Supabase client responding")
-                    return True
+                    print(f"⚠️ Tables not accessible, but connection established")
+                    print(f"   Error: {str(table_error)[:100]}")
+                    return True  # Connection still works
                     
         except Exception as e:
-            print(f"❌ Connection test failed: {str(e)[:200]}")
+            print(f"❌ Connection FAILED: {str(e)[:200]}")
             return False
     
     @classmethod
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
         """
         Execute database operations using Supabase client
-        Compatible with SQL-style queries from your models
         """
         try:
+            # Ensure client is initialized
             if cls.supabase is None:
-                cls.init_client()
-            
-            query_lower = query.strip().lower()
+                cls.init_client()lower()
             
             # ============ SELECT QUERIES ============
             if query_lower.startswith('select'):
@@ -263,17 +299,28 @@ def init_client(cls):
             
             return None
             
+# If no specific handler matched
+            print(f"⚠️ No handler for query: {query[:100]}...")
+            return None
+            
         except Exception as e:
-            print(f"❌ Database error: {e}")
+            print(f"❌ Database operation failed: {e}")
             raise Exception(f"Database operation failed: {str(e)}")
     
     @classmethod
     def init_database(cls):
         """Initialize database - test connection"""
         try:
+            print("🔄 Initializing database connection...")
             cls.init_client()
-            return cls.test_connection()
+            success = cls.test_connection()
+            
+            if success:
+                print("✅ Database initialized successfully")
+            else:
+                print("⚠️ Database connected but tables may not exist")
+            
+            return success
         except Exception as e:
-            print(f"⚠️ Database init error: {e}")
+            print(f"❌ Database init error: {e}")
             return False
-
