@@ -136,10 +136,28 @@ def admin_login():
 @admin_bp.route('/logout')
 def admin_logout():
     """Logout admin"""
-    response = make_response(jsonify({'success': True, 'redirect': '/admin/login'}))
-    response.set_cookie('admin_token', '', expires=0)
-    return response
-
+    try:
+        # Clear Flask session
+        session.clear()
+        
+        # Create response
+        response = make_response(jsonify({
+            'success': True, 
+            'message': 'Logged out successfully',
+            'redirect': '/'
+        }))
+        
+        # Clear all cookies
+        response.set_cookie('admin_token', '', expires=0)
+        response.set_cookie('session', '', expires=0)
+        response.set_cookie('library_session', '', expires=0)
+        
+        print("✅ Admin session cleared, redirecting to home")
+        return response
+        
+    except Exception as e:
+        print(f"❌ Logout error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 @admin_bp.route('/check_session')
 def check_session():
     """Check if admin is logged in"""
@@ -617,3 +635,4 @@ def bulk_actions():
     except Exception as e:
         print(f"Bulk action error: {e}")
         return jsonify({"error": "Bulk action failed"}), 500
+
