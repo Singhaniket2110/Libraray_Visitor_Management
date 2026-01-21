@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from backend.models.visitor_model import add_visitor, mark_exit, get_active_visitor_by_rollno
-from backend.supabase_db import SupabaseDatabase as Database
+from backend.supabase_direct import SupabaseDirect as Database
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
@@ -16,19 +15,19 @@ def exit_form():
 def check_visitor(roll_no):
     """Check if a visitor with given roll number is currently inside"""
     try:
-        visitor = get_active_visitor_by_rollno(roll_no)
+        # ✅ USE DIRECT API
+        visitor = Database.get_active_visitor_by_rollno(roll_no)
         
         if visitor:
             return jsonify({"visitor": visitor}), 200
         else:
             # Also check if any visitor exists with this roll number (even exited)
-            query = """
-                SELECT * FROM visitors 
-                WHERE roll_no = %s 
-                ORDER BY id DESC 
-                LIMIT 1
-            """
-            any_visitor = Database.execute_query(query, (roll_no.upper(),), fetch=True)
+            all_visitors = Database.get_all_visitors()
+            any_visitor = None
+            for v in all_visitors:
+                if v.get('roll_no', '').upper() == roll_no.upper():
+                    any_visitor = v
+                    break
             
             if any_visitor:
                 return jsonify({
@@ -68,21 +67,55 @@ def student_visit():
             if not data.get('course'):
                 return jsonify({"error": "Course is required for UG/PG students"}), 400
         
-        visitor_id = add_visitor(data)
-        return jsonify({
-            "message": "Visit recorded successfully",
-            "visitor_id": visitor_id
-        }), 201
+        # Prepare data for direct API
+        visitor_data = {
+            'name': data['name'].strip(),
+            'roll_no': data['roll_no'].strip().upper(),
+            'level': data['level'],
+            'purpose': data['purpose'],
+            'course': data.get('course', 'Not Specified')
+        }
         
+        # Add year/stream based on level
+        if data['level'] == 'JC':
+            visitor_data['jc_year'] = data.get('jc_year')
+            visitor_data['jc_stream'] = data.get('jc_stream')
+        else:
+            if data.get('year'):
+                visitor_data['year'] = data.get('year')
+        
+        # ✅ USE DIRECT API
+        result = Database.insert_visitor(visitor_data)
+        
+        if result:
+            return jsonify({
+                "success": True,
+                "message": "Visit recorded successfully",
+                "visitor_id": result.get('id')
+            }), 201
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Failed to record visit"
+            }), 500
+            
     except Exception as e:
         print(f"Error recording visit: {e}")
-        return jsonify({"error": f"Failed to record visit: {str(e)}"}), 500
+        return jsonify({
+            "success": False,
+            "error": f"Failed to record visit: {str(e)}"
+        }), 500
 
 @student_bp.route('/exit/<int:visitor_id>', methods=['PUT'])
 def student_exit(visitor_id):
     try:
-        mark_exit(visitor_id)
-        return jsonify({"message": "Exit time marked successfully"}), 200
+        # ✅ USE DIRECT API
+        result = Database.update_exit_by_id(visitor_id)
+        
+        if result:
+            return jsonify({"message": "Exit time marked successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to mark exit"}), 500
     except Exception as e:
         print(f"Error marking exit: {e}")
         return jsonify({"error": f"Failed to mark exit: {str(e)}"}), 500
