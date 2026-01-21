@@ -27,9 +27,9 @@ class SupabaseDatabase:
             if cls.supabase is None:
                 cls.init_client()
             
-            # Test query - try to fetch from visitors table
-            result = cls.supabase.table('visitors').select("id").limit(1).execute()
-            print(f"✅ Connection test passed - found {len(result.data)} records")
+            # Test query - try to fetch from admin table
+            result = cls.supabase.table('admin').select("id").limit(1).execute()
+            print(f"✅ Connection test passed - Database is accessible")
             return True
         except Exception as e:
             print(f"❌ Connection test failed: {e}")
@@ -39,7 +39,7 @@ class SupabaseDatabase:
     def execute_query(cls, query, params=None, fetch=False, fetch_all=False, commit=True):
         """
         Execute database operations using Supabase client
-        This is a compatibility layer for SQL-style queries
+        Compatible with SQL-style queries from your models
         """
         try:
             if cls.supabase is None:
@@ -50,115 +50,181 @@ class SupabaseDatabase:
             # ============ SELECT QUERIES ============
             if query_lower.startswith('select'):
                 
-                # Admin login check
-                if 'admin' in query_lower and 'username' in query_lower:
-                    username = params[0] if params else None
-                    if username:
-                        result = cls.supabase.table('admin').select("*").eq('username', username).execute()
-                        if result.data and len(result.data) > 0:
-                            # Check password match
-                            password = params[1] if len(params) > 1 else None
-                            if password and result.data[0].get('password') == password:
-                                return result.data[0] if fetch else result.data
-                        return None
-                
-                # Get active visitor by roll number
-                if 'roll_no' in query_lower and 'exit_time is null' in query_lower:
-                    roll_no = params[0] if params else None
-                    if roll_no:
-                        result = cls.supabase.table('visitors').select("*").eq('roll_no', roll_no.upper()).is_('exit_time', 'null').order('id', desc=True).limit(1).execute()
+                # 1. Admin Login Query
+                # SELECT * FROM admin WHERE username = %s AND password = %s
+                if 'admin' in query_lower and 'username' in query_lower and 'password' in query_lower:
+                    if params and len(params) >= 2:
+                        username = params[0]
+                        password = params[1]
+                        result = cls.supabase.table('admin')\
+                            .select("*")\
+                            .eq('username', username)\
+                            .eq('password', password)\
+                            .execute()
                         return result.data[0] if result.data else None
                 
-                # Get visitor by roll number (any)
-                if 'roll_no' in query_lower and 'order by id desc' in query_lower:
-                    roll_no = params[0] if params else None
-                    if roll_no:
-                        result = cls.supabase.table('visitors').select("*").eq('roll_no', roll_no.upper()).order('id', desc=True).limit(1).execute()
+                # 2. Get Active Visitor by Roll No
+                # SELECT * FROM visitors WHERE roll_no = %s AND exit_time IS NULL AND visit_date = CURRENT_DATE
+                if 'roll_no' in query_lower and 'exit_time is null' in query_lower and 'current_date' in query_lower:
+                    if params:
+                        roll_no = params[0].upper()
+                        today = datetime.now().date().isoformat()
+                        result = cls.supabase.table('visitors')\
+                            .select("*")\
+                            .eq('roll_no', roll_no)\
+                            .eq('visit_date', today)\
+                            .is_('exit_time', 'null')\
+                            .order('id', desc=True)\
+                            .limit(1)\
+                            .execute()
                         return result.data[0] if result.data else None
                 
-                # Get today's visitors
-                if 'visit_date = current_date' in query_lower or 'current_date' in query_lower:
+                # 3. Get Any Visitor by Roll No (even exited)
+                # SELECT * FROM visitors WHERE roll_no = %s ORDER BY id DESC LIMIT 1
+                if 'roll_no' in query_lower and 'order by id desc' in query_lower and 'exit_time is null' not in query_lower:
+                    if params:
+                        roll_no = params[0].upper()
+                        result = cls.supabase.table('visitors')\
+                            .select("*")\
+                            .eq('roll_no', roll_no)\
+                            .order('id', desc=True)\
+                            .limit(1)\
+                            .execute()
+                        return result.data[0] if result.data else None
+                
+                # 4. Get Today's Visitors
+                # SELECT * FROM visitors WHERE visit_date = CURRENT_DATE ORDER BY id DESC
+                if 'visit_date = current_date' in query_lower or ('current_date' in query_lower and 'between' not in query_lower):
                     today = datetime.now().date().isoformat()
-                    result = cls.supabase.table('visitors').select("*").eq('visit_date', today).order('id', desc=True).execute()
+                    result = cls.supabase.table('visitors')\
+                        .select("*")\
+                        .eq('visit_date', today)\
+                        .order('id', desc=True)\
+                        .execute()
                     return result.data if fetch_all else result.data
                 
-                # Get visitors by date range
-                if 'visit_date between' in query_lower:
-                    start_date = params[0] if params else None
-                    end_date = params[1] if len(params) > 1 else None
-                    if start_date and end_date:
-                        result = cls.supabase.table('visitors').select("*").gte('visit_date', start_date).lte('visit_date', end_date).order('visit_date', desc=True).execute()
+                # 5. Get Visitors by Date Range
+                # SELECT * FROM visitors WHERE visit_date BETWEEN %s AND %s
+                if 'visit_date between' in query_lower or 'between' in query_lower:
+                    if params and len(params) >= 2:
+                        start_date = params[0]
+                        end_date = params[1]
+                        result = cls.supabase.table('visitors')\
+                            .select("*")\
+                            .gte('visit_date', start_date)\
+                            .lte('visit_date', end_date)\
+                            .order('visit_date', desc=True)\
+                            .execute()
                         return result.data if fetch_all else result.data
                 
-                # Generic SELECT from visitors with filters
-                if 'visitors' in query_lower:
+                # 6. Get Filtered Visitors (with level and/or date)
+                # SELECT * FROM visitors WHERE 1=1 AND level = %s AND visit_date = %s ORDER BY id DESC
+                if 'visitors' in query_lower and 'where' in query_lower:
                     query_builder = cls.supabase.table('visitors').select("*")
                     
-                    # Apply level filter
-                    if params and 'level' in str(query_lower):
-                        # Extract level from params if available
-                        pass
+                    if params:
+                        # Apply filters based on params
+                        for i, param in enumerate(params):
+                            if param and 'level' in query_lower:
+                                query_builder = query_builder.eq('level', param)
+                            elif param and (i > 0 or 'date' in query_lower):
+                                # Date filter
+                                try:
+                                    datetime.fromisoformat(str(param))
+                                    query_builder = query_builder.eq('visit_date', param)
+                                except:
+                                    pass
                     
                     result = query_builder.order('id', desc=True).execute()
-                    return result.data if fetch_all else (result.data[0] if result.data else None)
+                    return result.data if fetch_all else result.data
                 
-                # Default: get all from table
-                table_name = cls._extract_table_name(query_lower)
-                if table_name:
-                    result = cls.supabase.table(table_name).select("*").execute()
-                    return result.data if fetch_all else (result.data[0] if result.data else None)
+                # 7. Get All Visitors
+                # SELECT * FROM visitors ORDER BY id DESC
+                if 'visitors' in query_lower:
+                    result = cls.supabase.table('visitors')\
+                        .select("*")\
+                        .order('id', desc=True)\
+                        .execute()
+                    return result.data if fetch_all else result.data
+                
+                # 8. Test Query (SELECT NOW())
+                if 'now()' in query_lower or 'current_time' in query_lower:
+                    return {'time': datetime.now().isoformat()}
             
             # ============ INSERT QUERIES ============
             elif query_lower.startswith('insert'):
                 if 'visitors' in query_lower:
-                    # Parse INSERT for visitors
+                    # INSERT INTO visitors (...) VALUES (...)
                     if params and len(params) >= 7:
                         visitor_data = {
-                            'name': params[0],
-                            'roll_no': params[1].upper() if params[1] else None,
+                            'name': params[0].strip(),
+                            'roll_no': params[1].strip().upper(),
                             'level': params[2],
                             'course': params[3] if params[3] else 'Not Specified',
                             'purpose': params[6] if len(params) > 6 else 'Study',
                             'visit_day': params[7] if len(params) > 7 else datetime.now().strftime('%A')
                         }
                         
-                        # Add optional fields
-                        if len(params) > 4 and params[4]:
-                            if params[2] == 'JC':
+                        # Handle year fields based on level
+                        if params[2] == 'JC':
+                            if len(params) > 4 and params[4]:
                                 visitor_data['jc_year'] = params[4]
-                            else:
+                            if len(params) > 5 and params[5]:
+                                visitor_data['jc_stream'] = params[5]
+                        else:
+                            if len(params) > 4 and params[4]:
                                 visitor_data['year'] = params[4]
                         
-                        if len(params) > 5 and params[5]:
-                            visitor_data['jc_stream'] = params[5]
+                        # Handle entry_time if provided
+                        if len(params) > 8 and params[8]:
+                            visitor_data['entry_time'] = params[8]
+                        
+                        # Handle visit_date if provided
+                        if len(params) > 9 and params[9]:
+                            visitor_data['visit_date'] = params[9]
+                        
+                        # Handle exit_time if provided
+                        if len(params) > 10 and params[10]:
+                            visitor_data['exit_time'] = params[10]
                         
                         result = cls.supabase.table('visitors').insert(visitor_data).execute()
                         return result.data[0] if result.data else None
             
             # ============ UPDATE QUERIES ============
             elif query_lower.startswith('update'):
-                if 'visitors' in query_lower:
-                    if 'exit_time' in query_lower:
-                        # Mark exit
-                        if params:
-                            if 'roll_no' in query_lower:
-                                # Update by roll_no
-                                roll_no = params[0]
-                                exit_time = datetime.now().time().isoformat()
-                                result = cls.supabase.table('visitors').update({'exit_time': exit_time}).eq('roll_no', roll_no.upper()).is_('exit_time', 'null').execute()
-                                return result.data
-                            else:
-                                # Update by ID
-                                visitor_id = params[0]
-                                exit_time = datetime.now().time().isoformat()
-                                result = cls.supabase.table('visitors').update({'exit_time': exit_time}).eq('id', visitor_id).execute()
-                                return result.data
+                if 'visitors' in query_lower and 'exit_time' in query_lower:
+                    # UPDATE visitors SET exit_time = CURRENT_TIME WHERE ...
+                    
+                    if 'id' in query_lower and params:
+                        # Update by ID
+                        visitor_id = params[0]
+                        exit_time = datetime.now().time().strftime('%H:%M:%S')
+                        result = cls.supabase.table('visitors')\
+                            .update({'exit_time': exit_time})\
+                            .eq('id', visitor_id)\
+                            .execute()
+                        return result.data
+                    
+                    elif 'roll_no' in query_lower and params:
+                        # Update by roll_no
+                        roll_no = params[0].upper()
+                        exit_time = params[1] if len(params) > 1 else datetime.now().time().strftime('%H:%M:%S')
+                        result = cls.supabase.table('visitors')\
+                            .update({'exit_time': exit_time})\
+                            .eq('roll_no', roll_no)\
+                            .is_('exit_time', 'null')\
+                            .execute()
+                        return result.data
             
             # ============ DELETE QUERIES ============
             elif query_lower.startswith('delete'):
                 if 'visitors' in query_lower and params:
+                    # DELETE FROM visitors WHERE id = %s
                     visitor_id = params[0]
-                    result = cls.supabase.table('visitors').delete().eq('id', visitor_id).execute()
+                    result = cls.supabase.table('visitors')\
+                        .delete()\
+                        .eq('id', visitor_id)\
+                        .execute()
                     return result.data
             
             return None
@@ -166,16 +232,6 @@ class SupabaseDatabase:
         except Exception as e:
             print(f"❌ Database error: {e}")
             raise Exception(f"Database operation failed: {str(e)}")
-    
-    @classmethod
-    def _extract_table_name(cls, query):
-        """Extract table name from SQL query"""
-        try:
-            if 'from' in query:
-                parts = query.split('from')[1].strip().split()
-                return parts[0] if parts else None
-        except:
-            return None
     
     @classmethod
     def init_database(cls):
