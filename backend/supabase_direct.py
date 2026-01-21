@@ -122,7 +122,7 @@ class SupabaseDirect:
                 'course': visitor_data.get('course', 'Not Specified'),
                 'purpose': visitor_data.get('purpose', 'Study'),
                 'visit_day': visitor_data.get('visit_day', datetime.now().strftime('%A')),
-                'entry_time': visitor_data.get('entry_time', datetime.now().time().strftime('%H:%M:%S')),
+                'entry_time': visitor_data.get('entry_time', current_time.time().isoformat()[:8]),
                 'visit_date': visitor_data.get('visit_date', datetime.now().date().isoformat())
             }
             
