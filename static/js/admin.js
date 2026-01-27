@@ -559,12 +559,12 @@ function updateChartData(data) {
             console.log("✅ Peak hours chart updated");
         }
         
-        // Duration Analysis
-        if (charts.duration && data.durationAnalysis) {
+        // Duration Analysis - FIXED VERSION
+        if (charts.duration && data.visitors) {
             // Calculate duration distribution
             const durations = [0, 0, 0, 0, 0]; // <30, 30-60, 1-2, 2-4, >4 hours
             
-            if (data.visitors && Array.isArray(data.visitors)) {
+            if (Array.isArray(data.visitors)) {
                 data.visitors.forEach(v => {
                     if (v.entry_time && v.exit_time) {
                         try {
@@ -584,9 +584,17 @@ function updateChartData(data) {
                 });
             }
             
+            // Update the chart
             charts.duration.data.datasets[0].data = durations;
-            charts.duration.update('none');
-            console.log("✅ Duration chart updated");
+            
+            // Make sure labels are set correctly
+            const durationLabels = ['<30 min', '30-60 min', '1-2 hrs', '2-4 hrs', '>4 hrs'];
+            if (charts.duration.data.labels.length === 0) {
+                charts.duration.data.labels = durationLabels;
+            }
+            
+            charts.duration.update();
+            console.log("✅ Duration chart updated with data:", durations);
         }
         
         console.log("✅ All charts updated successfully");
@@ -627,21 +635,95 @@ function updateCharts() {
             if (courseType) {
                 const type = courseType.value;
                 
-                // Chart.js 4.x: Use 'bar' type with different indexAxis
-                charts.course.config.type = 'bar';
+                // Store current data
+                const currentData = {
+                    labels: charts.course.data.labels || [],
+                    datasets: charts.course.data.datasets.map(dataset => ({
+                        ...dataset
+                    }))
+                };
                 
+                // Destroy and recreate the chart with new configuration
+                charts.course.destroy();
+                
+                // For Chart.js v4.x: Use 'bar' type with different indexAxis
                 if (type === 'horizontalBar') {
-                    charts.course.options.indexAxis = 'y'; // Horizontal bars
+                    charts.course = new Chart(document.getElementById('courseChart').getContext('2d'), {
+                        type: 'bar',
+                        data: currentData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y', // This makes it horizontal
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Courses'
+                                    },
+                                    grid: {
+                                        display: true
+                                    }
+                                },
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Visitors'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (Math.floor(value) === value) {
+                                                return value;
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false // Hide legend for cleaner horizontal bars
+                                }
+                            }
+                        }
+                    });
                 } else {
-                    charts.course.options.indexAxis = 'x'; // Vertical bars
+                    // Vertical bars
+                    charts.course = new Chart(document.getElementById('courseChart').getContext('2d'), {
+                        type: 'bar',
+                        data: currentData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'x', // This is the default for vertical bars
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Courses'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Visitors'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (Math.floor(value) === value) {
+                                                return value;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
                 }
                 
-                // Ensure scales exist
-                if (!charts.course.options.scales) {
-                    charts.course.options.scales = {};
-                }
-                
-                charts.course.update();
                 console.log("✅ Course chart type changed to:", type);
             }
         }
