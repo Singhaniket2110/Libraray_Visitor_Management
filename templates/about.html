@@ -271,6 +271,94 @@
             border-bottom: 2px solid #e2e8f0;
         }
         
+        /* New styles for librarian section */
+        .librarian-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .librarian-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border-left: 4px solid #0ea5e9;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.1);
+        }
+        
+        .librarian-avatar {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
+        }
+        
+        .librarian-name {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .librarian-designation {
+            font-size: 1.2rem;
+            color: #0ea5e9;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .librarian-qualification {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            border-left: 3px solid #0ea5e9;
+        }
+        
+        .qualification-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
         .back-home {
             text-align: center;
             margin: 40px 0;
@@ -333,8 +421,24 @@
             
             .stats-grid,
             .services-grid,
-            .rules-grid {
+            .rules-grid,
+            .librarian-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .librarian-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+            
+            .librarian-name {
+                font-size: 1.5rem;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -408,6 +512,46 @@
             <p><strong>Note:</strong> Library will be closed on Sunday and Public Holidays.</p>
         </div>
         
+        <!-- NEW SECTION: Librarian Information -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <h3>Our Librarian</h3>
+            
+            <div class="librarian-grid">
+                <div class="librarian-card">
+                    <div class="librarian-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    
+                    <div class="librarian-name">Mr. Narendra Dinesh Chandrate</div>
+                    
+                    <div class="librarian-designation">Librarian</div>
+                    
+                    <div class="librarian-qualification">
+                        <p><strong>Qualifications:</strong></p>
+                        <p>Bachelor of Commerce (B.Com), Bachelor of Library & Information Science (B.Lib.I.Sc), Master of Library & Information Science (M.Lib.I.Sc)</p>
+                    </div>
+                    
+                    <div class="qualification-badges">
+                        <span class="badge">B.Com</span>
+                        <span class="badge">B.Lib.I.Sc</span>
+                        <span class="badge">M.Lib.I.Sc</span>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>librarian@navneetcollege.edu</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>Office: +91-XXXXXXXXXX</span>
+                        </div>
+                    </div>
+                </div>
+    
         <!-- Statistics of Library -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
@@ -592,5 +736,5 @@
             </a>
         </div>
     </div>
-</body>
+</body>  
 </html>
