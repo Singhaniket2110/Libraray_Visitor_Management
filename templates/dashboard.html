@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -133,70 +133,6 @@
             color: #991b1b;
             border: 1px solid #fca5a5;
         }
-
-        /* New Styles for Daily vs Lifetime Stats */
-        .stats-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
-        }
-
-        .stats-tab {
-            padding: 10px 20px;
-            background: #f1f5f9;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #64748b;
-            transition: all 0.3s;
-        }
-
-        .stats-tab.active {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-        }
-
-        .stats-section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .stats-section.active {
-            display: block;
-        }
-
-        .stats-period-label {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .stats-period-label i {
-            color: #6366f1;
-        }
-
-        .stat-card-daily {
-            border-top: 4px solid #10b981;
-        }
-
-        .stat-card-lifetime {
-            border-top: 4px solid #8b5cf6;
-        }
-
-        .stat-card-daily .stat-value {
-            color: #10b981;
-        }
-
-        .stat-card-lifetime .stat-value {
-            color: #8b5cf6;
-        }
     </style>
 </head>
 <body>
@@ -208,8 +144,7 @@
                 <i class="fas fa-chart-line"></i>
             </div>
             <div class="header-text">
-                <h1><i class="fas fa-chart-bar"></i> Library Analytics Admin Dashboard</h1>
-                <p>Welcome, Admin | Real-time analytics & insights</p>
+                <h1><i class="fas fa-chart-bar"></i> Library Analytics Admin Dashboard</h1>                <p>Welcome, {{ session.get('admin_username', 'Admin') }} | Real-time analytics & insights</p>
             </div>
         </div>
         <div class="header-actions">
@@ -250,10 +185,10 @@
                 <label class="form-label">
                     <i class="fas fa-calendar"></i> From:
                 </label>
-                <input type="date" id="startDate" class="form-control" value="{{ today }}">
+                <input type="date" id="startDate" class="form-control">
                 
                 <label class="form-label">To:</label>
-                <input type="date" id="endDate" class="form-control" value="{{ today }}">
+                <input type="date" id="endDate" class="form-control">
                 
                 <button onclick="applyCustomDateRange()" class="btn btn-primary">
                     <i class="fas fa-search"></i> Apply
@@ -266,7 +201,7 @@
                 <label class="form-label">
                     <i class="fas fa-layer-group"></i> Level Filter
                 </label>
-                <select id="levelFilter" class="form-control" onchange="applyFilters()">
+                <select id="levelFilter" class="form-control" onchange="loadVisitors()">
                     <option value="">All Levels</option>
                     <option value="JC">Junior College</option>
                     <option value="UG">Undergraduate</option>
@@ -278,27 +213,16 @@
                 <label class="form-label">
                     <i class="fas fa-door-open"></i> Status Filter
                 </label>
-                <select id="statusFilter" class="form-control" onchange="applyFilters()">
+                <select id="statusFilter" class="form-control" onchange="loadVisitors()">
                     <option value="">All Status</option>
                     <option value="active">Active Only</option>
                     <option value="exited">Exited Only</option>
                 </select>
             </div>
-
-            <div>
-                <label class="form-label">
-                    <i class="fas fa-filter"></i> Data Type
-                </label>
-                <select id="dataTypeFilter" class="form-control" onchange="applyFilters()">
-                    <option value="students">Students Only</option>
-                    <option value="teachers">Teachers Only</option>
-                    <option value="all">All Visitors</option>
-                </select>
-            </div>
         </div>
         
         <div class="data-actions">
-            <button onclick="loadAnalytics()" class="btn btn-primary">
+            <button onclick="loadVisitors()" class="btn btn-primary">
                 <i class="fas fa-sync-alt"></i> Refresh Data
             </button>
             <button onclick="resetFilters()" class="btn btn-secondary">
@@ -315,232 +239,60 @@
         </div>
     </section>
 
-    <!-- Statistics Tabs -->
-    <div class="stats-tabs">
-        <button class="stats-tab active" onclick="showStatsTab('daily')">
-            <i class="fas fa-calendar-day"></i> Today's Statistics
-        </button>
-        <button class="stats-tab" onclick="showStatsTab('lifetime')">
-            <i class="fas fa-chart-line"></i> Lifetime Statistics
-        </button>
-        <button class="stats-tab" onclick="showStatsTab('teachers')">
-            <i class="fas fa-chalkboard-teacher"></i> Teacher Statistics
-        </button>
-    </div>
-
-    <!-- Daily Statistics -->
-    <section id="dailyStats" class="stats-section active">
-        <div class="stats-grid">
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-value" id="dailyTotalVisitors">0</div>
-                <div class="stat-label">TODAY'S VISITORS</div>
-                <div class="stat-trend positive" id="dailyVisitorTrend">
-                    <i class="fas fa-arrow-up"></i> 0%
-                </div>
+    <!-- Statistics Cards -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
             </div>
-            
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div class="stat-value" id="dailyCurrentVisitors">0</div>
-                <div class="stat-label">CURRENTLY INSIDE</div>
-            </div>
-            
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="stat-value" id="dailyJcCount">0</div>
-                <div class="stat-label">JC STUDENTS TODAY</div>
-            </div>
-            
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="stat-value" id="dailyUgCount">0</div>
-                <div class="stat-label">UG STUDENTS TODAY</div>
-            </div>
-            
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <div class="stat-value" id="dailyPgCount">0</div>
-                <div class="stat-label">PG STUDENTS TODAY</div>
-            </div>
-            
-            <div class="stat-card stat-card-daily">
-                <div class="stat-period-label">
-                    <i class="fas fa-calendar-day"></i> TODAY
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-value" id="dailyAvgDuration">0</div>
-                <div class="stat-label">AVG DURATION TODAY (MIN)</div>
+            <div class="stat-value" id="totalVisitors">0</div>
+            <div class="stat-label">TOTAL VISITORS</div>
+            <div class="stat-trend positive" id="visitorTrend">
+                <i class="fas fa-arrow-up"></i> 0%
             </div>
         </div>
-    </section>
-
-    <!-- Lifetime Statistics -->
-    <section id="lifetimeStats" class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-value" id="lifetimeTotalVisitors">0</div>
-                <div class="stat-label">TOTAL VISITORS (ALL TIME)</div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-door-open"></i>
             </div>
-            
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="stat-value" id="lifetimeJcCount">0</div>
-                <div class="stat-label">TOTAL JC STUDENTS</div>
-            </div>
-            
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div class="stat-value" id="lifetimeUgCount">0</div>
-                <div class="stat-label">TOTAL UG STUDENTS</div>
-            </div>
-            
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <div class="stat-value" id="lifetimePgCount">0</div>
-                <div class="stat-label">TOTAL PG STUDENTS</div>
-            </div>
-            
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div class="stat-value" id="totalDays">0</div>
-                <div class="stat-label">DAYS OF OPERATION</div>
-            </div>
-            
-            <div class="stat-card stat-card-lifetime">
-                <div class="stat-period-label">
-                    <i class="fas fa-infinity"></i> LIFETIME
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-value" id="avgDaily">0</div>
-                <div class="stat-label">AVG DAILY VISITORS</div>
+            <div class="stat-value" id="currentVisitors">0</div>
+            <div class="stat-label">CURRENTLY INSIDE</div>
+            <div class="stat-trend positive" id="activeTrend">
+                <i class="fas fa-arrow-up"></i> 0%
             </div>
         </div>
-    </section>
-
-    <!-- Teacher Statistics -->
-    <section id="teacherStats" class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> TEACHERS
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-value" id="teacherTotalVisits">0</div>
-                <div class="stat-label">TOTAL TEACHER VISITS</div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
             </div>
-            
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> TODAY
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div class="stat-value" id="teacherTodayVisits">0</div>
-                <div class="stat-label">TODAY'S TEACHER VISITS</div>
+            <div class="stat-value" id="jcCount">0</div>
+            <div class="stat-label">JC STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-graduation-cap"></i>
             </div>
-            
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> ACTIVE
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-value" id="teacherActiveNow">0</div>
-                <div class="stat-label">TEACHERS CURRENTLY INSIDE</div>
+            <div class="stat-value" id="ugCount">0</div>
+            <div class="stat-label">UG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-tie"></i>
             </div>
-            
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> LIFETIME
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-                <div class="stat-value" id="teacherUnique">0</div>
-                <div class="stat-label">UNIQUE TEACHERS</div>
+            <div class="stat-value" id="pgCount">0</div>
+            <div class="stat-label">PG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
             </div>
-            
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> TODAY
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <div class="stat-value" id="teacherAvgDuration">0</div>
-                <div class="stat-label">AVG DURATION TODAY (MIN)</div>
-            </div>
-            
-            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
-                <div class="stat-period-label">
-                    <i class="fas fa-chalkboard-teacher"></i> MONTH
-                </div>
-                <div class="stat-icon" style="background: #3b82f6;">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div class="stat-value" id="teacherThisMonth">0</div>
-                <div class="stat-label">THIS MONTH'S VISITS</div>
-            </div>
+            <div class="stat-value" id="avgDuration">0</div>
+            <div class="stat-label">AVG DURATION (MIN)</div>
         </div>
     </section>
 
@@ -622,11 +374,11 @@
         </div>
     </section>
 
-    <!-- Student Visitor Table -->
+    <!-- Visitor Table -->
     <section class="table-container">
         <div class="table-header">
             <h2>
-                <i class="fas fa-user-graduate"></i> Student Visitor Records
+                <i class="fas fa-table"></i> Visitor Records
                 <span class="record-count">
                     Showing <span id="recordCount">0</span> records
                 </span>
@@ -679,7 +431,7 @@
                     <tr>
                         <td colspan="13" class="loading-row">
                             <i class="fas fa-spinner fa-spin"></i>
-                            <div>Loading student data...</div>
+                            <div>Loading visitor data...</div>
                         </td>
                     </tr>
                 </tbody>
@@ -695,82 +447,6 @@
                     Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
                 </span>
                 <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Teacher Visitor Table -->
-    <section class="table-container" style="margin-top: 2rem;">
-        <div class="table-header">
-            <h2>
-                <i class="fas fa-chalkboard-teacher"></i> Teacher Visit Records
-                <span class="record-count">
-                    Showing <span id="teacherRecordCount">0</span> records
-                </span>
-            </h2>
-            
-            <div class="table-actions">
-                <div class="bulk-actions">
-                    <select id="teacherBulkAction" class="form-control bulk-select">
-                        <option value="">Bulk Actions</option>
-                        <option value="mark_exit">Mark as Exited</option>
-                    </select>
-                    <button onclick="applyTeacherBulkAction()" class="btn btn-secondary">
-                        <i class="fas fa-play"></i> Apply
-                    </button>
-                </div>
-                
-                <button onclick="selectAllTeacherRows()" class="btn btn-secondary">
-                    <i class="fas fa-check-square"></i> Select All
-                </button>
-                
-                <button onclick="loadTeacherVisits()" class="btn btn-primary refresh-btn">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="checkbox-cell">
-                            <input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()">
-                        </th>
-                        <th>Name</th>
-                        <th>Employee ID</th>
-                        <th>Purpose</th>
-                        <th>Entry Time</th>
-                        <th>Exit Time</th>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>Notes</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="teacherTable">
-                    <tr>
-                        <td colspan="11" class="loading-row">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <div>Loading teacher data...</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container">
-            <div class="pagination-controls">
-                <button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn" disabled>
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="page-info">
-                    Page <span id="teacherCurrentPage">1</span> of <span id="teacherTotalPages">1</span>
-                </span>
-                <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn" disabled>
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -918,200 +594,6 @@
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
-    // Current date for date inputs
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').value = today;
-    document.getElementById('endDate').value = today;
-    
-    // Statistics Tab Management
-    function showStatsTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll('.stats-section').forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Remove active class from all tab buttons
-        document.querySelectorAll('.stats-tab').forEach(button => {
-            button.classList.remove('active');
-        });
-        
-        // Show selected tab
-        document.getElementById(tabName + 'Stats').classList.add('active');
-        
-        // Activate selected button
-        event.target.classList.add('active');
-        
-        // Load appropriate data
-        if (tabName === 'daily') {
-            loadDailyStats();
-        } else if (tabName === 'lifetime') {
-            loadLifetimeStats();
-        } else if (tabName === 'teachers') {
-            loadTeacherStats();
-        }
-    }
-    
-    // Load Daily Statistics
-    async function loadDailyStats() {
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            const response = await fetch(`/admin/analytics/advanced?start_date=${today}&end_date=${today}`);
-            const data = await response.json();
-            
-            if (data.stats) {
-                document.getElementById('dailyTotalVisitors').textContent = data.stats.total || 0;
-                document.getElementById('dailyCurrentVisitors').textContent = data.stats.active || 0;
-                document.getElementById('dailyAvgDuration').textContent = data.stats.avgDuration || 0;
-            }
-            
-            if (data.levelData) {
-                const jcIndex = data.levelData.labels.indexOf('JC');
-                const ugIndex = data.levelData.labels.indexOf('UG');
-                const pgIndex = data.levelData.labels.indexOf('PG');
-                
-                document.getElementById('dailyJcCount').textContent = jcIndex !== -1 ? data.levelData.values[jcIndex] : 0;
-                document.getElementById('dailyUgCount').textContent = ugIndex !== -1 ? data.levelData.values[ugIndex] : 0;
-                document.getElementById('dailyPgCount').textContent = pgIndex !== -1 ? data.levelData.values[pgIndex] : 0;
-            }
-            
-        } catch (error) {
-            console.error('Error loading daily stats:', error);
-        }
-    }
-    
-    // Load Lifetime Statistics
-    async function loadLifetimeStats() {
-        try {
-            // Get all visitors
-            const response = await fetch('/admin/visitors/all');
-            const visitors = await response.json();
-            
-            // Calculate lifetime stats
-            const totalVisitors = visitors.length;
-            const jcCount = visitors.filter(v => v.level === 'JC').length;
-            const ugCount = visitors.filter(v => v.level === 'UG').length;
-            const pgCount = visitors.filter(v => v.level === 'PG').length;
-            
-            // Get unique dates for days of operation
-            const uniqueDates = [...new Set(visitors.map(v => v.visit_date))].filter(date => date);
-            const totalDays = uniqueDates.length;
-            const avgDaily = totalDays > 0 ? (totalVisitors / totalDays).toFixed(1) : 0;
-            
-            // Update UI
-            document.getElementById('lifetimeTotalVisitors').textContent = totalVisitors;
-            document.getElementById('lifetimeJcCount').textContent = jcCount;
-            document.getElementById('lifetimeUgCount').textContent = ugCount;
-            document.getElementById('lifetimePgCount').textContent = pgCount;
-            document.getElementById('totalDays').textContent = totalDays;
-            document.getElementById('avgDaily').textContent = avgDaily;
-            
-        } catch (error) {
-            console.error('Error loading lifetime stats:', error);
-        }
-    }
-    
-    // Load Teacher Statistics
-    async function loadTeacherStats() {
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            
-            // Get all teacher visits
-            const allResponse = await fetch('/admin/teachers/all');
-            const allTeachers = await allResponse.json();
-            
-            // Get today's teacher visits
-            const todayResponse = await fetch(`/admin/teachers/filter?start_date=${today}&end_date=${today}`);
-            const todayTeachers = await todayResponse.json();
-            
-            // Calculate stats
-            const teacherTotalVisits = allTeachers.length;
-            const teacherTodayVisits = todayTeachers.length;
-            const teacherActiveNow = todayTeachers.filter(t => !t.exit_time).length;
-            
-            // Unique teachers
-            const uniqueTeachers = [...new Set(allTeachers.map(t => t.name))].length;
-            
-            // Average duration for today
-            let totalDuration = 0;
-            let count = 0;
-            todayTeachers.forEach(t => {
-                if (t.entry_time && t.exit_time) {
-                    const entry = new Date(`2000-01-01 ${t.entry_time}`);
-                    const exit = new Date(`2000-01-01 ${t.exit_time}`);
-                    totalDuration += (exit - entry) / 60000; // Convert to minutes
-                    count++;
-                }
-            });
-            const teacherAvgDuration = count > 0 ? Math.round(totalDuration / count) : 0;
-            
-            // This month's visits
-            const now = new Date();
-            const thisMonth = now.getMonth() + 1;
-            const thisYear = now.getFullYear();
-            const thisMonthTeachers = allTeachers.filter(t => {
-                if (!t.visit_date) return false;
-                const visitDate = new Date(t.visit_date);
-                return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
-            });
-            const teacherThisMonth = thisMonthTeachers.length;
-            
-            // Update UI
-            document.getElementById('teacherTotalVisits').textContent = teacherTotalVisits;
-            document.getElementById('teacherTodayVisits').textContent = teacherTodayVisits;
-            document.getElementById('teacherActiveNow').textContent = teacherActiveNow;
-            document.getElementById('teacherUnique').textContent = uniqueTeachers;
-            document.getElementById('teacherAvgDuration').textContent = teacherAvgDuration;
-            document.getElementById('teacherThisMonth').textContent = teacherThisMonth;
-            
-        } catch (error) {
-            console.error('Error loading teacher stats:', error);
-        }
-    }
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log("🚀 Dashboard initializing...");
-        
-        // Set default dates
-        const today = new Date().toISOString().split('T')[0];
-        currentDateRange = { 
-            start: today, 
-            end: today, 
-            type: 'today' 
-        };
-        
-        // Check login and load data
-        checkLoginStatus().then(isLoggedIn => {
-            if (isLoggedIn) {
-                // Initialize charts
-                initializeCharts();
-                
-                // Load initial data
-                setTimeout(() => {
-                    loadAnalytics();
-                    loadDailyStats();
-                    loadLifetimeStats();
-                    loadTeacherStats();
-                    loadTeacherVisits();
-                }, 200);
-                
-                // Auto refresh every 30 seconds
-                setInterval(() => {
-                    if (!document.hidden) {
-                        loadAnalytics();
-                        if (document.getElementById('dailyStats').classList.contains('active')) {
-                            loadDailyStats();
-                        } else if (document.getElementById('lifetimeStats').classList.contains('active')) {
-                            loadLifetimeStats();
-                        } else if (document.getElementById('teacherStats').classList.contains('active')) {
-                            loadTeacherStats();
-                        }
-                    }
-                }, 30000);
-            }
-        });
-    });
-    
     // Add Visitor Modal Functions
     const courses = {
         UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
@@ -1249,10 +731,9 @@
                 messageDiv.className = 'success';
                 messageDiv.style.display = 'block';
                 
-                // Refresh all data
-                loadAnalytics();
-                loadDailyStats();
+                // Refresh the visitor table
                 loadVisitors();
+                loadAnalytics();
                 
                 // Close modal after 2 seconds
                 setTimeout(() => {
@@ -1288,4 +769,8 @@
     });
 </script>
 </body>
+
 </html>
+
+<head>
+    <met
