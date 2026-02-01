@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Exit Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .teacher-exit-container {
+            max-width: 520px;
+            margin: 3rem auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .teacher-exit-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
+        }
+        
+        .teacher-exit-container h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+            color: #1e293b;
+        }
+        
+        .teacher-exit-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 2px;
+        }
+        
+        .teacher-exit-container h2 i {
+            color: #ef4444;
+            margin-right: 10px;
+        }
+        
+        .search-section {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .teacher-exit-form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .teacher-exit-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+        
+        .teacher-exit-label .icon {
+            color: #ef4444;
+            font-size: 1.1rem;
+        }
+        
+        .teacher-exit-control {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            color: #1e293b;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .teacher-exit-control:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .search-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        }
+        
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .search-btn.loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .teacher-details {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #10b981;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .teacher-details h4 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .teacher-details h4 i {
+            color: #10b981;
+        }
+        
+        .teacher-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .teacher-info-item {
+            margin-bottom: 10px;
+        }
+        
+        .teacher-info-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+        
+        .teacher-info-value {
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .exit-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .exit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        }
+        
+        .exit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        #teacherExitMsg {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        
+        #teacherExitMsg.success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        
+        #teacherExitMsg.success::before {
+            content: '✓ ';
+        }
+        
+        #teacherExitMsg.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        
+        #teacherExitMsg.error::before {
+            content: '✗ ';
+        }
+        
+        .no-teacher-found {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #f59e0b;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .no-teacher-found i {
+            font-size: 2.5rem;
+            color: #f59e0b;
+            margin-bottom: 15px;
+        }
+        
+        .no-teacher-found h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .no-teacher-found p {
+            color: #92400e;
+            font-size: 0.95rem;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #3b82f6;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        @media (max-width: 640px) {
+            .teacher-exit-container {
+                margin: 1rem;
+                padding: 2rem 1.5rem;
+            }
+            
+            .teacher-exit-container h2 {
+                font-size: 1.75rem;
+            }
+            
+            .teacher-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); min-height: 100vh; padding: 40px 20px; position: relative;">
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%); z-index: -1; pointer-events: none;"></div>
+    
+    <div class="teacher-exit-container">
+        <h2><i class="fas fa-door-open"></i> Teacher Exit Portal</h2>
+        
+        <div class="search-section">
+            <div class="teacher-exit-form-group">
+                <label class="teacher-exit-label">
+                    <i class="fas fa-user-tie icon"></i>
+                    Enter Your Name
+                </label>
+                <input type="text" id="teacherName" class="teacher-exit-control" placeholder="Enter your full name as entered during entry" required>
+            </div>
+            
+            <button id="searchTeacherBtn" class="search-btn">
+                <i class="fas fa-search"></i> Find My Entry
+            </button>
+        </div>
+        
+        <!-- Teacher Details Display -->
+        <div id="teacherDetails" class="teacher-details">
+            <h4><i class="fas fa-user-check"></i> Your Visit Details</h4>
+            <div class="teacher-info-grid">
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Name</div>
+                    <div class="teacher-info-value" id="detailName">-</div>
+                </div>
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Employee ID</div>
+                    <div class="teacher-info-value" id="detailEmployeeId">-</div>
+                </div>
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Purpose</div>
+                    <div class="teacher-info-value" id="detailPurpose">-</div>
+                </div>
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Entry Time</div>
+                    <div class="teacher-info-value" id="detailEntryTime">-</div>
+                </div>
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Date</div>
+                    <div class="teacher-info-value" id="detailDate">-</div>
+                </div>
+                <div class="teacher-info-item">
+                    <div class="teacher-info-label">Day</div>
+                    <div class="teacher-info-value" id="detailDay">-</div>
+                </div>
+            </div>
+            <div class="teacher-info-item">
+                <div class="teacher-info-label">Notes</div>
+                <div class="teacher-info-value" id="detailNotes">No additional notes</div>
+            </div>
+        </div>
+        
+        <!-- No Teacher Found Message -->
+        <div id="noTeacherFound" class="no-teacher-found">
+            <i class="fas fa-user-slash"></i>
+            <h4>No Active Visit Found</h4>
+            <p>No active visit found for this name. Please check:</p>
+            <ul style="text-align: left; margin: 10px 0; padding-left: 20px;">
+                <li>Spelling of your name</li>
+                <li>If you already marked exit</li>
+                <li>If you entered today</li>
+            </ul>
+        </div>
+        
+        <button id="exitBtn" class="exit-btn">
+            <i class="fas fa-sign-out-alt"></i> Mark Exit
+        </button>
+        
+        <p id="teacherExitMsg"></p>
+        
+        <div class="back-home">
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let currentTeacherVisit = null;
+        
+        // Search for teacher visit
+        document.getElementById('searchTeacherBtn').addEventListener('click', async () => {
+            const teacherName = document.getElementById('teacherName').value.trim();
+            const searchBtn = document.getElementById('searchTeacherBtn');
+            const originalText = searchBtn.innerHTML;
+            
+            if (!teacherName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            // Hide previous messages
+            document.getElementById('teacherDetails').style.display = 'none';
+            document.getElementById('noTeacherFound').style.display = 'none';
+            document.getElementById('exitBtn').style.display = 'none';
+            document.getElementById('teacherExitMsg').style.display = 'none';
+            
+            // Loading state
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+            
+            try {
+                const response = await fetch(`/teacher/check/${encodeURIComponent(teacherName)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentTeacherVisit = result.teacher;
+                    
+                    // Display teacher details
+                    document.getElementById('detailName').textContent = result.teacher.name;
+                    document.getElementById('detailEmployeeId').textContent = result.teacher.employee_id || '-';
+                    document.getElementById('detailPurpose').textContent = result.teacher.purpose;
+                    document.getElementById('detailEntryTime').textContent = result.teacher.entry_time || '-';
+                    document.getElementById('detailDate').textContent = result.teacher.visit_date || '-';
+                    document.getElementById('detailDay').textContent = result.teacher.visit_day || '-';
+                    document.getElementById('detailNotes').textContent = result.teacher.notes || 'No additional notes';
+                    
+                    if (result.teacher.exit_time) {
+                        // Already exited
+                        document.getElementById('teacherExitMsg').textContent = `You already exited at ${result.teacher.exit_time}`;
+                        document.getElementById('teacherExitMsg').className = 'error';
+                        document.getElementById('teacherExitMsg').style.display = 'block';
+                    } else {
+                        // Show exit button
+                        document.getElementById('teacherDetails').style.display = 'block';
+                        document.getElementById('exitBtn').style.display = 'block';
+                    }
+                } else {
+                    // Teacher not found or already exited
+                    document.getElementById('noTeacherFound').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('teacherExitMsg').textContent = 'Connection error. Please try again.';
+                document.getElementById('teacherExitMsg').className = 'error';
+                document.getElementById('teacherExitMsg').style.display = 'block';
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = originalText;
+            }
+        });
+        
+        // Mark exit
+        document.getElementById('exitBtn').addEventListener('click', async () => {
+            if (!currentTeacherVisit) return;
+            
+            const exitBtn = document.getElementById('exitBtn');
+            const originalText = exitBtn.innerHTML;
+            
+            if (!confirm('Are you sure you want to mark exit?')) return;
+            
+            // Loading state
+            exitBtn.disabled = true;
+            exitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const response = await fetch(`/teacher/exit/${currentTeacherVisit.id}`, {
+                    method: 'PUT'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('teacherExitMsg').textContent = 'Exit marked successfully!';
+                    document.getElementById('teacherExitMsg').className = 'success';
+                    document.getElementById('teacherExitMsg').style.display = 'block';
+                    
+                    // Hide exit button
+                    document.getElementById('exitBtn').style.display = 'none';
+                    
+                    // Reset form
+                    setTimeout(() => {
+                        document.getElementById('teacherName').value = '';
+                        document.getElementById('teacherName').focus();
+                        document.getElementById('teacherDetails').style.display = 'none';
+                        document.getElementById('teacherExitMsg').style.display = 'none';
+                    }, 3000);
+                } else {
+                    document.getElementById('teacherExitMsg').textContent = result.error || 'Failed to mark exit';
+                    document.getElementById('teacherExitMsg').className = 'error';
+                    document.getElementById('teacherExitMsg').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('teacherExitMsg').textContent = 'Connection error. Please try again.';
+                document.getElementById('teacherExitMsg').className = 'error';
+                document.getElementById('teacherExitMsg').style.display = 'block';
+            } finally {
+                exitBtn.disabled = false;
+                exitBtn.innerHTML = originalText;
+            }
+        });
+        
+        // Enter key support for search
+        document.getElementById('teacherName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchTeacherBtn').click();
+            }
+        });
+        
+        // Auto-focus input
+        window.addEventListener('load', () => {
+            if (document.getElementById('teacherName')) {
+                document.getElementById('teacherName').focus();
+            }
+        });
+    </script>
+</body>
+</html>
