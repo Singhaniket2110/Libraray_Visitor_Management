@@ -1,4 +1,4 @@
-// Enhanced Admin Dashboard JavaScript - FULLY FIXED VERSION
+// Enhanced Admin Dashboard JavaScript - COMPLETE VERSION WITH TEACHER SUPPORT
 let currentPage = 1;
 let pageSize = 20;
 let totalRecords = 0;
@@ -6,9 +6,26 @@ let currentDateRange = { start: null, end: null, type: 'today' };
 let charts = {};
 let allVisitors = [];
 
+// Teacher variables
+let currentTeacherPage = 1;
+let teacherPageSize = 20;
+let teacherTotalRecords = 0;
+let allTeachers = [];
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 Dashboard initializing...");
+    
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    const startDateEl = document.getElementById('startDate');
+    const endDateEl = document.getElementById('endDate');
+    
+    if (startDateEl && endDateEl) {
+        startDateEl.value = today;
+        endDateEl.value = today;
+        currentDateRange = { start: today, end: today, type: 'today' };
+    }
     
     // ADD EVENT LISTENERS FOR CHART DROPDOWNS
     setTimeout(() => {
@@ -18,70 +35,48 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("✅ Chart dropdown listeners added");
     }, 100);
     
-    // Check if we're on the enhanced dashboard
-    const isEnhancedDashboard = document.querySelector('.charts-section') !== null;
-    console.log("Enhanced Dashboard:", isEnhancedDashboard);
-    
-    // Set default dates for enhanced dashboard
-    if (isEnhancedDashboard) {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        
-        const startDateEl = document.getElementById('startDate');
-        const endDateEl = document.getElementById('endDate');
-        
-        if (startDateEl && endDateEl) {
-            startDateEl.value = todayStr;
-            endDateEl.value = todayStr;
-            
-            // Initialize currentDateRange with actual dates
-            currentDateRange = { 
-                start: todayStr, 
-                end: todayStr, 
-                type: 'today' 
-            };
-            console.log("✅ Date range set:", currentDateRange);
-        }
-    }
-    
     // Check login and load data
     checkLoginStatus().then(isLoggedIn => {
         if (isLoggedIn) {
-            if (isEnhancedDashboard) {
-                // Initialize charts first
-                console.log("📊 Initializing charts...");
-                initializeCharts();
-                
-                // Then load analytics with actual dates
-                setTimeout(() => {
-                    console.log("📈 Loading analytics data...");
+            // Initialize charts first
+            console.log("📊 Initializing charts...");
+            initializeCharts();
+            
+            // Then load all data
+            setTimeout(() => {
+                console.log("📈 Loading all data...");
+                loadAnalytics();
+                loadDailyStats();
+                loadLifetimeStats();
+                loadTeacherStats();
+                loadTeacherVisits();
+            }, 200);
+            
+            // Auto refresh every 30 seconds
+            setInterval(() => {
+                if (!document.hidden) {
+                    console.log("🔄 Auto-refreshing...");
                     loadAnalytics();
-                }, 200);
-                
-                // Auto refresh every 30 seconds
-                setInterval(() => {
-                    if (!document.hidden) {
-                        console.log("🔄 Auto-refreshing analytics...");
-                        loadAnalytics();
+                    
+                    // Refresh active stats tab
+                    if (document.getElementById('dailyStats').classList.contains('active')) {
+                        loadDailyStats();
+                    } else if (document.getElementById('lifetimeStats').classList.contains('active')) {
+                        loadLifetimeStats();
+                    } else if (document.getElementById('teacherStats').classList.contains('active')) {
+                        loadTeacherStats();
                     }
-                }, 30000);
-            } else {
-                // For basic dashboard
-                console.log("📋 Loading basic dashboard...");
-                loadVisitors();
-                
-                // Auto refresh every 30 seconds
-                setInterval(() => {
-                    if (!document.hidden) {
-                        loadVisitors();
-                    }
-                }, 30000);
-            }
+                    
+                    loadVisitors();
+                    loadTeacherVisits();
+                }
+            }, 30000);
         }
     });
 });
 
-// Check login status
+// ==================== AUTHENTICATION ====================
+
 async function checkLoginStatus() {
     try {
         const res = await fetch('/admin/check_session');
@@ -103,9 +98,151 @@ async function checkLoginStatus() {
     }
 }
 
-// ==================== ENHANCED DASHBOARD FUNCTIONS ====================
+// ==================== STATISTICS TABS ====================
 
-// Date range selection
+function showStatsTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.stats-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.stats-tab').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Stats').classList.add('active');
+    
+    // Activate selected button
+    event.target.classList.add('active');
+    
+    // Load appropriate data
+    if (tabName === 'daily') {
+        loadDailyStats();
+    } else if (tabName === 'lifetime') {
+        loadLifetimeStats();
+    } else if (tabName === 'teachers') {
+        loadTeacherStats();
+    }
+}
+
+async function loadDailyStats() {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const response = await fetch(`/admin/analytics/advanced?start_date=${today}&end_date=${today}`);
+        const data = await response.json();
+        
+        if (data.stats) {
+            document.getElementById('dailyTotalVisitors').textContent = data.stats.total || 0;
+            document.getElementById('dailyCurrentVisitors').textContent = data.stats.active || 0;
+            document.getElementById('dailyAvgDuration').textContent = data.stats.avgDuration || 0;
+        }
+        
+        if (data.levelData) {
+            const jcIndex = data.levelData.labels.indexOf('JC');
+            const ugIndex = data.levelData.labels.indexOf('UG');
+            const pgIndex = data.levelData.labels.indexOf('PG');
+            
+            document.getElementById('dailyJcCount').textContent = jcIndex !== -1 ? data.levelData.values[jcIndex] : 0;
+            document.getElementById('dailyUgCount').textContent = ugIndex !== -1 ? data.levelData.values[ugIndex] : 0;
+            document.getElementById('dailyPgCount').textContent = pgIndex !== -1 ? data.levelData.values[pgIndex] : 0;
+        }
+        
+    } catch (error) {
+        console.error('Error loading daily stats:', error);
+    }
+}
+
+async function loadLifetimeStats() {
+    try {
+        // Get all visitors
+        const response = await fetch('/admin/visitors/all');
+        const visitors = await response.json();
+        
+        // Calculate lifetime stats
+        const totalVisitors = visitors.length;
+        const jcCount = visitors.filter(v => v.level === 'JC').length;
+        const ugCount = visitors.filter(v => v.level === 'UG').length;
+        const pgCount = visitors.filter(v => v.level === 'PG').length;
+        
+        // Get unique dates for days of operation
+        const uniqueDates = [...new Set(visitors.map(v => v.visit_date))].filter(date => date);
+        const totalDays = uniqueDates.length;
+        const avgDaily = totalDays > 0 ? (totalVisitors / totalDays).toFixed(1) : 0;
+        
+        // Update UI
+        document.getElementById('lifetimeTotalVisitors').textContent = totalVisitors;
+        document.getElementById('lifetimeJcCount').textContent = jcCount;
+        document.getElementById('lifetimeUgCount').textContent = ugCount;
+        document.getElementById('lifetimePgCount').textContent = pgCount;
+        document.getElementById('totalDays').textContent = totalDays;
+        document.getElementById('avgDaily').textContent = avgDaily;
+        
+    } catch (error) {
+        console.error('Error loading lifetime stats:', error);
+    }
+}
+
+async function loadTeacherStats() {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Get all teacher visits
+        const allResponse = await fetch('/admin/teachers/all');
+        const allTeachers = await allResponse.json();
+        
+        // Get today's teacher visits
+        const todayResponse = await fetch(`/admin/teachers/filter?start_date=${today}&end_date=${today}`);
+        const todayTeachers = await todayResponse.json();
+        
+        // Calculate stats
+        const teacherTotalVisits = allTeachers.length;
+        const teacherTodayVisits = todayTeachers.length;
+        const teacherActiveNow = todayTeachers.filter(t => !t.exit_time).length;
+        
+        // Unique teachers
+        const uniqueTeachers = [...new Set(allTeachers.map(t => t.name))].length;
+        
+        // Average duration for today
+        let totalDuration = 0;
+        let count = 0;
+        todayTeachers.forEach(t => {
+            if (t.entry_time && t.exit_time) {
+                const entry = new Date(`2000-01-01 ${t.entry_time}`);
+                const exit = new Date(`2000-01-01 ${t.exit_time}`);
+                totalDuration += (exit - entry) / 60000; // Convert to minutes
+                count++;
+            }
+        });
+        const teacherAvgDuration = count > 0 ? Math.round(totalDuration / count) : 0;
+        
+        // This month's visits
+        const now = new Date();
+        const thisMonth = now.getMonth() + 1;
+        const thisYear = now.getFullYear();
+        const thisMonthTeachers = allTeachers.filter(t => {
+            if (!t.visit_date) return false;
+            const visitDate = new Date(t.visit_date);
+            return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
+        });
+        const teacherThisMonth = thisMonthTeachers.length;
+        
+        // Update UI
+        document.getElementById('teacherTotalVisits').textContent = teacherTotalVisits;
+        document.getElementById('teacherTodayVisits').textContent = teacherTodayVisits;
+        document.getElementById('teacherActiveNow').textContent = teacherActiveNow;
+        document.getElementById('teacherUnique').textContent = uniqueTeachers;
+        document.getElementById('teacherAvgDuration').textContent = teacherAvgDuration;
+        document.getElementById('teacherThisMonth').textContent = teacherThisMonth;
+        
+    } catch (error) {
+        console.error('Error loading teacher stats:', error);
+    }
+}
+
+// ==================== DATE RANGE FUNCTIONS ====================
+
 function selectDateRange(type) {
     const today = new Date();
     let startDate, endDate;
@@ -156,7 +293,6 @@ function selectDateRange(type) {
     loadAnalytics();
 }
 
-// Apply custom date range
 function applyCustomDateRange() {
     const startDateEl = document.getElementById('startDate');
     const endDateEl = document.getElementById('endDate');
@@ -197,7 +333,8 @@ function applyCustomDateRange() {
     loadAnalytics();
 }
 
-// Load analytics data - FIXED VERSION
+// ==================== ANALYTICS FUNCTIONS ====================
+
 async function loadAnalytics() {
     try {
         console.log("📊 Loading analytics...");
@@ -254,7 +391,6 @@ async function loadAnalytics() {
     }
 }
 
-// Update statistics - FIXED VERSION
 function updateStatistics(data) {
     console.log("📈 Updating statistics...");
     
@@ -289,7 +425,8 @@ function updateStatistics(data) {
     console.log("✅ Statistics updated");
 }
 
-// Initialize charts - FIXED VERSION WITH ERROR HANDLING
+// ==================== CHART FUNCTIONS ====================
+
 function initializeCharts() {
     console.log("📊 Initializing charts...");
     
@@ -378,7 +515,7 @@ function initializeCharts() {
             console.log("✅ Trend chart created");
         }
         
-        // Course Distribution Chart - FIXED FOR HORIZONTAL/VERTICAL
+        // Course Distribution Chart
         if (chartElements.course) {
             const courseCtx = chartElements.course.getContext('2d');
             charts.course = new Chart(courseCtx, {
@@ -396,7 +533,7 @@ function initializeCharts() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    indexAxis: 'x', // Default vertical bars
+                    indexAxis: 'x',
                     scales: {
                         x: {
                             beginAtZero: true
@@ -509,7 +646,6 @@ function initializeCharts() {
     }
 }
 
-// Update charts with new data - FIXED VERSION
 function updateChartData(data) {
     console.log("📊 Updating charts with data...");
     
@@ -523,7 +659,7 @@ function updateChartData(data) {
         if (charts.level && data.levelData) {
             charts.level.data.labels = data.levelData.labels || [];
             charts.level.data.datasets[0].data = data.levelData.values || [];
-            charts.level.update('none'); // 'none' for faster updates
+            charts.level.update('none');
             console.log("✅ Level chart updated");
         }
         
@@ -559,7 +695,7 @@ function updateChartData(data) {
             console.log("✅ Peak hours chart updated");
         }
         
-        // Duration Analysis - FIXED VERSION
+        // Duration Analysis
         if (charts.duration && data.visitors) {
             // Calculate duration distribution
             const durations = [0, 0, 0, 0, 0]; // <30, 30-60, 1-2, 2-4, >4 hours
@@ -604,7 +740,6 @@ function updateChartData(data) {
     }
 }
 
-// Change chart type - FIXED VERSION
 function updateCharts() {
     console.log("🔄 Updating chart types...");
     
@@ -629,7 +764,7 @@ function updateCharts() {
             }
         }
         
-        // Course Chart - FIXED FOR HORIZONTAL/VERTICAL
+        // Course Chart
         if (charts.course) {
             const courseType = document.getElementById('chartCourseType');
             if (courseType) {
@@ -654,7 +789,7 @@ function updateCharts() {
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            indexAxis: 'y', // This makes it horizontal
+                            indexAxis: 'y',
                             scales: {
                                 y: {
                                     beginAtZero: true,
@@ -683,7 +818,7 @@ function updateCharts() {
                             },
                             plugins: {
                                 legend: {
-                                    display: false // Hide legend for cleaner horizontal bars
+                                    display: false
                                 }
                             }
                         }
@@ -696,7 +831,7 @@ function updateCharts() {
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            indexAxis: 'x', // This is the default for vertical bars
+                            indexAxis: 'x',
                             scales: {
                                 x: {
                                     beginAtZero: true,
@@ -754,12 +889,11 @@ function updateCharts() {
     }
 }
 
-// ==================== VISITOR TABLE FUNCTIONS ====================
+// ==================== STUDENT VISITOR FUNCTIONS ====================
 
-// Load visitors with pagination
 async function loadVisitors() {
     try {
-        console.log("📋 Loading visitors...");
+        console.log("📋 Loading student visitors...");
         
         const table = document.getElementById('visitorTable');
         if (!table) {
@@ -767,119 +901,105 @@ async function loadVisitors() {
             return;
         }
         
-        // Check if we're on enhanced dashboard
-        const isEnhanced = document.querySelector('.charts-section') !== null;
-        
         // Show loading
         table.innerHTML = `
             <tr>
-                <td colspan="${isEnhanced ? '13' : '11'}" class="loading-row">
+                <td colspan="13" class="loading-row">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <div>Loading visitor data...</div>
+                    <div>Loading student data...</div>
                 </td>
             </tr>
         `;
         
-        let data = [];
+        // Get filters
+        const levelFilter = document.getElementById('levelFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const dataTypeFilter = document.getElementById('dataTypeFilter');
         
-        if (isEnhanced) {
-            // Enhanced dashboard: use analytics endpoint
-            const params = new URLSearchParams();
-            params.append('start_date', currentDateRange.start);
-            params.append('end_date', currentDateRange.end);
-            
-            const levelFilter = document.getElementById('levelFilter');
-            const statusFilter = document.getElementById('statusFilter');
-            
-            if (levelFilter && levelFilter.value) params.append('level', levelFilter.value);
-            
-            const response = await fetch(`/admin/analytics/advanced?${params}`);
-            
-            if (response.status === 401) {
-                window.location.href = "/admin/login";
-                return;
-            }
-            
-            const analyticsData = await response.json();
-            
-            allVisitors = analyticsData.visitors || [];
-            
-            // Filter by status if needed
-            if (statusFilter && statusFilter.value === 'active') {
-                allVisitors = allVisitors.filter(v => !v.exit_time);
-            } else if (statusFilter && statusFilter.value === 'exited') {
-                allVisitors = allVisitors.filter(v => v.exit_time);
-            }
-            
-            totalRecords = allVisitors.length;
-            renderTablePage();
-            
-        } else {
-            // Basic dashboard: use simple endpoints
-            let url = "/admin/visitors/today";
-            
-            const params = new URLSearchParams();
-            const levelFilter = document.getElementById('levelFilter');
-            const dateFilter = document.getElementById('dateFilter');
-            
-            if (levelFilter && levelFilter.value) {
-                params.append('level', levelFilter.value);
-            }
-            if (dateFilter && dateFilter.value) {
-                params.append('date', dateFilter.value);
-            }
-            
-            if (params.toString()) {
-                url = "/admin/visitors/filter?" + params.toString();
-            }
-            
-            const res = await fetch(url);
-            
-            if (res.status === 401) {
-                window.location.href = "/admin/login";
-                return;
-            }
-            
-            data = await res.json();
-            
-            if (data.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="11" class="loading-row">
-                            <i class="fas fa-inbox"></i>
-                            <div>No visitors found</div>
-                        </td>
-                    </tr>
-                `;
-                updateStats(data);
-                return;
-            }
-            
-            renderBasicTable(data);
-            updateStats(data);
+        // Build URL for student data
+        let url = "/admin/visitors/filter";
+        const params = new URLSearchParams();
+        
+        if (levelFilter && levelFilter.value) {
+            params.append('level', levelFilter.value);
         }
         
-        console.log("✅ Visitors loaded successfully");
+        if (statusFilter && statusFilter.value === 'active') {
+            params.append('status', 'active');
+        } else if (statusFilter && statusFilter.value === 'exited') {
+            params.append('status', 'exited');
+        }
+        
+        // Apply date range
+        if (currentDateRange.start && currentDateRange.end) {
+            params.append('start_date', currentDateRange.start);
+            params.append('end_date', currentDateRange.end);
+        }
+        
+        if (params.toString()) {
+            url = "/admin/analytics/advanced?" + params.toString();
+        }
+        
+        const response = await fetch(url);
+        
+        if (response.status === 401) {
+            window.location.href = "/admin/login";
+            return;
+        }
+        
+        let data = await response.json();
+        
+        // Handle analytics response format
+        if (data.visitors) {
+            allVisitors = data.visitors;
+        } else {
+            allVisitors = Array.isArray(data) ? data : [];
+        }
+        
+        // Apply status filter if needed
+        if (statusFilter && statusFilter.value === 'active') {
+            allVisitors = allVisitors.filter(v => !v.exit_time);
+        } else if (statusFilter && statusFilter.value === 'exited') {
+            allVisitors = allVisitors.filter(v => v.exit_time);
+        }
+        
+        totalRecords = allVisitors.length;
+        
+        if (allVisitors.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="13" class="loading-row">
+                        <i class="fas fa-inbox"></i>
+                        <div>No student visitors found</div>
+                    </td>
+                </tr>
+            `;
+            updateRecordCount(totalRecords);
+            return;
+        }
+        
+        renderTablePage();
+        updateRecordCount(totalRecords);
+        
+        console.log("✅ Student visitors loaded successfully:", totalRecords);
         
     } catch (error) {
         console.error('❌ Error loading visitors:', error);
-        const isEnhanced = document.querySelector('.charts-section') !== null;
         const table = document.getElementById('visitorTable');
         if (table) {
             table.innerHTML = `
                 <tr>
-                    <td colspan="${isEnhanced ? '13' : '11'}" class="loading-row" style="color: #ef4444;">
+                    <td colspan="13" class="loading-row" style="color: #ef4444;">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <div>Error loading data. Please try again.</div>
+                        <div>Error loading student data. Please try again.</div>
                     </td>
                 </tr>
             `;
         }
-        showNotification('Error loading visitor data', 'error');
+        showNotification('Error loading student data', 'error');
     }
 }
 
-// Render current page of table (enhanced)
 function renderTablePage() {
     console.log("📄 Rendering table page", currentPage);
     
@@ -895,7 +1015,7 @@ function renderTablePage() {
             <tr>
                 <td colspan="13" class="loading-row">
                     <i class="fas fa-inbox"></i>
-                    <div>No visitors found</div>
+                    <div>No student visitors found</div>
                 </td>
             </tr>
         `;
@@ -965,18 +1085,7 @@ function renderTablePage() {
     table.innerHTML = tableHTML;
     
     // Update pagination
-    const recordCountEl = document.getElementById('recordCount');
-    const currentPageEl = document.getElementById('currentPage');
-    const totalPagesEl = document.getElementById('totalPages');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    if (recordCountEl) recordCountEl.textContent = totalRecords;
-    if (currentPageEl) currentPageEl.textContent = currentPage;
-    if (totalPagesEl) totalPagesEl.textContent = Math.ceil(totalRecords / pageSize) || 1;
-    
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage * pageSize >= totalRecords;
+    updatePagination();
     
     // Update select all checkbox
     const selectAll = document.getElementById('selectAll');
@@ -985,52 +1094,212 @@ function renderTablePage() {
     console.log("✅ Table page rendered");
 }
 
-// Render basic table (non-enhanced dashboard)
-function renderBasicTable(data) {
-    const table = document.getElementById('visitorTable');
-    let tableHTML = '';
-    
-    data.forEach(v => {
-        let courseDisplay = v.course;
-        let yearDisplay = v.year || "-";
+function updateRecordCount(count) {
+    const recordCountEl = document.getElementById('recordCount');
+    if (recordCountEl) {
+        recordCountEl.textContent = count;
+    }
+}
+
+// ==================== TEACHER VISIT FUNCTIONS ====================
+
+async function loadTeacherVisits() {
+    try {
+        console.log("👨‍🏫 Loading teacher visits...");
         
-        if (v.level === "JC") {
-            courseDisplay = v.jc_stream || "Junior College";
-            yearDisplay = v.jc_year || "-";
+        const table = document.getElementById('teacherTable');
+        if (!table) {
+            console.warn("⚠️ Teacher table not found");
+            return;
         }
         
+        // Show loading
+        table.innerHTML = `
+            <tr>
+                <td colspan="11" class="loading-row">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading teacher data...</div>
+                </td>
+            </tr>
+        `;
+        
+        // Get filters
+        const statusFilter = document.getElementById('teacherFilter') || document.getElementById('statusFilter');
+        const startDate = currentDateRange.start || '';
+        const endDate = currentDateRange.end || '';
+        
+        // Build URL
+        let url = '/admin/teachers/filter';
+        const params = new URLSearchParams();
+        
+        if (statusFilter && statusFilter.value) {
+            params.append('status', statusFilter.value);
+        }
+        
+        if (startDate && endDate) {
+            params.append('start_date', startDate);
+            params.append('end_date', endDate);
+        }
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await fetch(url);
+        
+        if (response.status === 401) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const teachers = await response.json();
+        
+        allTeachers = Array.isArray(teachers) ? teachers : [];
+        teacherTotalRecords = allTeachers.length;
+        
+        // Update teacher record count
+        updateTeacherRecordCount(teacherTotalRecords);
+        
+        // Render teacher table
+        renderTeacherTablePage();
+        
+        console.log("✅ Teacher visits loaded:", teacherTotalRecords);
+        
+    } catch (error) {
+        console.error('❌ Error loading teacher visits:', error);
+        const table = document.getElementById('teacherTable');
+        if (table) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="11" class="loading-row" style="color: #ef4444;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Error loading teacher data</div>
+                    </td>
+                </tr>
+            `;
+        }
+        showNotification('Error loading teacher data', 'error');
+    }
+}
+
+function renderTeacherTablePage() {
+    console.log("📄 Rendering teacher page", currentTeacherPage);
+    
+    const table = document.getElementById('teacherTable');
+    if (!table) return;
+    
+    const startIndex = (currentTeacherPage - 1) * teacherPageSize;
+    const endIndex = Math.min(startIndex + teacherPageSize, teacherTotalRecords);
+    const pageTeachers = allTeachers.slice(startIndex, endIndex);
+    
+    if (pageTeachers.length === 0) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="11" class="loading-row">
+                    <i class="fas fa-inbox"></i>
+                    <div>No teacher visits found</div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let tableHTML = '';
+    
+    pageTeachers.forEach(t => {
         tableHTML += `
             <tr>
-                <td><strong>${v.name}</strong></td>
-                <td><code class="roll-no">${v.roll_no}</code></td>
-                <td>${v.level}</td>
-                <td>${courseDisplay}</td>
-                <td>${yearDisplay}</td>
-                <td>${v.purpose}</td>
-                <td>${v.entry_time || "-"}</td>
-                <td>${v.exit_time || "-"}</td>
-                <td>${v.visit_date}</td>
+                <td class="checkbox-cell">
+                    <input type="checkbox" class="teacher-row-checkbox" value="${t.id}">
+                </td>
+                <td><strong>${t.name}</strong></td>
+                <td>${t.employee_id || '-'}</td>
+                <td>${t.purpose}</td>
+                <td>${t.entry_time || '-'}</td>
+                <td>${t.exit_time || '-'}</td>
+                <td>${t.visit_date}</td>
+                <td>${t.visit_day}</td>
+                <td>${t.notes || '-'}</td>
                 <td>
-                    <span class="status-badge ${v.exit_time ? 'exited' : 'active'}">
-                        <i class="fas ${v.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i>
-                        ${v.exit_time ? 'Exited' : 'Active'}
+                    <span class="status-badge ${t.exit_time ? 'exited' : 'active'}">
+                        <i class="fas ${t.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i>
+                        ${t.exit_time ? 'Exited' : 'Active'}
                     </span>
                 </td>
                 <td>
-                    ${!v.exit_time ? `
-                        <button class="btn-exit" onclick="markExit(${v.id})">
+                    ${!t.exit_time ? `
+                        <button class="btn-exit" onclick="markTeacherExit(${t.id})">
                             <i class="fas fa-sign-out-alt"></i> Exit
                         </button>
-                    ` : '<span class="exited-text">Exited</span>'}
+                    ` : ''}
+                    <button class="btn btn-secondary view-details-btn" onclick="viewTeacherDetails(${t.id})" style="margin-left: 5px; padding: 6px 10px; font-size: 12px;">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </td>
             </tr>
         `;
     });
     
     table.innerHTML = tableHTML;
+    
+    // Update teacher pagination
+    updateTeacherPagination();
+    
+    // Update select all checkbox
+    const selectAll = document.getElementById('selectAllTeachers');
+    if (selectAll) selectAll.checked = false;
+    
+    console.log("✅ Teacher table page rendered");
+}
+
+function updateTeacherRecordCount(count) {
+    const recordCountEl = document.getElementById('teacherRecordCount');
+    if (recordCountEl) {
+        recordCountEl.textContent = count;
+    }
+}
+
+function updateTeacherPagination() {
+    const currentPageEl = document.getElementById('teacherCurrentPage');
+    const totalPagesEl = document.getElementById('teacherTotalPages');
+    const prevBtn = document.getElementById('prevTeacherBtn');
+    const nextBtn = document.getElementById('nextTeacherBtn');
+    
+    if (currentPageEl) currentPageEl.textContent = currentTeacherPage;
+    if (totalPagesEl) totalPagesEl.textContent = Math.ceil(teacherTotalRecords / teacherPageSize) || 1;
+    
+    if (prevBtn) prevBtn.disabled = currentTeacherPage === 1;
+    if (nextBtn) nextBtn.disabled = currentTeacherPage * teacherPageSize >= teacherTotalRecords;
+}
+
+function prevTeacherPage() {
+    if (currentTeacherPage > 1) {
+        currentTeacherPage--;
+        renderTeacherTablePage();
+    }
+}
+
+function nextTeacherPage() {
+    if (currentTeacherPage * teacherPageSize < teacherTotalRecords) {
+        currentTeacherPage++;
+        renderTeacherTablePage();
+    }
 }
 
 // ==================== PAGINATION & SELECTION ====================
+
+function updatePagination() {
+    const currentPageEl = document.getElementById('currentPage');
+    const totalPagesEl = document.getElementById('totalPages');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (currentPageEl) currentPageEl.textContent = currentPage;
+    if (totalPagesEl) totalPagesEl.textContent = Math.ceil(totalRecords / pageSize) || 1;
+    
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage * pageSize >= totalRecords;
+}
 
 function prevPage() {
     if (currentPage > 1) {
@@ -1056,6 +1325,16 @@ function toggleSelectAll() {
     });
 }
 
+function toggleSelectAllTeachers() {
+    const selectAll = document.getElementById('selectAllTeachers');
+    if (!selectAll) return;
+    
+    const isChecked = selectAll.checked;
+    document.querySelectorAll('.teacher-row-checkbox').forEach(cb => {
+        cb.checked = isChecked;
+    });
+}
+
 function selectAllRows() {
     const selectAll = document.getElementById('selectAll');
     if (selectAll) {
@@ -1066,9 +1345,27 @@ function selectAllRows() {
     }
 }
 
+function selectAllTeacherRows() {
+    const selectAll = document.getElementById('selectAllTeachers');
+    if (selectAll) {
+        selectAll.checked = true;
+        document.querySelectorAll('.teacher-row-checkbox').forEach(cb => {
+            cb.checked = true;
+        });
+    }
+}
+
 function getSelectedVisitorIds() {
     const selected = [];
     document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+        selected.push(parseInt(cb.value));
+    });
+    return selected;
+}
+
+function getSelectedTeacherIds() {
+    const selected = [];
+    document.querySelectorAll('.teacher-row-checkbox:checked').forEach(cb => {
         selected.push(parseInt(cb.value));
     });
     return selected;
@@ -1084,7 +1381,7 @@ async function applyBulkAction() {
     const visitorIds = getSelectedVisitorIds();
     
     if (visitorIds.length === 0) {
-        alert('Please select at least one visitor');
+        alert('Please select at least one student visitor');
         return;
     }
     
@@ -1093,7 +1390,7 @@ async function applyBulkAction() {
         return;
     }
     
-    if (action === 'delete' && !confirm(`Are you sure you want to delete ${visitorIds.length} visitors? This action cannot be undone.`)) {
+    if (action === 'delete' && !confirm(`Are you sure you want to delete ${visitorIds.length} student visitors? This action cannot be undone.`)) {
         return;
     }
     
@@ -1109,15 +1406,58 @@ async function applyBulkAction() {
         if (response.ok) {
             showNotification(result.message, 'success');
             loadVisitors();
-            if (document.querySelector('.charts-section')) {
-                loadAnalytics();
-            }
+            loadAnalytics();
+            loadDailyStats();
         } else {
             showNotification(result.error, 'error');
         }
     } catch (error) {
         console.error('Bulk action error:', error);
         showNotification('Error performing bulk action', 'error');
+    }
+}
+
+async function applyTeacherBulkAction() {
+    const bulkActionSelect = document.getElementById('teacherBulkAction');
+    if (!bulkActionSelect) return;
+    
+    const action = bulkActionSelect.value;
+    const teacherIds = getSelectedTeacherIds();
+    
+    if (teacherIds.length === 0) {
+        alert('Please select at least one teacher visit');
+        return;
+    }
+    
+    if (!action) {
+        alert('Please select an action');
+        return;
+    }
+    
+    if (action === 'mark_exit') {
+        if (!confirm(`Are you sure you want to mark ${teacherIds.length} teacher visits as exited?`)) {
+            return;
+        }
+        
+        try {
+            let successCount = 0;
+            for (const teacherId of teacherIds) {
+                const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    successCount++;
+                }
+            }
+            
+            showNotification(`Marked ${successCount} teacher visits as exited`, 'success');
+            loadTeacherVisits();
+            loadTeacherStats();
+        } catch (error) {
+            console.error('Teacher bulk action error:', error);
+            showNotification('Error performing bulk action', 'error');
+        }
     }
 }
 
@@ -1131,13 +1471,15 @@ function applyFilters() {
 function resetFilters() {
     const levelFilter = document.getElementById('levelFilter');
     const statusFilter = document.getElementById('statusFilter');
-    const dateFilter = document.getElementById('dateFilter');
+    const dataTypeFilter = document.getElementById('dataTypeFilter');
+    const teacherFilter = document.getElementById('teacherFilter');
     const startDate = document.getElementById('startDate');
     const endDate = document.getElementById('endDate');
     
     if (levelFilter) levelFilter.value = '';
     if (statusFilter) statusFilter.value = '';
-    if (dateFilter) dateFilter.value = '';
+    if (dataTypeFilter) dataTypeFilter.value = 'students';
+    if (teacherFilter) teacherFilter.value = '';
     
     if (startDate && endDate) {
         const today = new Date().toISOString().split('T')[0];
@@ -1154,18 +1496,26 @@ function resetFilters() {
     if (todayBtn) todayBtn.classList.add('active');
     
     currentPage = 1;
+    currentTeacherPage = 1;
     
-    if (document.querySelector('.charts-section')) {
-        loadAnalytics();
-    } else {
-        loadVisitors();
+    loadAnalytics();
+    loadVisitors();
+    loadTeacherVisits();
+    
+    // Refresh stats based on active tab
+    if (document.getElementById('dailyStats').classList.contains('active')) {
+        loadDailyStats();
+    } else if (document.getElementById('lifetimeStats').classList.contains('active')) {
+        loadLifetimeStats();
+    } else if (document.getElementById('teacherStats').classList.contains('active')) {
+        loadTeacherStats();
     }
 }
 
 // ==================== VISITOR ACTIONS ====================
 
 async function markExit(visitorId) {
-    if (!confirm('Mark this visitor as exited?')) return;
+    if (!confirm('Mark this student visitor as exited?')) return;
     
     try {
         const response = await fetch(`/student/exit/${visitorId}`, { method: 'PUT' });
@@ -1173,9 +1523,8 @@ async function markExit(visitorId) {
         if (response.ok) {
             showNotification('Exit marked successfully!', 'success');
             loadVisitors();
-            if (document.querySelector('.charts-section')) {
-                loadAnalytics();
-            }
+            loadAnalytics();
+            loadDailyStats();
         } else {
             const data = await response.json();
             showNotification(data.error || 'Failed to mark exit', 'error');
@@ -1186,10 +1535,32 @@ async function markExit(visitorId) {
     }
 }
 
+async function markTeacherExit(teacherId) {
+    if (!confirm('Mark this teacher visit as exited?')) return;
+    
+    try {
+        const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, {
+            method: 'PUT'
+        });
+        
+        if (response.ok) {
+            showNotification('Teacher exit marked successfully!', 'success');
+            loadTeacherVisits();
+            loadTeacherStats();
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Failed to mark teacher exit', 'error');
+        }
+    } catch (error) {
+        console.error('Error marking teacher exit:', error);
+        showNotification('Error marking teacher exit', 'error');
+    }
+}
+
 function viewDetails(visitorId) {
     const visitor = allVisitors.find(v => v.id === visitorId);
     if (!visitor) {
-        alert('Visitor not found');
+        alert('Student visitor not found');
         return;
     }
     
@@ -1216,102 +1587,34 @@ function viewDetails(visitorId) {
         </div>
     `;
     
-    showModal('Visitor Details', details);
+    showModal('Student Visitor Details', details);
 }
 
-// ==================== IMPORT/EXPORT ====================
-
-async function importData() {
-    const fileInput = document.getElementById('importFile');
-    if (!fileInput) return;
-    
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert('Please select a file to import');
+function viewTeacherDetails(teacherId) {
+    const teacher = allTeachers.find(t => t.id === teacherId);
+    if (!teacher) {
+        alert('Teacher visit not found');
         return;
     }
     
-    const formData = new FormData();
-    formData.append('file', file);
+    const details = `
+        <div style="text-align: left;">
+            <p><strong>Name:</strong> ${teacher.name}</p>
+            <p><strong>Employee ID:</strong> ${teacher.employee_id || 'N/A'}</p>
+            <p><strong>Purpose:</strong> ${teacher.purpose}</p>
+            <p><strong>Notes:</strong> ${teacher.notes || 'No additional notes'}</p>
+            <p><strong>Entry Time:</strong> ${teacher.entry_time || 'N/A'}</p>
+            <p><strong>Exit Time:</strong> ${teacher.exit_time || 'Not exited yet'}</p>
+            <p><strong>Visit Date:</strong> ${teacher.visit_date}</p>
+            <p><strong>Day:</strong> ${teacher.visit_day || 'N/A'}</p>
+            <p><strong>Record ID:</strong> ${teacher.id}</p>
+        </div>
+    `;
     
-    const resultDiv = document.getElementById('importResult');
-    if (resultDiv) {
-        resultDiv.innerHTML = '<div class="import-loading"><i class="fas fa-spinner fa-spin"></i> Importing data...</div>';
-    }
-    
-    try {
-        const response = await fetch('/admin/import_data', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok && resultDiv) {
-            resultDiv.innerHTML = `
-                <div class="import-success">
-                    <div class="import-success-title">
-                        <i class="fas fa-check-circle"></i> ${result.message}
-                    </div>
-                    ${result.errors && result.errors.length > 0 ? `
-                        <div class="import-errors">
-                            <strong>Errors (${result.errors.length}):</strong>
-                            <ul>
-                                ${result.errors.slice(0, 5).map(err => `<li>${err}</li>`).join('')}
-                            </ul>
-                            ${result.errors.length > 5 ? `<em>... and ${result.errors.length - 5} more errors</em>` : ''}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-            
-            fileInput.value = '';
-            
-            if (document.querySelector('.charts-section')) {
-                loadAnalytics();
-            } else {
-                loadVisitors();
-            }
-            
-        } else if (resultDiv) {
-            resultDiv.innerHTML = `
-                <div class="import-error">
-                    <i class="fas fa-exclamation-circle"></i> ${result.error || 'Import failed'}
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Import error:', error);
-        if (resultDiv) {
-            resultDiv.innerHTML = `
-                <div class="import-error">
-                    <i class="fas fa-exclamation-circle"></i> Error importing data
-                </div>
-            `;
-        }
-    }
+    showModal('Teacher Visit Details', details);
 }
 
-function downloadTemplate() {
-    const template = `name,roll_no,level,course,year,jc_year,jc_stream,purpose
-John Doe,JC001,JC,Junior College,,FYJC,Science,Reading
-Jane Smith,UG001,UG,B.COM,First Year,,,Book Issue
-Bob Johnson,PG001,PG,M.Sc-IT,First Year,,,Research
-Alice Brown,JC002,JC,Junior College,,SYJC,Commerce,Newspaper`;
-
-    const blob = new Blob([template], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'library_import_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    a.remove();
-    
-    showNotification('Template downloaded successfully!', 'success');
-}
+// ==================== EXPORT FUNCTIONS ====================
 
 async function exportData(format) {
     try {
@@ -1345,30 +1648,6 @@ async function exportData(format) {
 }
 
 // ==================== UTILITY FUNCTIONS ====================
-
-function updateStats(data) {
-    const totalVisitors = data.length;
-    const currentVisitors = data.filter(v => !v.exit_time).length;
-    const jcCount = data.filter(v => v.level === 'JC').length;
-    const ugCount = data.filter(v => v.level === 'UG').length;
-    const pgCount = data.filter(v => v.level === 'PG').length;
-    
-    const elements = {
-        totalVisitors: document.getElementById('totalVisitors'),
-        currentVisitors: document.getElementById('currentVisitors'),
-        jcCount: document.getElementById('jcCount'),
-        ugCount: document.getElementById('ugCount'),
-        pgCount: document.getElementById('pgCount'),
-        recordCount: document.getElementById('recordCount')
-    };
-    
-    if (elements.totalVisitors) elements.totalVisitors.textContent = totalVisitors;
-    if (elements.currentVisitors) elements.currentVisitors.textContent = currentVisitors;
-    if (elements.jcCount) elements.jcCount.textContent = jcCount;
-    if (elements.ugCount) elements.ugCount.textContent = ugCount;
-    if (elements.pgCount) elements.pgCount.textContent = pgCount;
-    if (elements.recordCount) elements.recordCount.textContent = totalVisitors;
-}
 
 function showNotification(message, type = 'info') {
     const existing = document.querySelector('.notification');
@@ -1543,6 +1822,5 @@ function logoutUser() {
         window.location.href = '/';
     }, 1000);
 }
-
 
 console.log("✅ Admin.js loaded successfully!");
