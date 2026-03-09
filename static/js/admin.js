@@ -1631,7 +1631,10 @@ async function exportData(format) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `library_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        
+            const fileExtension = format === 'excel' ? 'xlsx' : format;
+            a.download = `library_export_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
+            
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -1646,7 +1649,6 @@ async function exportData(format) {
         showNotification('Error exporting data', 'error');
     }
 }
-
 // ==================== UTILITY FUNCTIONS ====================
 
 function showNotification(message, type = 'info') {
@@ -1824,3 +1826,4 @@ function logoutUser() {
 }
 
 console.log("✅ Admin.js loaded successfully!");
+
