@@ -13,6 +13,23 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
+    # Rate limiting
+    try:
+        from flask_limiter import Limiter
+        from flask_limiter.util import get_remote_address
+        limiter = Limiter(
+            get_remote_address,
+            app=app,
+            default_limits=[],
+            storage_uri="memory://"
+        )
+        # Apply strict limit to student entry endpoint
+        limiter.limit("10 per minute")(lambda: None)  # placeholder — applied per-route below
+        app.extensions['limiter'] = limiter
+        print("✅ Rate limiting enabled")
+    except ImportError:
+        print("⚠️ Flask-Limiter not installed — rate limiting disabled")
+    
     print("✅ Flask app initialized")
     
     # ==================== DATABASE INITIALIZATION ====================
@@ -50,19 +67,20 @@ def create_app():
     try:
         from backend.routes.student_routes import student_bp
         from backend.routes.admin_routes import admin_bp
+        from backend.routes.teacher_routes import teacher_bp
         
         app.register_blueprint(student_bp)
         app.register_blueprint(admin_bp)
+        app.register_blueprint(teacher_bp)
         
         print("✅ Blueprints registered")
     except Exception as e:
         print(f"❌ Blueprint registration error: {e}")
     
     # ==================== HOME ROUTE ====================
-    
     @app.route('/')
     def index():
-        return '''<!DOCTYPE html>
+     return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -370,16 +388,11 @@ def create_app():
         
         .hero-btn:nth-child(7) {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            grid-column: 2 / 3;
         }
         
         @media (max-width: 968px) {
             .hero-buttons {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .hero-btn:nth-child(7) {
-                grid-column: auto;
             }
         }
         
@@ -491,13 +504,13 @@ def create_app():
                     <i class="fas fa-graduation-cap"></i>
                     <span>Student Entry Portal</span>
                 </a>
-                <a href="/admin/login" class="hero-btn">
-                    <i class="fas fa-lock"></i>
-                    <span>Admin Dashboard</span>
-                </a>
                 <a href="/student/exit" class="hero-btn">
                     <i class="fas fa-door-open"></i>
                     <span>Student Exit Portal</span>
+                </a>
+                <a href="/admin/login" class="hero-btn">
+                    <i class="fas fa-lock"></i>
+                    <span>Admin Dashboard</span>
                 </a>
                 <a href="/about" class="hero-btn">
                     <i class="fas fa-book"></i>
@@ -539,6 +552,37 @@ def create_app():
     def services():
         return render_template('library_services.html')
     
+
+    @app.route('/api/seat-config')
+    def seat_config():
+        """Get/update seat configuration"""
+        try:
+            from backend.supabase_direct import SupabaseDirect
+            import requests as req
+            url = f"{Config.SUPABASE_URL}/rest/v1/seat_config"
+            headers = SupabaseDirect._get_headers()
+            r = req.get(url, headers=headers, params={'select': 'total_seats', 'limit': '1'})
+            data = r.json()
+            total = data[0]['total_seats'] if data else 60
+            return {'total_seats': total}
+        except Exception as e:
+            return {'total_seats': 60}
+
+    @app.route('/api/seat-config', methods=['PATCH'])
+    def update_seat_config():
+        from flask import request as freq
+        try:
+            from backend.supabase_direct import SupabaseDirect
+            import requests as req
+            body = freq.json
+            total = int(body.get('total_seats', 60))
+            url = f"{Config.SUPABASE_URL}/rest/v1/seat_config"
+            headers = SupabaseDirect._get_headers()
+            req.patch(url, headers=headers, params={'id': 'eq.1'}, json={'total_seats': total})
+            return {'total_seats': total}
+        except Exception as e:
+            return {'error': str(e)}, 500
+
     # ==================== ERROR HANDLERS ====================
     
     @app.errorhandler(404)
