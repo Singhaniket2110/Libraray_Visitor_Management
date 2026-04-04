@@ -106,24 +106,6 @@ def admin_login():
             
             return response, 200
         else:
-            # ✅ TEMPORARY FALLBACK FOR TESTING
-            if username == 'admin' and password == 'admin':
-                token = create_jwt_token(username)
-                response = make_response(jsonify({
-                    'success': True,
-                    'message': 'Login successful (test mode)',
-                    'redirect': '/admin/dashboard'
-                }))
-                response.set_cookie(
-                    'admin_token',
-                    token,
-                    httponly=True,
-                    secure=True,
-                    samesite='Lax',
-                    max_age=43200
-                )
-                return response, 200
-            
             return jsonify({
                 'success': False,
                 'error': 'Invalid username or password'
@@ -496,94 +478,259 @@ def import_data():
 @admin_bp.route('/export_data', methods=['GET'])
 @login_required
 def export_data():
-    """Export data to CSV or Excel"""
+    """Export visitor data — supports month, custom range, or all-time. CSV or Excel."""
     try:
         from flask import send_file
-        
-        format_type = request.args.get('format', 'csv')
-        start_date = request.args.get('start_date', '')
-        end_date = request.args.get('end_date', '')
-        
-        # ✅ USE DIRECT API
+        from calendar import monthrange
+
+        format_type = request.args.get('format', 'csv')   # csv | excel
+        scope       = request.args.get('scope', 'range')  # range | month | year | all
+        start_date  = request.args.get('start_date', '')
+        end_date    = request.args.get('end_date', '')
+        month       = request.args.get('month', '')        # YYYY-MM
+        year        = request.args.get('year', '')         # YYYY
+
+        # ── resolve date range from scope ─────────────────────────
+        label = 'all'
+        if scope == 'month' and month:
+            y, m = int(month.split('-')[0]), int(month.split('-')[1])
+            start_date = f"{y}-{m:02d}-01"
+            end_date   = f"{y}-{m:02d}-{monthrange(y, m)[1]:02d}"
+            label = month  # e.g. "2025-03"
+        elif scope == 'year' and year:
+            start_date = f"{year}-01-01"
+            end_date   = f"{year}-12-31"
+            label = year
+        elif scope == 'range' and start_date and end_date:
+            label = f"{start_date}_to_{end_date}"
+        # else scope == 'all' → fetch everything
+
         if start_date and end_date:
             visitors = Database.get_visitors_by_date_range(start_date, end_date)
         else:
             visitors = Database.get_all_visitors()
-        
+
+        # ── shared row builder ─────────────────────────────────────
+        HEADERS = ['ID','Name','Roll No','Level','Course','Year',
+                   'JC Year','JC Stream','Purpose',
+                   'Entry Time','Exit Time','Visit Date','Day','Duration (min)']
+
+        def build_row(v):
+            # calculate duration
+            duration = ''
+            if v.get('entry_time') and v.get('exit_time'):
+                try:
+                    from datetime import datetime as dt
+                    e = dt.strptime(str(v['entry_time']), '%H:%M:%S')
+                    x = dt.strptime(str(v['exit_time']),  '%H:%M:%S')
+                    duration = str(round((x - e).total_seconds() / 60))
+                except Exception:
+                    pass
+            return [
+                v.get('id',''),        v.get('name',''),
+                v.get('roll_no',''),   v.get('level',''),
+                v.get('course',''),    v.get('year',''),
+                v.get('jc_year',''),   v.get('jc_stream',''),
+                v.get('purpose',''),   str(v.get('entry_time','')),
+                str(v.get('exit_time','')), str(v.get('visit_date','')),
+                v.get('visit_day',''), duration
+            ]
+
+        filename_base = f"library_{label}"
+
+        # ── CSV ────────────────────────────────────────────────────
         if format_type == 'csv':
             output = io.StringIO()
-            writer = csv.writer(output)
-            
-            writer.writerow([
-                'ID', 'Name', 'Roll No', 'Level', 'Course', 
-                'Year', 'JC Year', 'JC Stream', 'Purpose',
-                'Entry Time', 'Exit Time', 'Visit Date', 'Day'
-            ])
-            
+            w = csv.writer(output)
+
+            # meta header
+            w.writerow([f"Library Visitor Report — {label}"])
+            w.writerow([f"Exported: {datetime.now().strftime('%d %b %Y %H:%M')}",
+                        f"Total records: {len(visitors)}"])
+            w.writerow([])
+            w.writerow(HEADERS)
             for v in visitors:
-                writer.writerow([
-                    v.get('id', ''),
-                    v.get('name', ''),
-                    v.get('roll_no', ''),
-                    v.get('level', ''),
-                    v.get('course', ''),
-                    v.get('year', ''),
-                    v.get('jc_year', ''),
-                    v.get('jc_stream', ''),
-                    v.get('purpose', ''),
-                    str(v.get('entry_time', '')),
-                    str(v.get('exit_time', '')),
-                    str(v.get('visit_date', '')),
-                    v.get('visit_day', '')
-                ])
-            
+                w.writerow(build_row(v))
+
             output.seek(0)
             return send_file(
                 io.BytesIO(output.getvalue().encode('utf-8')),
                 mimetype='text/csv',
                 as_attachment=True,
-                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.csv'
+                download_name=f"{filename_base}.csv"
             )
-        
+
+        # ── EXCEL ──────────────────────────────────────────────────
         elif format_type == 'excel':
-            data = []
-            for v in visitors:
-                data.append({
-                    'ID': v.get('id', ''),
-                    'Name': v.get('name', ''),
-                    'Roll No': v.get('roll_no', ''),
-                    'Level': v.get('level', ''),
-                    'Course': v.get('course', ''),
-                    'Year': v.get('year', ''),
-                    'JC Year': v.get('jc_year', ''),
-                    'JC Stream': v.get('jc_stream', ''),
-                    'Purpose': v.get('purpose', ''),
-                    'Entry Time': str(v.get('entry_time', '')),
-                    'Exit Time': str(v.get('exit_time', '')),
-                    'Visit Date': str(v.get('visit_date', '')),
-                    'Day': v.get('visit_day', '')
-                })
-            
-            df = pd.DataFrame(data)
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+            from openpyxl.utils import get_column_letter
+
+            wb = Workbook()
+
+            # ── helper: style a sheet ──────────────────────────────
+            def style_sheet(ws, rows_data, sheet_label):
+                # Title row
+                ws.append([f"Library Visitor Report — {sheet_label}"])
+                ws.append([f"Exported: {datetime.now().strftime('%d %b %Y %H:%M')}",
+                           f"Total records: {len(rows_data)}"])
+                ws.append([])  # blank row
+                ws.append(HEADERS)
+
+                header_row = 4
+                title_fill  = PatternFill("solid", fgColor="4F46E5")
+                header_fill = PatternFill("solid", fgColor="6366F1")
+                alt_fill    = PatternFill("solid", fgColor="EEF2FF")
+                white_fill  = PatternFill("solid", fgColor="FFFFFF")
+                thin = Side(style='thin', color='C7D2FE')
+                border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+                # Style title
+                title_cell = ws.cell(row=1, column=1)
+                title_cell.font = Font(bold=True, size=13, color="FFFFFF")
+                title_cell.fill = title_fill
+                title_cell.alignment = Alignment(horizontal='left', vertical='center')
+                ws.row_dimensions[1].height = 24
+                ws.merge_cells(start_row=1, start_column=1,
+                               end_row=1, end_column=len(HEADERS))
+
+                # Style subtitle
+                ws.cell(row=2, column=1).font = Font(italic=True, color="64748B", size=10)
+
+                # Style header row
+                for col, h in enumerate(HEADERS, 1):
+                    cell = ws.cell(row=header_row, column=col)
+                    cell.value = h
+                    cell.font = Font(bold=True, color="FFFFFF", size=10)
+                    cell.fill = header_fill
+                    cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                    cell.border = border
+                ws.row_dimensions[header_row].height = 22
+
+                # Data rows
+                for i, row in enumerate(rows_data):
+                    r = header_row + 1 + i
+                    fill = alt_fill if i % 2 == 0 else white_fill
+                    for col, val in enumerate(row, 1):
+                        cell = ws.cell(row=r, column=col, value=val)
+                        cell.fill = fill
+                        cell.border = border
+                        cell.alignment = Alignment(vertical='center')
+                        cell.font = Font(size=10)
+
+                # Auto-fit column widths
+                col_widths = [max(len(str(h)), 8) for h in HEADERS]
+                for row in rows_data:
+                    for i, val in enumerate(row):
+                        col_widths[i] = min(max(col_widths[i], len(str(val))), 30)
+                for i, w in enumerate(col_widths, 1):
+                    ws.column_dimensions[get_column_letter(i)].width = w + 2
+
+                # Freeze panes below header
+                ws.freeze_panes = ws.cell(row=header_row + 1, column=1)
+
+                # Auto-filter on header row
+                ws.auto_filter.ref = (
+                    f"A{header_row}:{get_column_letter(len(HEADERS))}{header_row + len(rows_data)}"
+                )
+
+            # ── decide sheet layout ────────────────────────────────
+            all_rows = [build_row(v) for v in visitors]
+
+            if scope == 'all':
+                # Sheet 1: All data
+                ws_all = wb.active
+                ws_all.title = "All Time"
+                style_sheet(ws_all, all_rows, "All Time")
+
+                # Sheet 2: Monthly summary
+                from collections import defaultdict
+                monthly = defaultdict(list)
+                for v in visitors:
+                    d = str(v.get('visit_date', ''))
+                    if len(d) >= 7:
+                        monthly[d[:7]].append(v)
+
+                ws_sum = wb.create_sheet("Monthly Summary")
+                ws_sum.append(["Month", "Total Visitors", "JC", "UG", "PG",
+                               "Avg Duration (min)"])
+                hfill = PatternFill("solid", fgColor="6366F1")
+                for col in range(1, 7):
+                    c = ws_sum.cell(row=1, column=col)
+                    c.font = Font(bold=True, color="FFFFFF")
+                    c.fill = hfill
+                for m_key in sorted(monthly.keys(), reverse=True):
+                    mvs = monthly[m_key]
+                    jc = sum(1 for v in mvs if v.get('level') == 'JC')
+                    ug = sum(1 for v in mvs if v.get('level') == 'UG')
+                    pg = sum(1 for v in mvs if v.get('level') == 'PG')
+                    durs = []
+                    for v in mvs:
+                        if v.get('entry_time') and v.get('exit_time'):
+                            try:
+                                from datetime import datetime as dt
+                                e = dt.strptime(str(v['entry_time']), '%H:%M:%S')
+                                x = dt.strptime(str(v['exit_time']),  '%H:%M:%S')
+                                durs.append((x - e).total_seconds() / 60)
+                            except Exception:
+                                pass
+                    avg = round(sum(durs) / len(durs), 1) if durs else ''
+                    ws_sum.append([m_key, len(mvs), jc, ug, pg, avg])
+
+                ws_sum.column_dimensions['A'].width = 14
+                for col in 'BCDEF':
+                    ws_sum.column_dimensions[col].width = 18
+
+            elif scope == 'year' and year:
+                # One sheet per month in that year
+                from collections import defaultdict
+                monthly = defaultdict(list)
+                for v in visitors:
+                    d = str(v.get('visit_date', ''))
+                    if len(d) >= 7:
+                        monthly[d[:7]].append(v)
+
+                first = True
+                for m_key in sorted(monthly.keys()):
+                    rows = [build_row(v) for v in monthly[m_key]]
+                    import calendar
+                    m_name = calendar.month_name[int(m_key.split('-')[1])]
+                    if first:
+                        ws = wb.active
+                        ws.title = m_name
+                        first = False
+                    else:
+                        ws = wb.create_sheet(m_name)
+                    style_sheet(ws, rows, f"{m_name} {year}")
+
+                if first:  # no data
+                    ws = wb.active
+                    ws.title = year
+                    style_sheet(ws, [], year)
+
+            else:
+                # Single sheet (month / custom range)
+                ws = wb.active
+                ws.title = label[:31]  # Excel sheet name limit
+                style_sheet(ws, all_rows, label)
+
             output = io.BytesIO()
-            
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Visitors', index=False)
-            
+            wb.save(output)
             output.seek(0)
             return send_file(
                 output,
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 as_attachment=True,
-                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.xlsx'
+                download_name=f"{filename_base}.xlsx"
             )
-        
+
         else:
             return jsonify({"error": "Invalid format"}), 400
-            
+
     except Exception as e:
         print(f"Export error: {e}")
-        return jsonify({"error": "Export failed"}), 500
+        import traceback; traceback.print_exc()
+        return jsonify({"error": f"Export failed: {str(e)}"}), 500
 
 @admin_bp.route('/bulk_actions', methods=['POST'])
 @login_required
