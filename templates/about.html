@@ -14,14 +14,33 @@
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('https://nesedu.in/wp-content/uploads/2025/03/re_1@4x-709x1536.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
             padding: 40px 20px;
+            position: relative;
+        }
+        
+        /* Dark overlay over the entire body */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 0;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         
         .header {
@@ -43,13 +62,14 @@
         }
         
         .college-info {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 40px;
             border-radius: 24px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             margin-bottom: 40px;
             text-align: center;
             animation: fadeInUp 0.6s ease;
+            backdrop-filter: blur(10px);
         }
         
         .college-logo-large {
@@ -96,13 +116,14 @@
         }
         
         .info-section {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 40px;
             border-radius: 24px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             margin-bottom: 40px;
             animation: fadeInUp 0.6s ease;
             position: relative;
+            backdrop-filter: blur(10px);
         }
         
         .info-section::before {
@@ -113,6 +134,7 @@
             width: 100%;
             height: 5px;
             background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+            border-radius: 24px 24px 0 0;
         }
         
         .section-icon {
@@ -136,14 +158,14 @@
         }
         
         .info-section p {
-            color: #64748b;
+            color: #334155;
             font-size: 1.1rem;
             line-height: 1.8;
             margin-bottom: 20px;
         }
         
         .info-section ul {
-            color: #64748b;
+            color: #334155;
             font-size: 1.1rem;
             line-height: 1.8;
             margin: 20px 0;
@@ -151,7 +173,7 @@
         }
         
         .info-section ol {
-            color: #64748b;
+            color: #334155;
             font-size: 1.1rem;
             line-height: 1.8;
             margin: 20px 0;
@@ -271,7 +293,6 @@
             border-bottom: 2px solid #e2e8f0;
         }
         
-        /* New styles for librarian section */
         .librarian-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -317,7 +338,7 @@
         }
         
         .librarian-qualification {
-            color: #64748b;
+            color: #475569;
             font-size: 1.1rem;
             line-height: 1.6;
             margin-bottom: 15px;
@@ -460,33 +481,28 @@
             <div class="college-motto">"विद्या ददाति विनयं"<br>(Knowledge Bestows Humility)</div>
         </div>
         
-       <!-- Library Introduction -->
-<div class="info-section" style="background-image: url('https://nesedu.in/wp-content/uploads/2025/03/re_1@4x-709x1536.png'); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative;">
-    <!-- Dark overlay for text readability -->
-    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); border-radius: 24px; z-index: 1;"></div>
-    
-    <div class="section-icon" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); position: relative; z-index: 2;">
-        <i class="fas fa-landmark"></i>
-    </div>
-    
-    <h3 style="position: relative; z-index: 2; color: white;">About Us</h3>
-    
-    <div style="position: relative; z-index: 2;">
-        <p style="color: #f1f5f9;">The library which has now become an essential part of the social fabric has been a product of the actual needs of modern civilization.</p>
+        <!-- Library Introduction -->
+        <div class="info-section">
+            <div class="section-icon" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <i class="fas fa-landmark"></i>
+            </div>
+            <h3>About Us</h3>
+            
+            <p>The library which has now become an essential part of the social fabric has been a product of the actual needs of modern civilization.</p>
+            
+            <p>Culture is essentially a social communication of experience of our predecessors. Books have preserved this experience & the library has been disseminating it to the living individuals for further progress. Each individual has the 'Right to information'. Our library tries to do its best by satisfying the hunger for information.</p>
+            
+            <p>Navneet College Library was set up in the year 2010. The library in 2018 was named after our mentor <b>"Smt. Kesardevi R. Mishra"</b> and hence is now popularly known as <b>"Smt. Kesardevi Mishra Memorial Library".</b> The motive behind renaming the college library happens to be Smt. Kesardevi Mishra's dedication, commitment and passionately curious nature towards the "Education" even though being only a primary education recipient in her student days but she stood firmly for the cause of "Education" and helped it reach to great heights and our college happens to be a small example of her mammoth efforts. Over the years, it has been flourished in to an up to date system and fully automated library.</p>
+            
+            <p>The library was operated in a manual manner but in the year 2015 the library was automated. The software used in automation was Khoa. As per emerging needs of students the college decided to migrate the library data to KOHA Library Software in 2021.</p>
+            
+            <p>Our library has total collection of books 5808, 10 journals & magazines, 04 newspapers & 32 CD-ROMs. The facility of reading room & CD-ROM facility at digital library are made available to the students & teachers. Library also subscribes the N-LIST Program of INFLIBNET. Through N-LIST Program more than 6000+ e-journals and 3135000+ e-books in various subjects is available for the users. Digital library is well-equipped with latest infrastructure of computers, headphones & CDs. Library also provide Book Bank Scheme for economically backward and needy students.</p>
+            
+            <p>Newspapers are mirror of the world. Important articles from the newspapers are displayed on the notice board regularly. Newspaper clippings file is maintained in the library which provides a good source of references to the students as well as the staff.</p>
+            
+            <p>It is no doubt that library is the ocean of knowledge & our college strives hard to add more drops of knowledge by increasing number of books, dictionaries, encyclopaedias, yearbooks, atlases, journals, magazines, newspapers & audio-visual materials & make readily accessible to the students for improving their intellectual level.</p>
+        </div>
         
-        <p style="color: #f1f5f9;">Culture is essentially a social communication of experience of our predecessors. Books have preserved this experience & the library has been disseminating it to the living individuals for further progress. Each individual has the 'Right to information'. Our library tries to do its best by satisfying the hunger for information.</p>
-        
-        <p style="color: #f1f5f9;">Navneet College Library was set up in the year 2010. The library in 2018 was named after our mentor <b style="color: #a5b4fc;">"Smt. Kesardevi R. Mishra"</b> and hence is now popularly known as <b style="color: #a5b4fc;">"Smt. Kesardevi Mishra Memorial Library".</b> The motive behind renaming the college library happens to be Smt. Kesardevi Mishra's dedication, commitment and passionately curious nature towards the "Education" even though being only a primary education recipient in her student days but she stood firmly for the cause of "Education" and helped it reach to great heights and our college happens to be a small example of her mammoth efforts. Over the years, it has been flourished in to an up to date system and fully automated library.</p>
-        
-        <p style="color: #f1f5f9;">The library was operated in a manual manner but in the year 2015 the library was automated. The software used in automation was Khoa. As per emerging needs of students the college decided to migrate the library data to KOHA Library Software in 2021.</p>
-        
-        <p style="color: #f1f5f9;">Our library has total collection of books 5808, 10 journals & magazines, 04 newspapers & 32 CD-ROMs. The facility of reading room & CD-ROM facility at digital library are made available to the students & teachers. Library also subscribes the N-LIST Program of INFLIBNET. Through N-LIST Program more than 6000+ e-journals and 3135000+ e-books in various subjects is available for the users. Digital library is well-equipped with latest infrastructure of computers, headphones & CDs. Library also provide Book Bank Scheme for economically backward and needy students.</p>
-        
-        <p style="color: #f1f5f9;">Newspapers are mirror of the world. Important articles from the newspapers are displayed on the notice board regularly. Newspaper clippings file is maintained in the library which provides a good source of references to the students as well as the staff.</p>
-        
-        <p style="color: #f1f5f9;">It is no doubt that library is the ocean of knowledge & our college strives hard to add more drops of knowledge by increasing number of books, dictionaries, encyclopaedias, yearbooks, atlases, journals, magazines, newspapers & audio-visual materials & make readily accessible to the students for improving their intellectual level.</p>
-    </div>
-</div>        
         <!-- Library Working Hours -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);">
@@ -517,7 +533,7 @@
             <p><strong>Note:</strong> Library will be closed on Sunday and Public Holidays.</p>
         </div>
         
-        <!-- NEW SECTION: Librarian Information -->
+        <!-- Librarian Information -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
                 <i class="fas fa-user-tie"></i>
@@ -557,7 +573,6 @@
                     </div>
                 </div>
                 
-                <!-- Additional space for future staff if needed -->
                 <div class="librarian-card" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left-color: #94a3b8;">
                     <div class="librarian-avatar" style="background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);">
                         <i class="fas fa-users"></i>
@@ -713,7 +728,7 @@
             </div>
         </div>
         
-        <!-- New Rules and Regulation -->
+        <!-- Rules and Regulation -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -772,5 +787,5 @@
             </a>
         </div>
     </div>
-</body>  
+</body>
 </html>
