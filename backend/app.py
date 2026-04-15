@@ -482,7 +482,7 @@ def create_app():
             </div>
             
            <div class="hero-icon">📚</div>
-<h1 style="font-size: 2.5rem;">Smt Kesardevi Mishra Memorial Library</h1>
+<h1 style="font-size: 2.5rem;">Smt. Kesardevi Mishra Memorial Library</h1>
 <h2 style="font-size: 2rem; margin-top: 10px; margin-bottom: 25px;">Visitor and Digital Resource Management System</h2>
             <p>Welcome to our advanced library management platform. Streamline visitor tracking, enhance security, and optimize library operations with our intuitive, feature-rich system designed for modern educational institutions.</p>
             
