@@ -14,33 +14,14 @@
         }
         
         body {
-            background-image: url('https://nesedu.in/wp-content/uploads/2025/03/re_1@4x-709x1536.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 40px 20px;
-            position: relative;
-        }
-        
-        /* Dark overlay over the entire body */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            z-index: 0;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
         }
         
         .header {
@@ -62,14 +43,13 @@
         }
         
         .college-info {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             padding: 40px;
             border-radius: 24px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             margin-bottom: 40px;
             text-align: center;
             animation: fadeInUp 0.6s ease;
-            backdrop-filter: blur(10px);
         }
         
         .college-logo-large {
@@ -116,14 +96,13 @@
         }
         
         .info-section {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             padding: 40px;
             border-radius: 24px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             margin-bottom: 40px;
             animation: fadeInUp 0.6s ease;
             position: relative;
-            backdrop-filter: blur(10px);
         }
         
         .info-section::before {
@@ -134,7 +113,6 @@
             width: 100%;
             height: 5px;
             background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
-            border-radius: 24px 24px 0 0;
         }
         
         .section-icon {
@@ -158,14 +136,14 @@
         }
         
         .info-section p {
-            color: #334155;
+            color: #64748b;
             font-size: 1.1rem;
             line-height: 1.8;
             margin-bottom: 20px;
         }
         
         .info-section ul {
-            color: #334155;
+            color: #64748b;
             font-size: 1.1rem;
             line-height: 1.8;
             margin: 20px 0;
@@ -173,7 +151,7 @@
         }
         
         .info-section ol {
-            color: #334155;
+            color: #64748b;
             font-size: 1.1rem;
             line-height: 1.8;
             margin: 20px 0;
@@ -293,6 +271,7 @@
             border-bottom: 2px solid #e2e8f0;
         }
         
+        /* New styles for librarian section */
         .librarian-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -338,7 +317,7 @@
         }
         
         .librarian-qualification {
-            color: #475569;
+            color: #64748b;
             font-size: 1.1rem;
             line-height: 1.6;
             margin-bottom: 15px;
@@ -492,7 +471,7 @@
             
             <p>Culture is essentially a social communication of experience of our predecessors. Books have preserved this experience & the library has been disseminating it to the living individuals for further progress. Each individual has the 'Right to information'. Our library tries to do its best by satisfying the hunger for information.</p>
             
-            <p>Navneet College Library was set up in the year 2010. The library in 2018 was named after our mentor <b>"Smt. Kesardevi R. Mishra"</b> and hence is now popularly known as <b>"Smt. Kesardevi Mishra Memorial Library".</b> The motive behind renaming the college library happens to be Smt. Kesardevi Mishra's dedication, commitment and passionately curious nature towards the "Education" even though being only a primary education recipient in her student days but she stood firmly for the cause of "Education" and helped it reach to great heights and our college happens to be a small example of her mammoth efforts. Over the years, it has been flourished in to an up to date system and fully automated library.</p>
+            <p>Navneet College Library was set up in the year 2010. The library in 2018 was named after our mentor<b> "Smt. Kesardevi R. Mishra" </b> and hence is now popularly known as <b> "Smt. Kesardevi Mishra Memorial Library".</b> The motive behind renaming the college library happens to be Smt. Kesardevi Mishra's dedication, commitment and passionately curious nature towards the "Education" even though being only a primary education recipient in her student days but she stood firmly for the cause of "Education" and helped it reach to great heights and our college happens to be a small example of her mammoth efforts. Over the years, it has been flourished in to an up to date system and fully automated library.</p>
             
             <p>The library was operated in a manual manner but in the year 2015 the library was automated. The software used in automation was Khoa. As per emerging needs of students the college decided to migrate the library data to KOHA Library Software in 2021.</p>
             
@@ -533,7 +512,7 @@
             <p><strong>Note:</strong> Library will be closed on Sunday and Public Holidays.</p>
         </div>
         
-        <!-- Librarian Information -->
+        <!-- NEW SECTION: Librarian Information -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
                 <i class="fas fa-user-tie"></i>
@@ -573,6 +552,7 @@
                     </div>
                 </div>
                 
+                <!-- Additional space for future staff if needed -->
                 <div class="librarian-card" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left-color: #94a3b8;">
                     <div class="librarian-avatar" style="background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);">
                         <i class="fas fa-users"></i>
@@ -728,7 +708,7 @@
             </div>
         </div>
         
-        <!-- Rules and Regulation -->
+        <!-- New Rules and Regulation -->
         <div class="info-section">
             <div class="section-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -787,5 +767,5 @@
             </a>
         </div>
     </div>
-</body>
+</body>  
 </html>
