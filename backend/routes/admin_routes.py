@@ -135,17 +135,15 @@ def admin_login():
 
 @admin_bp.route('/logout')
 def admin_logout():
-    """Logout admin"""
+    """Logout admin and redirect to homepage"""
     try:
         # Clear Flask session
         session.clear()
         
-        # Create response
-        response = make_response(jsonify({
-            'success': True, 
-            'message': 'Logged out successfully',
-            'redirect': '/'
-        }))
+        # Create response - DIRECT REDIRECT instead of JSON
+        from flask import redirect
+        
+        response = make_response(redirect('/'))
         
         # Clear all cookies
         response.set_cookie('admin_token', '', expires=0)
@@ -157,7 +155,9 @@ def admin_logout():
         
     except Exception as e:
         print(f"❌ Logout error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        # Still redirect even on error
+        return redirect('/')
+        
 @admin_bp.route('/check_session')
 def check_session():
     """Check if admin is logged in"""
