@@ -1,557 +1,15 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard | Library Management</title>
+    <title>Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --gray: #64748b;
-            --gray-light: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --radius-sm: 0.375rem;
-            --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f6f9ff 0%, #edf2ff 100%);
-            min-height: 100vh;
-        }
-
-        .dashboard {
-            min-height: 100vh;
-            padding: 1.5rem;
-        }
-
-        /* Dashboard Header */
-        .dashboard-header {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: var(--radius-xl);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .header-text h1 {
-            font-size: 1.75rem;
-            margin: 0;
-            color: var(--dark);
-        }
-
-        .header-text p {
-            color: var(--gray);
-            font-size: 0.875rem;
-            margin: 0.25rem 0 0 0;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        /* Tab Navigation */
-        .tabs-container {
-            background: white;
-            border-radius: var(--radius-xl);
-            margin-bottom: 2rem;
-            padding: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            box-shadow: var(--shadow-md);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            border: none;
-            background: transparent;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray);
-            cursor: pointer;
-            border-radius: var(--radius-lg);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .tab-btn i {
-            font-size: 1.1rem;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: var(--light);
-            color: var(--primary);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            border-top: 4px solid;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card:nth-child(1) { border-color: var(--primary); }
-        .stat-card:nth-child(2) { border-color: var(--success); }
-        .stat-card:nth-child(3) { border-color: var(--warning); }
-        .stat-card:nth-child(4) { border-color: var(--secondary); }
-        .stat-card:nth-child(5) { border-color: #ec4899; }
-        .stat-card:nth-child(6) { border-color: #06b6d4; }
-
-        .stat-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .stat-card:nth-child(1) .stat-icon { background: var(--primary); }
-        .stat-card:nth-child(2) .stat-icon { background: var(--success); }
-        .stat-card:nth-child(3) .stat-icon { background: var(--warning); }
-        .stat-card:nth-child(4) .stat-icon { background: var(--secondary); }
-        .stat-card:nth-child(5) .stat-icon { background: #ec4899; }
-        .stat-card:nth-child(6) .stat-icon { background: #06b6d4; }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--dark);
-        }
-
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 0.25rem;
-        }
-
-        /* Charts Section */
-        .charts-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .chart-header h3 {
-            margin: 0;
-            color: var(--dark);
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .chart-select {
-            padding: 0.5rem;
-            border: 2px solid var(--gray-light);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            background: white;
-            cursor: pointer;
-        }
-
-        .chart-container {
-            height: 280px;
-            position: relative;
-        }
-
-        /* Filters Section */
-        .filters-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .date-range-picker {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .quick-dates {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .quick-dates button {
-            padding: 0.5rem 1rem;
-            border: 2px solid var(--gray-light);
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s;
-        }
-
-        .quick-dates button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .date-range-controls {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .date-range-controls .form-control {
-            width: 150px;
-            padding: 0.5rem;
-            border: 2px solid var(--gray-light);
-            border-radius: 8px;
-        }
-
-        .data-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .export-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 0.875rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
-            border: 2px solid var(--gray-light);
-            border-radius: var(--radius-md);
-            transition: all 0.3s;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
-
-        /* Button Styles */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .btn-secondary {
-            background: var(--light);
-            color: var(--dark);
-            border: 2px solid var(--gray-light);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        /* Table Styles */
-        .table-container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            overflow: auto;
-        }
-
-        .table-header {
-            padding: 1.5rem;
-            border-bottom: 2px solid var(--gray-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .table-header h2 {
-            margin: 0;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .table-actions {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .bulk-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .bulk-select {
-            width: 130px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        }
-
-        thead th {
-            padding: 1rem;
-            color: white;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-align: left;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--gray-light);
-            transition: background 0.2s;
-        }
-
-        tbody tr:hover {
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        tbody td {
-            padding: 0.75rem 1rem;
-            color: var(--dark);
-            font-size: 0.875rem;
-        }
-
-        .checkbox-cell {
-            width: 40px;
-            text-align: center;
-        }
-
-        .checkbox-cell input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-badge.active {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .status-badge.exited {
-            background: rgba(100, 116, 139, 0.1);
-            color: var(--gray);
-        }
-
-        .btn-exit {
-            background: var(--danger);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .view-btn {
-            background: var(--primary);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-
-        .pagination-container {
-            padding: 1rem;
-            border-top: 1px solid var(--gray-light);
-            text-align: center;
-        }
-
-        .pagination-controls {
-            display: inline-flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .page-info {
-            padding: 0.5rem 1rem;
-            background: var(--light);
-            border-radius: 8px;
-        }
-
-        .loading-row {
-            text-align: center;
-            padding: 3rem;
-        }
-
-        .loading-row i {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        /* Modal */
+        /* Add Visitor Modal Styles */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -560,29 +18,39 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
         }
 
         .modal-overlay.active {
             display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .modal-content {
+        .add-visitor-modal {
             background: white;
             border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
             overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
 
-        @keyframes modalSlideIn {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(-30px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -591,14 +59,17 @@
         }
 
         .modal-header {
-            padding: 1.5rem;
-            border-bottom: 2px solid var(--gray-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .modal-header h3 {
+        .modal-header h2 {
+            color: #1e293b;
+            font-size: 1.8rem;
             margin: 0;
         }
 
@@ -606,1279 +77,644 @@
             background: none;
             border: none;
             font-size: 1.5rem;
+            color: #64748b;
             cursor: pointer;
-            color: var(--gray);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
         }
 
-        .modal-body {
-            padding: 1.5rem;
+        .close-modal:hover {
+            background: #f1f5f9;
+            color: #ef4444;
         }
 
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--gray-light);
-            text-align: right;
-        }
-
-        .jc-fields {
-            background: #fef3c7;
-            padding: 1rem;
+        .jc-fields-modal {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
             border-radius: 12px;
-            margin: 1rem 0;
+            margin: 15px 0;
+            border-left: 4px solid #f59e0b;
             display: none;
         }
 
-        .hidden {
+        .pg-note-modal {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+            font-size: 14px;
+            color: #1e40af;
             display: none;
         }
 
-        .tab-content {
+        #addVisitorMessage {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
             display: none;
         }
 
-        .tab-content.active {
-            display: block;
+        #addVisitorMessage.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #86efac;
         }
 
-        @media (max-width: 768px) {
-            .dashboard {
-                padding: 1rem;
-            }
-            .charts-section {
-                grid-template-columns: 1fr;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+        #addVisitorMessage.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="header-content">
-                <div class="header-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="header-text">
-                    <h1><i class="fas fa-chart-bar"></i> Library Analytics Dashboard</h1>
-                    <p>Welcome, <span id="adminUsername">Admin</span> | Real-time analytics & insights</p>
-                </div>
+<div class="dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-chart-line"></i>
             </div>
-            <div class="header-actions">
-                <button onclick="logoutUser()" class="btn btn-danger">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="header-text">
+                <h1><i class="fas fa-chart-bar"></i> Library Analytics Admin Dashboard</h1>                <p>Welcome, {{ session.get('admin_username', 'Admin') }} | Real-time analytics & insights</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button onclick="openAddVisitorModal()" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Add New Visitor
+            </button>
+            <button onclick="loadAnalytics()" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i> Refresh Analytics
+            </button>
+            <button onclick="logoutUser()" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Date Range Picker -->
+    <section class="filters-section">
+        <h3 class="chart-title">
+            <i class="fas fa-calendar-alt"></i> Date Range Selection
+        </h3>
+        <div class="date-range-picker">
+            <div class="quick-dates">
+                <button class="active" onclick="selectDateRange('today')">
+                    <i class="fas fa-calendar-day"></i> Today
+                </button>
+                <button onclick="selectDateRange('yesterday')">
+                    <i class="fas fa-calendar-minus"></i> Yesterday
+                </button>
+                <button onclick="selectDateRange('week')">
+                    <i class="fas fa-calendar-week"></i> Last 7 Days
+                </button>
+                <button onclick="selectDateRange('month')">
+                    <i class="fas fa-calendar-alt"></i> Last 30 Days
                 </button>
             </div>
-        </header>
-
-        <!-- Tabs -->
-        <div class="tabs-container">
-            <button class="tab-btn active" onclick="switchTab('students')">
-                <i class="fas fa-user-graduate"></i> Students
+            
+            <div class="date-range-controls">
+                <label class="form-label">
+                    <i class="fas fa-calendar"></i> From:
+                </label>
+                <input type="date" id="startDate" class="form-control">
+                
+                <label class="form-label">To:</label>
+                <input type="date" id="endDate" class="form-control">
+                
+                <button onclick="applyCustomDateRange()" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply
+                </button>
+            </div>
+        </div>
+        
+        <div class="filter-grid">
+            <div>
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i> Level Filter
+                </label>
+                <select id="levelFilter" class="form-control" onchange="loadVisitors()">
+                    <option value="">All Levels</option>
+                    <option value="JC">Junior College</option>
+                    <option value="UG">Undergraduate</option>
+                    <option value="PG">Postgraduate</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">
+                    <i class="fas fa-door-open"></i> Status Filter
+                </label>
+                <select id="statusFilter" class="form-control" onchange="loadVisitors()">
+                    <option value="">All Status</option>
+                    <option value="active">Active Only</option>
+                    <option value="exited">Exited Only</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="data-actions">
+            <button onclick="loadVisitors()" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Refresh Data
             </button>
-            <button class="tab-btn" onclick="switchTab('teachers')">
-                <i class="fas fa-chalkboard-user"></i> Teachers
+            <button onclick="resetFilters()" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Clear Filters
+            </button>
+            <div class="export-buttons">
+                <button onclick="exportData('csv')" class="btn btn-success">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button onclick="exportData('excel')" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Cards -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="totalVisitors">0</div>
+            <div class="stat-label">TOTAL VISITORS</div>
+            <div class="stat-trend positive" id="visitorTrend">
+                <i class="fas fa-arrow-up"></i> 0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-value" id="currentVisitors">0</div>
+            <div class="stat-label">CURRENTLY INSIDE</div>
+            <div class="stat-trend positive" id="activeTrend">
+                <i class="fas fa-arrow-up"></i> 0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value" id="jcCount">0</div>
+            <div class="stat-label">JC STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-value" id="ugCount">0</div>
+            <div class="stat-label">UG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-value" id="pgCount">0</div>
+            <div class="stat-label">PG STUDENTS</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value" id="avgDuration">0</div>
+            <div class="stat-label">AVG DURATION (MIN)</div>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
+                <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="pie">Pie Chart</option>
+                    <option value="doughnut">Doughnut Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="levelChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
+                <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
+                <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="bar">Vertical Bar Chart</option>
+                    <option value="horizontalBar">Horizontal Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="courseChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
+                <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="doughnut">Doughnut Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="purposeChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-clock"></i> Peak Hours</h3>
+                <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="peakHoursChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="durationChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visitor Table -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>
+                <i class="fas fa-table"></i> Visitor Records
+                <span class="record-count">
+                    Showing <span id="recordCount">0</span> records
+                </span>
+            </h2>
+            
+            <div class="table-actions">
+                <div class="bulk-actions">
+                    <select id="bulkAction" class="form-control bulk-select">
+                        <option value="">Bulk Actions</option>
+                        <option value="mark_exit">Mark as Exited</option>
+                        <option value="delete">Delete Selected</option>
+                    </select>
+                    <button onclick="applyBulkAction()" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Apply
+                    </button>
+                </div>
+                
+                <button onclick="selectAllRows()" class="btn btn-secondary">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                
+                <button onclick="loadVisitors()" class="btn btn-primary refresh-btn">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Name</th>
+                        <th>Roll No</th>
+                        <th>Level</th>
+                        <th>Course/Stream</th>
+                        <th>Year</th>
+                        <th>Purpose</th>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="visitorTable">
+                    <tr>
+                        <td colspan="13" class="loading-row">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <div>Loading visitor data...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination-container">
+            <div class="pagination-controls">
+                <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                </span>
+                <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Add Visitor Modal -->
+<div id="addVisitorModal" class="modal-overlay">
+    <div class="add-visitor-modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-user-plus"></i> Add New Visitor</h2>
+            <button class="close-modal" onclick="closeAddVisitorModal()">
+                <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <!-- ==================== STUDENTS TAB ==================== -->
-        <div id="studentsTab" class="tab-content active">
-            <!-- Stats Cards -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-value" id="totalVisitors">0</div>
-                    <div class="stat-label">TOTAL STUDENT VISITORS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                    <div class="stat-value" id="activeVisitors">0</div>
-                    <div class="stat-label">CURRENTLY INSIDE</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                    <div class="stat-value" id="avgDuration">0</div>
-                    <div class="stat-label">AVG DURATION (MIN)</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
-                    <div class="stat-value" id="jcCount">0</div>
-                    <div class="stat-label">JC STUDENTS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
-                    <div class="stat-value" id="ugCount">0</div>
-                    <div class="stat-label">UG STUDENTS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
-                    <div class="stat-value" id="pgCount">0</div>
-                    <div class="stat-label">PG STUDENTS</div>
-                </div>
-            </section>
-
-            <!-- Student Charts -->
-            <section class="charts-section">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
-                        <select id="levelChartType" class="chart-select">
-                            <option value="pie">Pie Chart</option>
-                            <option value="doughnut">Doughnut Chart</option>
-                            <option value="bar">Bar Chart</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="levelChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-line"></i> Daily Student Trend</h3>
-                        <select id="trendChartType" class="chart-select">
-                            <option value="line">Line Chart</option>
-                            <option value="bar">Bar Chart</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="trendChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="courseChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="purposeChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-clock"></i> Peak Hours</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="peakHoursChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Student Filters -->
-            <section class="filters-section">
-                <div class="date-range-picker">
-                    <div class="quick-dates">
-                        <button onclick="selectDateRange('today')" class="active">Today</button>
-                        <button onclick="selectDateRange('yesterday')">Yesterday</button>
-                        <button onclick="selectDateRange('week')">Last 7 Days</button>
-                        <button onclick="selectDateRange('month')">Last 30 Days</button>
-                    </div>
-                    <div class="date-range-controls">
-                        <label>From:</label>
-                        <input type="date" id="startDate" class="form-control">
-                        <label>To:</label>
-                        <input type="date" id="endDate" class="form-control">
-                        <button onclick="applyCustomDateRange()" class="btn btn-primary">Apply</button>
-                    </div>
-                </div>
-                <div class="filter-grid">
-                    <div>
-                        <label class="form-label">Level Filter</label>
-                        <select id="levelFilter" class="form-control">
-                            <option value="">All Levels</option>
-                            <option value="JC">Junior College</option>
-                            <option value="UG">Undergraduate</option>
-                            <option value="PG">Postgraduate</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="form-label">Status Filter</label>
-                        <select id="statusFilter" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="active">Active Only</option>
-                            <option value="exited">Exited Only</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="data-actions">
-                    <button onclick="loadStudentAnalytics()" class="btn btn-primary">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                    <button onclick="resetFilters()" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Clear Filters
-                    </button>
-                    <div class="export-buttons">
-                        <button onclick="exportData('csv', 'students')" class="btn btn-success">
-                            <i class="fas fa-file-csv"></i> Export CSV
-                        </button>
-                        <button onclick="exportData('excel', 'students')" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Export Excel
-                        </button>
-                    </div>
-                    <button onclick="openAddStudentModal()" class="btn btn-warning">
-                        <i class="fas fa-user-plus"></i> Add Student
-                    </button>
-                </div>
-            </section>
-
-            <!-- Student Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2><i class="fas fa-table"></i> Student Visitor Records</h2>
-                    <div class="table-actions">
-                        <div class="bulk-actions">
-                            <select id="bulkAction" class="form-control bulk-select">
-                                <option value="">Bulk Actions</option>
-                                <option value="mark_exit">Mark as Exited</option>
-                                <option value="delete">Delete Selected</option>
-                            </select>
-                            <button onclick="applyBulkAction()" class="btn btn-secondary">Apply</button>
-                        </div>
-                        <button onclick="selectAllRows()" class="btn btn-secondary">Select All</button>
-                        <button onclick="loadStudentVisitors()" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
-                                <th>Name</th>
-                                <th>Roll No</th>
-                                <th>Level</th>
-                                <th>Course/Stream</th>
-                                <th>Year</th>
-                                <th>Purpose</th>
-                                <th>Entry Time</th>
-                                <th>Exit Time</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Duration</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTable">
-                            <tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i><div>Loading student data...</div></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination-container">
-                    <div class="pagination-controls">
-                        <button onclick="prevStudentPage()" class="btn btn-secondary" id="prevStudentBtn">Previous</button>
-                        <span class="page-info">Page <span id="studentCurrentPage">1</span> of <span id="studentTotalPages">1</span></span>
-                        <button onclick="nextStudentPage()" class="btn btn-secondary" id="nextStudentBtn">Next</button>
-                    </div>
-                </div>
-            </div>
+        <div id="pgNoteModal" class="pg-note-modal">
+            <i class="fas fa-graduation-cap"></i>
+            <strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).
         </div>
 
-        <!-- ==================== TEACHERS TAB ==================== -->
-        <div id="teachersTab" class="tab-content">
-            <!-- Teacher Stats Cards -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div>
-                    <div class="stat-value" id="teacherTotalVisits">0</div>
-                    <div class="stat-label">TOTAL TEACHER VISITS</div>
+        <form id="addVisitorForm">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-graduate"></i> Student Name
+                </label>
+                <input type="text" id="modalName" class="form-control" placeholder="Enter full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-id-card"></i> Roll Number
+                </label>
+                <input type="text" id="modalRollNo" class="form-control" placeholder="Enter roll number" required style="text-transform: uppercase;">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i> Education Level
+                </label>
+                <select id="modalLevel" class="form-control" required>
+                    <option value="">Select Level</option>
+                    <option value="JC">Junior College (JC)</option>
+                    <option value="UG">Undergraduate (UG)</option>
+                    <option value="PG">Postgraduate (PG)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-book-open"></i> Course / Stream
+                </label>
+                <select id="modalCourse" class="form-control" required>
+                    <option value="">Select Course / Stream</option>
+                </select>
+            </div>
+            
+            <!-- JC Specific Fields -->
+            <div id="jcFieldsModal" class="jc-fields-modal">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i> JC Year
+                    </label>
+                    <select id="modalJcYear" class="form-control">
+                        <option value="">Select JC Year</option>
+                        <option value="FYJC">First Year Junior College (FYJC)</option>
+                        <option value="SYJC">Second Year Junior College (SYJC)</option>
+                    </select>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                    <div class="stat-value" id="teacherActiveNow">0</div>
-                    <div class="stat-label">TEACHERS INSIDE</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div class="stat-value" id="teacherTodayVisits">0</div>
-                    <div class="stat-label">TODAY'S VISITS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-building"></i></div>
-                    <div class="stat-value" id="teacherUniqueCount">0</div>
-                    <div class="stat-label">UNIQUE TEACHERS</div>
-                </div>
-            </section>
-
-            <!-- Teacher Charts -->
-            <section class="charts-section">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-building"></i> Department Distribution</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="deptChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-line"></i> Daily Teacher Trend</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="teacherTrendChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-tasks"></i> Teacher Purpose Distribution</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="teacherPurposeChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Teacher Filters -->
-            <section class="filters-section">
-                <div class="filter-grid">
-                    <div>
-                        <label class="form-label">Status Filter</label>
-                        <select id="teacherStatusFilter" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="active">Active Only</option>
-                            <option value="exited">Exited Only</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="form-label">Department Filter</label>
-                        <select id="deptFilter" class="form-control">
-                            <option value="">All Departments</option>
-                            <option value="Arts">Arts</option>
-                            <option value="Science">Science</option>
-                            <option value="Commerce">Commerce</option>
-                            <option value="IT">IT</option>
-                            <option value="Management">Management</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="data-actions">
-                    <button onclick="loadTeacherAnalytics()" class="btn btn-primary">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                    <div class="export-buttons">
-                        <button onclick="exportData('csv', 'teachers')" class="btn btn-success">
-                            <i class="fas fa-file-csv"></i> Export CSV
-                        </button>
-                        <button onclick="exportData('excel', 'teachers')" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Export Excel
-                        </button>
-                    </div>
-                    <button onclick="openAddTeacherModal()" class="btn btn-warning">
-                        <i class="fas fa-user-plus"></i> Add Teacher
-                    </button>
-                </div>
-            </section>
-
-            <!-- Teacher Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2><i class="fas fa-table"></i> Teacher Visit Records</h2>
-                    <div class="table-actions">
-                        <div class="bulk-actions">
-                            <select id="teacherBulkAction" class="form-control bulk-select">
-                                <option value="">Bulk Actions</option>
-                                <option value="mark_exit">Mark as Exited</option>
-                            </select>
-                            <button onclick="applyTeacherBulkAction()" class="btn btn-secondary">Apply</button>
-                        </div>
-                        <button onclick="selectAllTeacherRows()" class="btn btn-secondary">Select All</button>
-                        <button onclick="loadTeacherVisits()" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="checkbox-cell"><input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()"></th>
-                                <th>Name</th>
-                                <th>Employee ID</th>
-                                <th>Department</th>
-                                <th>Purpose</th>
-                                <th>Entry Time</th>
-                                <th>Exit Time</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="teacherTable">
-                            <tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i><div>Loading teacher data...</div></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination-container">
-                    <div class="pagination-controls">
-                        <button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn">Previous</button>
-                        <span class="page-info">Page <span id="teacherCurrentPage">1</span> of <span id="teacherTotalPages">1</span></span>
-                        <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn">Next</button>
-                    </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-stream"></i> Stream
+                    </label>
+                    <select id="modalJcStream" class="form-control">
+                        <option value="">Select Stream</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Commerce">Commerce</option>
+                    </select>
                 </div>
             </div>
-        </div>
+            
+            <!-- UG/PG Year Field -->
+            <div class="form-group" id="modalYearGroup" style="display: none;">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Year
+                </label>
+                <select id="modalYear" class="form-control">
+                    <option value="">Select Year</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-bullseye"></i> Purpose of Visit
+                </label>
+                <select id="modalPurpose" class="form-control" required>
+                    <option value="">Purpose of Visit</option>
+                    <option>Reading</option>
+                    <option>Book Issue</option>
+                    <option>Book Return</option>
+                    <option>Project / Assignment</option>
+                    <option>Reference</option>
+                    <option>Newspaper</option>
+                    <option>Internet / Research</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <!-- Date and Time Fields -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-calendar"></i> Visit Date
+                </label>
+                <input type="date" id="modalVisitDate" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-clock"></i> Entry Time
+                </label>
+                <input type="time" id="modalEntryTime" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-door-open"></i> Exit Time (Optional)
+                </label>
+                <input type="time" id="modalExitTime" class="form-control">
+                <small style="color: #64748b; display: block; margin-top: 5px;">
+                    Leave empty if visitor is still inside
+                </small>
+            </div>
+
+            <div id="addVisitorMessage"></div>
+            
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 20px;">
+                <i class="fas fa-paper-plane"></i> Add Visitor
+            </button>
+        </form>
     </div>
+</div>
 
-    <!-- Add Student Modal -->
-    <div id="addStudentModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-plus"></i> Add Student Visitor</h3>
-                <button class="close-modal" onclick="closeAddStudentModal()">&times;</button>
-            </div>
-            <form id="addStudentForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Name *</label>
-                        <input type="text" id="studentName" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Roll Number *</label>
-                        <input type="text" id="studentRollNo" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Level *</label>
-                        <select id="studentLevel" class="form-control" required>
-                            <option value="">Select Level</option>
-                            <option value="JC">Junior College (JC)</option>
-                            <option value="UG">Undergraduate (UG)</option>
-                            <option value="PG">Postgraduate (PG)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Course / Stream *</label>
-                        <select id="studentCourse" class="form-control" required>
-                            <option value="">Select Course</option>
-                        </select>
-                    </div>
-                    <div id="studentJcFields" class="jc-fields">
-                        <div class="form-group">
-                            <label class="form-label">JC Year</label>
-                            <select id="studentJcYear" class="form-control">
-                                <option value="">Select Year</option>
-                                <option value="FYJC">FYJC</option>
-                                <option value="SYJC">SYJC</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Stream</label>
-                            <select id="studentJcStream" class="form-control">
-                                <option value="">Select Stream</option>
-                                <option value="Science">Science</option>
-                                <option value="Arts">Arts</option>
-                                <option value="Commerce">Commerce</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="studentYearGroup" class="form-group hidden">
-                        <label class="form-label">Year</label>
-                        <select id="studentYear" class="form-control">
-                            <option value="">Select Year</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose *</label>
-                        <select id="studentPurpose" class="form-control" required>
-                            <option value="Reading">Reading</option>
-                            <option value="Book Issue">Book Issue</option>
-                            <option value="Book Return">Book Return</option>
-                            <option value="Project/Assignment">Project/Assignment</option>
-                            <option value="Reference">Reference</option>
-                            <option value="Study">Study</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closeAddStudentModal()" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Student</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    // Add Visitor Modal Functions
+    const courses = {
+        UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
+        PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
+        JC: ["Science", "Arts", "Commerce"]
+    };
 
-    <!-- Add Teacher Modal -->
-    <div id="addTeacherModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-plus"></i> Add Teacher Visit</h3>
-                <button class="close-modal" onclick="closeAddTeacherModal()">&times;</button>
-            </div>
-            <form id="addTeacherForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Teacher Name *</label>
-                        <input type="text" id="teacherName" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Employee ID *</label>
-                        <input type="text" id="teacherEmpId" class="form-control" placeholder="e.g., TCH001" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Department</label>
-                        <select id="teacherDept" class="form-control">
-                            <option value="">Select Department</option>
-                            <option value="Arts">Arts</option>
-                            <option value="Science">Science</option>
-                            <option value="Commerce">Commerce</option>
-                            <option value="IT">IT</option>
-                            <option value="Management">Management</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose *</label>
-                        <select id="teacherPurpose" class="form-control" required>
-                            <option value="Meeting">Meeting</option>
-                            <option value="Library Visit">Library Visit</option>
-                            <option value="Research">Research</option>
-                            <option value="Student Guidance">Student Guidance</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Notes (Optional)</label>
-                        <textarea id="teacherNotes" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closeAddTeacherModal()" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Teacher</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    const years = {
+        UG: ["First Year", "Second Year", "Third Year"],
+        PG: ["First Year", "Second Year"]
+    };
 
-    <script>
-        // ==================== GLOBAL VARIABLES ====================
-        let studentVisitors = [];
-        let studentCurrentPage = 1;
-        let studentPageSize = 20;
-        let studentTotalRecords = 0;
+    function openAddVisitorModal() {
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('modalVisitDate').value = today;
         
-        let teacherVisits = [];
-        let teacherCurrentPage = 1;
-        let teacherPageSize = 20;
-        let teacherTotalRecords = 0;
+        // Set default entry time to current time
+        const now = new Date();
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
+                           now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('modalEntryTime').value = currentTime;
         
-        let currentDateRange = { start: null, end: null, type: 'today' };
+        document.getElementById('addVisitorModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddVisitorModal() {
+        document.getElementById('addVisitorModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+        document.getElementById('addVisitorForm').reset();
+        document.getElementById('jcFieldsModal').style.display = 'none';
+        document.getElementById('modalYearGroup').style.display = 'none';
+        document.getElementById('pgNoteModal').style.display = 'none';
+        document.getElementById('addVisitorMessage').style.display = 'none';
+    }
+
+    // Level change handler for modal
+    document.getElementById('modalLevel').addEventListener('change', function() {
+        const level = this.value;
+        const courseSelect = document.getElementById('modalCourse');
+        const yearSelect = document.getElementById('modalYear');
+        const jcFields = document.getElementById('jcFieldsModal');
+        const yearGroup = document.getElementById('modalYearGroup');
+        const pgNote = document.getElementById('pgNoteModal');
         
-        let studentCharts = {};
-        let teacherCharts = {};
+        // Reset fields
+        courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
+        yearSelect.innerHTML = '<option value="">Select Year</option>';
+        jcFields.style.display = 'none';
+        yearGroup.style.display = 'none';
+        pgNote.style.display = 'none';
 
-        const studentCourses = {
-            UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
-            PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
-            JC: ["Science", "Arts", "Commerce"]
-        };
+        if (!level) return;
 
-        const studentYears = {
-            UG: ["First Year", "Second Year", "Third Year"],
-            PG: ["First Year", "Second Year"]
-        };
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('startDate').value = today;
-            document.getElementById('endDate').value = today;
-            currentDateRange = { start: today, end: today, type: 'today' };
-            
-            checkLoginStatus();
-            initStudentCharts();
-            initTeacherCharts();
-            loadStudentAnalytics();
-            loadTeacherAnalytics();
-            
-            // Student level change handler
-            document.getElementById('studentLevel').addEventListener('change', function() {
-                const level = this.value;
-                const courseSelect = document.getElementById('studentCourse');
-                const jcFields = document.getElementById('studentJcFields');
-                const yearGroup = document.getElementById('studentYearGroup');
-                const yearSelect = document.getElementById('studentYear');
-                
-                courseSelect.innerHTML = '<option value="">Select Course</option>';
-                yearSelect.innerHTML = '<option value="">Select Year</option>';
-                jcFields.style.display = 'none';
-                yearGroup.classList.add('hidden');
-                
-                if (studentCourses[level]) {
-                    studentCourses[level].forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course;
-                        option.textContent = course;
-                        courseSelect.appendChild(option);
-                    });
-                }
-                
-                if (level === 'JC') {
-                    jcFields.style.display = 'block';
-                } else if (level === 'UG' || level === 'PG') {
-                    yearGroup.classList.remove('hidden');
-                    if (studentYears[level]) {
-                        studentYears[level].forEach(year => {
-                            const option = document.createElement('option');
-                            option.value = year;
-                            option.textContent = year;
-                            yearSelect.appendChild(option);
-                        });
-                    }
-                }
-            });
-            
-            // Chart type change listeners
-            document.getElementById('levelChartType').addEventListener('change', () => updateStudentChartType('level'));
-            document.getElementById('trendChartType').addEventListener('change', () => updateStudentChartType('trend'));
-        });
-
-        // ==================== AUTHENTICATION ====================
-        async function checkLoginStatus() {
-            try {
-                const res = await fetch('/admin/check_session');
-                const data = await res.json();
-                if (!data.logged_in) {
-                    window.location.href = '/admin/login';
-                } else {
-                    document.getElementById('adminUsername').textContent = data.username || 'Admin';
-                }
-            } catch (error) {
-                window.location.href = '/admin/login';
-            }
-        }
-
-        function logoutUser() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '/admin/logout';
-            }
-        }
-
-        // ==================== TAB SWITCHING ====================
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            if (tab === 'students') {
-                document.querySelector('.tab-btn:first-child').classList.add('active');
-                document.getElementById('studentsTab').classList.add('active');
-                loadStudentAnalytics();
-            } else {
-                document.querySelector('.tab-btn:last-child').classList.add('active');
-                document.getElementById('teachersTab').classList.add('active');
-                loadTeacherAnalytics();
-            }
-        }
-
-        // ==================== DATE RANGE ====================
-        function selectDateRange(type) {
-            const today = new Date();
-            let startDate, endDate;
-            
-            document.querySelectorAll('.quick-dates button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            switch(type) {
-                case 'today':
-                    startDate = endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    startDate = endDate = yesterday.toISOString().split('T')[0];
-                    break;
-                case 'week':
-                    const weekAgo = new Date(today);
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    startDate = weekAgo.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'month':
-                    const monthAgo = new Date(today);
-                    monthAgo.setDate(monthAgo.getDate() - 30);
-                    startDate = monthAgo.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-            }
-            
-            document.getElementById('startDate').value = startDate;
-            document.getElementById('endDate').value = endDate;
-            currentDateRange = { start: startDate, end: endDate, type };
-            loadStudentAnalytics();
-        }
-
-        function applyCustomDateRange() {
-            let startDate = document.getElementById('startDate').value;
-            let endDate = document.getElementById('endDate').value;
-            
-            if (!startDate) startDate = new Date().toISOString().split('T')[0];
-            if (!endDate) endDate = new Date().toISOString().split('T')[0];
-            
-            if (new Date(startDate) > new Date(endDate)) {
-                alert('Start date must be before end date');
-                return;
-            }
-            
-            document.querySelectorAll('.quick-dates button').forEach(btn => btn.classList.remove('active'));
-            currentDateRange = { start: startDate, end: endDate, type: 'custom' };
-            loadStudentAnalytics();
-        }
-
-        function resetFilters() {
-            document.getElementById('levelFilter').value = '';
-            document.getElementById('statusFilter').value = '';
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('startDate').value = today;
-            document.getElementById('endDate').value = today;
-            currentDateRange = { start: today, end: today, type: 'today' };
-            document.querySelectorAll('.quick-dates button').forEach((btn, i) => {
-                btn.classList.toggle('active', i === 0);
-            });
-            loadStudentAnalytics();
-        }
-
-        // ==================== STUDENT ANALYTICS ====================
-        async function loadStudentAnalytics() {
-            try {
-                let startDate = currentDateRange.start;
-                let endDate = currentDateRange.end;
-                
-                if (!startDate) startDate = new Date().toISOString().split('T')[0];
-                if (!endDate) endDate = new Date().toISOString().split('T')[0];
-                
-                const response = await fetch(`/admin/analytics/advanced?start_date=${startDate}&end_date=${endDate}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    console.error(data.error);
-                    return;
-                }
-                
-                // Update stats
-                document.getElementById('totalVisitors').textContent = data.stats?.total || 0;
-                document.getElementById('activeVisitors').textContent = data.stats?.active || 0;
-                document.getElementById('avgDuration').textContent = data.stats?.avgDuration || 0;
-                
-                if (data.levelData) {
-                    const jcIndex = data.levelData.labels.indexOf('JC');
-                    const ugIndex = data.levelData.labels.indexOf('UG');
-                    const pgIndex = data.levelData.labels.indexOf('PG');
-                    document.getElementById('jcCount').textContent = jcIndex !== -1 ? data.levelData.values[jcIndex] : 0;
-                    document.getElementById('ugCount').textContent = ugIndex !== -1 ? data.levelData.values[ugIndex] : 0;
-                    document.getElementById('pgCount').textContent = pgIndex !== -1 ? data.levelData.values[pgIndex] : 0;
-                }
-                
-                // Update charts
-                updateStudentCharts(data);
-                
-                // Update visitors table
-                studentVisitors = data.visitors || [];
-                studentTotalRecords = studentVisitors.length;
-                renderStudentTable();
-                
-            } catch (error) {
-                console.error('Error loading student analytics:', error);
-            }
-        }
-
-        async function loadStudentVisitors() {
-            await loadStudentAnalytics();
-        }
-
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentTable');
-            if (!tbody) return;
-            
-            const startIndex = (studentCurrentPage - 1) * studentPageSize;
-            const endIndex = Math.min(startIndex + studentPageSize, studentTotalRecords);
-            const pageVisitors = studentVisitors.slice(startIndex, endIndex);
-            
-            if (pageVisitors.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>';
-                return;
-            }
-            
-            let html = '';
-            for (const v of pageVisitors) {
-                let courseDisplay = v.course;
-                let yearDisplay = v.year || '-';
-                if (v.level === 'JC') {
-                    courseDisplay = v.jc_stream || 'Junior College';
-                    yearDisplay = v.jc_year || '-';
-                }
-                
-                let duration = '-';
-                if (v.entry_time && v.exit_time) {
-                    const dateStr = v.visit_date;
-                    const entryTime = new Date(`${dateStr}T${v.entry_time}`);
-                    let exitTime = new Date(`${dateStr}T${v.exit_time}`);
-                    if (exitTime <= entryTime) {
-                        exitTime = new Date(exitTime.getTime() + 86400000);
-                    }
-                    const diffMinutes = Math.round((exitTime - entryTime) / 60000);
-                    duration = diffMinutes + ' min';
-                }
-                
-                html += `
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox" class="row-checkbox" value="${v.id}"></td>
-                        <td><strong>${escapeHtml(v.name)}</strong></td>
-                        <td>${escapeHtml(v.roll_no)}</td>
-                        <td>${v.level}</td>
-                        <td>${escapeHtml(courseDisplay)}</td>
-                        <td>${escapeHtml(yearDisplay)}</td>
-                        <td>${escapeHtml(v.purpose)}</td>
-                        <td>${v.entry_time || '-'}</td>
-                        <td>${v.exit_time || '-'}</td>
-                        <td>${v.visit_date}</td>
-                        <td><span class="status-badge ${v.exit_time ? 'exited' : 'active'}"><i class="fas ${v.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i> ${v.exit_time ? 'Exited' : 'Active'}</span></td>
-                        <td>${duration}</td>
-                        <td>${!v.exit_time ? `<button class="btn-exit" onclick="markStudentExit(${v.id})"><i class="fas fa-sign-out-alt"></i> Exit</button>` : ''}</td>
-                    </tr>
-                `;
-            }
-            tbody.innerHTML = html;
-            updateStudentPagination();
-        }
-
-        function updateStudentPagination() {
-            const totalPages = Math.ceil(studentTotalRecords / studentPageSize) || 1;
-            document.getElementById('studentCurrentPage').textContent = studentCurrentPage;
-            document.getElementById('studentTotalPages').textContent = totalPages;
-            document.getElementById('prevStudentBtn').disabled = studentCurrentPage === 1;
-            document.getElementById('nextStudentBtn').disabled = studentCurrentPage >= totalPages;
-        }
-
-        function prevStudentPage() {
-            if (studentCurrentPage > 1) {
-                studentCurrentPage--;
-                renderStudentTable();
-            }
-        }
-
-        function nextStudentPage() {
-            const totalPages = Math.ceil(studentTotalRecords / studentPageSize);
-            if (studentCurrentPage < totalPages) {
-                studentCurrentPage++;
-                renderStudentTable();
-            }
-        }
-
-        function selectAllRows() {
-            const selectAll = document.getElementById('selectAll');
-            const isChecked = selectAll.checked;
-            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
-        }
-
-        function toggleSelectAll() {
-            selectAllRows();
-        }
-
-        function getSelectedVisitorIds() {
-            const ids = [];
-            document.querySelectorAll('.row-checkbox:checked').forEach(cb => ids.push(parseInt(cb.value)));
-            return ids;
-        }
-
-        async function applyBulkAction() {
-            const action = document.getElementById('bulkAction').value;
-            const ids = getSelectedVisitorIds();
-            
-            if (ids.length === 0) {
-                alert('Please select at least one visitor');
-                return;
-            }
-            if (!action) {
-                alert('Please select an action');
-                return;
-            }
-            if (action === 'delete' && !confirm(`Delete ${ids.length} visitors? This cannot be undone.`)) return;
-            if (action === 'mark_exit' && !confirm(`Mark ${ids.length} visitors as exited?`)) return;
-            
-            try {
-                const response = await fetch('/admin/bulk_actions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, visitor_ids: ids })
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    loadStudentAnalytics();
-                } else {
-                    alert(result.error);
-                }
-            } catch (error) {
-                alert('Error performing bulk action');
-            }
-        }
-
-        async function markStudentExit(visitorId) {
-            if (!confirm('Mark this student as exited?')) return;
-            try {
-                const response = await fetch(`/student/exit/${visitorId}`, { method: 'PUT' });
-                if (response.ok) {
-                    alert('Exit marked successfully');
-                    loadStudentAnalytics();
-                } else {
-                    alert('Failed to mark exit');
-                }
-            } catch (error) {
-                alert('Error marking exit');
-            }
-        }
-
-        // ==================== STUDENT CHARTS ====================
-        function initStudentCharts() {
-            const levelCtx = document.getElementById('levelChart')?.getContext('2d');
-            const trendCtx = document.getElementById('trendChart')?.getContext('2d');
-            const courseCtx = document.getElementById('courseChart')?.getContext('2d');
-            const purposeCtx = document.getElementById('purposeChart')?.getContext('2d');
-            const hoursCtx = document.getElementById('peakHoursChart')?.getContext('2d');
-            
-            if (levelCtx) {
-                studentCharts.level = new Chart(levelCtx, {
-                    type: 'pie',
-                    data: { labels: [], datasets: [{ data: [], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'] }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-            if (trendCtx) {
-                studentCharts.trend = new Chart(trendCtx, {
-                    type: 'line',
-                    data: { labels: [], datasets: [{ label: 'Daily Visitors', data: [], borderColor: '#6366f1', tension: 0.4, fill: true }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-            if (courseCtx) {
-                studentCharts.course = new Chart(courseCtx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Visitors by Course', data: [], backgroundColor: '#6366f1' }] },
-                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
-                });
-            }
-            if (purposeCtx) {
-                studentCharts.purpose = new Chart(purposeCtx, {
-                    type: 'doughnut',
-                    data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'] }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-            if (hoursCtx) {
-                studentCharts.hours = new Chart(hoursCtx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Visitors per Hour', data: [], backgroundColor: '#10b981' }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-        }
-
-        function updateStudentCharts(data) {
-            if (studentCharts.level && data.levelData) {
-                studentCharts.level.data.labels = data.levelData.labels || [];
-                studentCharts.level.data.datasets[0].data = data.levelData.values || [];
-                studentCharts.level.update();
-            }
-            if (studentCharts.trend && data.dailyTrend) {
-                studentCharts.trend.data.labels = data.dailyTrend.labels || [];
-                studentCharts.trend.data.datasets[0].data = data.dailyTrend.values || [];
-                studentCharts.trend.update();
-            }
-            if (studentCharts.course && data.courseData) {
-                studentCharts.course.data.labels = data.courseData.labels || [];
-                studentCharts.course.data.datasets[0].data = data.courseData.values || [];
-                studentCharts.course.update();
-            }
-            if (studentCharts.purpose && data.purposeData) {
-                studentCharts.purpose.data.labels = data.purposeData.labels || [];
-                studentCharts.purpose.data.datasets[0].data = data.purposeData.values || [];
-                studentCharts.purpose.update();
-            }
-            if (studentCharts.hours && data.peakHours) {
-                studentCharts.hours.data.labels = data.peakHours.labels || [];
-                studentCharts.hours.data.datasets[0].data = data.peakHours.values || [];
-                studentCharts.hours.update();
-            }
-        }
-
-        function updateStudentChartType(chartName) {
-            if (chartName === 'level') {
-                const type = document.getElementById('levelChartType').value;
-                if (studentCharts.level) studentCharts.level.config.type = type;
-            } else if (chartName === 'trend') {
-                const type = document.getElementById('trendChartType').value;
-                if (studentCharts.trend) studentCharts.trend.config.type = type;
-            }
-            if (studentCharts[chartName]) studentCharts[chartName].update();
-        }
-
-        // ==================== TEACHER FUNCTIONS ====================
-        async function loadTeacherAnalytics() {
-            try {
-                let startDate = currentDateRange.start;
-                let endDate = currentDateRange.end;
-                if (!startDate) startDate = new Date().toISOString().split('T')[0];
-                if (!endDate) endDate = new Date().toISOString().split('T')[0];
-                
-                const response = await fetch(`/admin/analytics/teachers?start_date=${startDate}&end_date=${endDate}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    console.error(data.error);
-                    return;
-                }
-                
-                document.getElementById('teacherTotalVisits').textContent = data.stats?.total || 0;
-                document.getElementById('teacherActiveNow').textContent = data.stats?.active || 0;
-                document.getElementById('teacherTodayVisits').textContent = data.stats?.todayVisits || 0;
-                document.getElementById('teacherUniqueCount').textContent = new Set(data.teachers?.map(t => t.name)).size || 0;
-                
-                updateTeacherCharts(data);
-                
-                teacherVisits = data.teachers || [];
-                teacherTotalRecords = teacherVisits.length;
-                renderTeacherTable();
-                
-            } catch (error) {
-                console.error('Error loading teacher analytics:', error);
-            }
-        }
-
-        async function loadTeacherVisits() {
-            await loadTeacherAnalytics();
-        }
-
-        function renderTeacherTable() {
-            const tbody = document.getElementById('teacherTable');
-            if (!tbody) return;
-            
-            const statusFilter = document.getElementById('teacherStatusFilter')?.value;
-            const deptFilter = document.getElementById('deptFilter')?.value;
-            
-            let filtered = [...teacherVisits];
-            if (statusFilter === 'active') filtered = filtered.filter(t => !t.exit_time);
-            if (statusFilter === 'exited') filtered = filtered.filter(t => t.exit_time);
-            if (deptFilter) filtered = filtered.filter(t => t.department === deptFilter);
-            
-            teacherTotalRecords = filtered.length;
-            const startIndex = (teacherCurrentPage - 1) * teacherPageSize;
-            const endIndex = Math.min(startIndex + teacherPageSize, teacherTotalRecords);
-            const pageTeachers = filtered.slice(startIndex, endIndex);
-            
-            if (pageTeachers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="loading-row"><i class="fas fa-inbox"></i><div>No teacher records found</div></td></tr>';
-                return;
-            }
-            
-            let html = '';
-            for (const t of pageTeachers) {
-                html += `
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox" class="teacher-checkbox" value="${t.id}"></td>
-                        <td><strong>${escapeHtml(t.name)}</strong></td>
-                        <td>${escapeHtml(t.employee_id || '-')}</td>
-                        <td>${escapeHtml(t.department || '-')}</td>
-                        <td>${escapeHtml(t.purpose)}</td>
-                        <td>${t.entry_time || '-'}</td>
-                        <td>${t.exit_time || '-'}</td>
-                        <td>${t.visit_date}</td>
-                        <td><span class="status-badge ${t.exit_time ? 'exited' : 'active'}"><i class="fas ${t.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i> ${t.exit_time ? 'Exited' : 'Active'}</span></td>
-                        <td>${!t.exit_time ? `<button class="btn-exit" onclick="markTeacherExit(${t.id})"><i class="fas fa-sign-out-alt"></i> Exit</button>` : ''}</td>
-                    </tr>
-                `;
-            }
-            tbody.innerHTML = html;
-            updateTeacherPagination();
-        }
-
-        function updateTeacherPagination() {
-            const totalPages = Math.ceil(teacherTotalRecords / teacherPageSize) || 1;
-            document.getElementById('teacherCurrentPage').textContent = teacherCurrentPage;
-            document.getElementById('teacherTotalPages').textContent = totalPages;
-            document.getElementById('prevTeacherBtn').disabled = teacherCurrentPage === 1;
-            document.getElementById('nextTeacherBtn').disabled = teacherCurrentPage >= totalPages;
-        }
-
-        function prevTeacherPage() {
-            if (teacherCurrentPage > 1)
-                         teacherCurrentPage--;
-            renderTeacherTable();
-        }
-    }
-
-    function nextTeacherPage() {
-        const totalPages = Math.ceil(teacherTotalRecords / teacherPageSize);
-        if (teacherCurrentPage < totalPages) {
-            teacherCurrentPage++;
-            renderTeacherTable();
-        }
-    }
-
-    function selectAllTeacherRows() {
-        const selectAll = document.getElementById('selectAllTeachers');
-        const isChecked = selectAll.checked;
-        document.querySelectorAll('.teacher-checkbox').forEach(cb => cb.checked = isChecked);
-    }
-
-    function toggleSelectAllTeachers() {
-        selectAllTeacherRows();
-    }
-
-    function getSelectedTeacherIds() {
-        const ids = [];
-        document.querySelectorAll('.teacher-checkbox:checked').forEach(cb => ids.push(parseInt(cb.value)));
-        return ids;
-    }
-
-    async function applyTeacherBulkAction() {
-        const action = document.getElementById('teacherBulkAction').value;
-        const ids = getSelectedTeacherIds();
-        
-        if (ids.length === 0) {
-            alert('Please select at least one teacher');
-            return;
-        }
-        if (!action) {
-            alert('Please select an action');
-            return;
-        }
-        if (action === 'mark_exit' && !confirm(`Mark ${ids.length} teacher(s) as exited?`)) return;
-        
-        try {
-            let successCount = 0;
-            for (const id of ids) {
-                const response = await fetch(`/admin/teachers/mark_exit/${id}`, { method: 'PUT' });
-                if (response.ok) successCount++;
-            }
-            alert(`Marked ${successCount} teacher(s) as exited`);
-            loadTeacherAnalytics();
-        } catch (error) {
-            alert('Error performing bulk action');
-        }
-    }
-
-    async function markTeacherExit(teacherId) {
-        if (!confirm('Mark this teacher as exited?')) return;
-        try {
-            const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, { method: 'PUT' });
-            if (response.ok) {
-                alert('Teacher exit marked successfully');
-                loadTeacherAnalytics();
-            } else {
-                alert('Failed to mark exit');
-            }
-        } catch (error) {
-            alert('Error marking exit');
-        }
-    }
-
-    // ==================== TEACHER CHARTS ====================
-    function initTeacherCharts() {
-        const deptCtx = document.getElementById('deptChart')?.getContext('2d');
-        const trendCtx = document.getElementById('teacherTrendChart')?.getContext('2d');
-        const purposeCtx = document.getElementById('teacherPurposeChart')?.getContext('2d');
-        
-        if (deptCtx) {
-            teacherCharts.dept = new Chart(deptCtx, {
-                type: 'pie',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
+        // Populate courses
+        if (courses[level]) {
+            courses[level].forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                courseSelect.appendChild(option);
             });
         }
-        if (trendCtx) {
-            teacherCharts.trend = new Chart(trendCtx, {
-                type: 'line',
-                data: { labels: [], datasets: [{ label: 'Daily Teacher Visits', data: [], borderColor: '#8b5cf6', tension: 0.4, fill: true }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+
+        // Show relevant fields
+        if (level === 'JC') {
+            jcFields.style.display = 'block';
+        } else if (level === 'UG' || level === 'PG') {
+            yearGroup.style.display = 'block';
+            
+            if (years[level]) {
+                years[level].forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+            
+            if (level === 'PG') {
+                pgNote.style.display = 'block';
+            }
         }
-        if (purposeCtx) {
-            teacherCharts.purpose = new Chart(purposeCtx, {
-                type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-    }
+    });
 
-    function updateTeacherCharts(data) {
-        if (teacherCharts.dept && data.deptData) {
-            teacherCharts.dept.data.labels = data.deptData.labels || [];
-            teacherCharts.dept.data.datasets[0].data = data.deptData.values || [];
-            teacherCharts.dept.update();
-        }
-        if (teacherCharts.trend && data.dailyTrend) {
-            teacherCharts.trend.data.labels = data.dailyTrend.labels || [];
-            teacherCharts.trend.data.datasets[0].data = data.dailyTrend.values || [];
-            teacherCharts.trend.update();
-        }
-        if (teacherCharts.purpose && data.purposeData) {
-            teacherCharts.purpose.data.labels = data.purposeData.labels || [];
-            teacherCharts.purpose.data.datasets[0].data = data.purposeData.values || [];
-            teacherCharts.purpose.update();
-        }
-    }
-
-    // ==================== MODAL FUNCTIONS ====================
-    function openAddStudentModal() {
-        document.getElementById('addStudentModal').classList.add('active');
-        document.getElementById('studentName').focus();
-    }
-
-    function closeAddStudentModal() {
-        document.getElementById('addStudentModal').classList.remove('active');
-        document.getElementById('addStudentForm').reset();
-        document.getElementById('studentJcFields').style.display = 'none';
-        document.getElementById('studentYearGroup').classList.add('hidden');
-    }
-
-    function openAddTeacherModal() {
-        document.getElementById('addTeacherModal').classList.add('active');
-        document.getElementById('teacherName').focus();
-    }
-
-    function closeAddTeacherModal() {
-        document.getElementById('addTeacherModal').classList.remove('active');
-        document.getElementById('addTeacherForm').reset();
-    }
-
-    // ==================== FORM SUBMISSIONS ====================
-    document.getElementById('addStudentForm')?.addEventListener('submit', async (e) => {
+    // Form submission for modal
+    document.getElementById('addVisitorForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const level = document.getElementById('studentLevel').value;
+        const messageDiv = document.getElementById('addVisitorMessage');
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        
+        const visitDate = document.getElementById('modalVisitDate').value;
+        const entryTime = document.getElementById('modalEntryTime').value;
+        const exitTime = document.getElementById('modalExitTime').value;
+        
         const formData = {
-            name: document.getElementById('studentName').value.trim(),
-            roll_no: document.getElementById('studentRollNo').value.trim().toUpperCase(),
-            level: level,
-            purpose: document.getElementById('studentPurpose').value,
-            course: document.getElementById('studentCourse').value
+            name: document.getElementById('modalName').value.trim(),
+            roll_no: document.getElementById('modalRollNo').value.trim().toUpperCase(),
+            level: document.getElementById('modalLevel').value,
+            purpose: document.getElementById('modalPurpose').value,
+            visit_date: visitDate,
+            entry_time: entryTime,
+            exit_time: exitTime || null
         };
         
-        if (level === 'JC') {
-            formData.jc_year = document.getElementById('studentJcYear').value;
-            formData.jc_stream = document.getElementById('studentJcStream').value;
-            if (!formData.jc_year || !formData.jc_stream) {
-                alert('Please select JC Year and Stream');
-                return;
-            }
+        if (formData.level === 'JC') {
+            formData.course = 'Junior College';
+            formData.jc_year = document.getElementById('modalJcYear').value;
+            formData.jc_stream = document.getElementById('modalJcStream').value;
+            formData.year = null;
         } else {
-            formData.year = document.getElementById('studentYear').value;
-            if (!formData.year) {
-                alert('Please select Year');
-                return;
-            }
+            formData.course = document.getElementById('modalCourse').value;
+            formData.year = document.getElementById('modalYear').value || null;
+            formData.jc_year = null;
+            formData.jc_stream = null;
         }
         
         try {
@@ -1887,106 +723,51 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
-            const result = await response.json();
-            if (response.ok) {
-                alert('Student added successfully');
-                closeAddStudentModal();
-                loadStudentAnalytics();
-            } else {
-                alert(result.error || 'Failed to add student');
-            }
-        } catch (error) {
-            alert('Error adding student');
-        }
-    });
-
-    document.getElementById('addTeacherForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            name: document.getElementById('teacherName').value.trim(),
-            employee_id: document.getElementById('teacherEmpId').value.trim().toUpperCase(),
-            department: document.getElementById('teacherDept').value,
-            purpose: document.getElementById('teacherPurpose').value,
-            notes: document.getElementById('teacherNotes').value
-        };
-        
-        if (!formData.name || !formData.employee_id) {
-            alert('Name and Employee ID are required');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/admin/teachers/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert('Teacher added successfully');
-                closeAddTeacherModal();
-                loadTeacherAnalytics();
-            } else {
-                alert(result.error || 'Failed to add teacher');
-            }
-        } catch (error) {
-            alert('Error adding teacher');
-        }
-    });
-
-    // ==================== EXPORT FUNCTIONS ====================
-    async function exportData(format, type) {
-        try {
-            let startDate = currentDateRange.start;
-            let endDate = currentDateRange.end;
-            if (!startDate) startDate = new Date().toISOString().split('T')[0];
-            if (!endDate) endDate = new Date().toISOString().split('T')[0];
             
-            window.location.href = `/admin/export_data?format=${format}&type=${type}&start_date=${startDate}&end_date=${endDate}`;
+            const result = await response.json();
+            
+            if (response.ok) {
+                messageDiv.textContent = 'Visitor added successfully!';
+                messageDiv.className = 'success';
+                messageDiv.style.display = 'block';
+                
+                // Refresh the visitor table
+                loadVisitors();
+                loadAnalytics();
+                
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    closeAddVisitorModal();
+                }, 2000);
+            } else {
+                messageDiv.textContent = result.error || 'Failed to add visitor';
+                messageDiv.className = 'error';
+                messageDiv.style.display = 'block';
+            }
         } catch (error) {
-            alert('Error exporting data');
+            messageDiv.textContent = 'Connection error. Please try again.';
+            messageDiv.className = 'error';
+            messageDiv.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         }
-    }
+    });
 
-    // ==================== UTILITY FUNCTIONS ====================
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // Close modals on escape key
-    document.addEventListener('keydown', (e) => {
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            closeAddStudentModal();
-            closeAddTeacherModal();
+            closeAddVisitorModal();
         }
     });
 
-    // Close modals on outside click
-    document.getElementById('addStudentModal')?.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('addStudentModal')) closeAddStudentModal();
+    // Close modal when clicking outside
+    document.getElementById('addVisitorModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddVisitorModal();
+        }
     });
-    document.getElementById('addTeacherModal')?.addEventListener('click', (e) => {
-        if (e.target === document.getElementById('addTeacherModal')) closeAddTeacherModal();
-    });
-
-    // Filter listeners for teacher table
-    document.getElementById('teacherStatusFilter')?.addEventListener('change', () => {
-        teacherCurrentPage = 1;
-        renderTeacherTable();
-    });
-    document.getElementById('deptFilter')?.addEventListener('change', () => {
-        teacherCurrentPage = 1;
-        renderTeacherTable();
-    });
-
-    console.log('✅ Dashboard initialized');
 </script>
 </body>
+
 </html>
