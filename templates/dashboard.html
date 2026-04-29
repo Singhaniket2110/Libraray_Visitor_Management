@@ -198,7 +198,7 @@
             text-transform: uppercase;
         }
 
-        /* Header Sticky - SIRF YE CHANGE HAI */
+        /* CHANGE 1: HEADER STICKY */
         .dashboard-header {
             position: sticky !important;
             top: 0 !important;
@@ -322,58 +322,7 @@
         </div>
     </section>
 
-    <!-- Statistics Cards -->
-    <section class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-value" id="totalVisitors">0</div>
-            <div class="stat-label">TOTAL VISITORS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-door-open"></i>
-            </div>
-            <div class="stat-value" id="currentVisitors">0</div>
-            <div class="stat-label">CURRENTLY INSIDE</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <div class="stat-value" id="jcCount">0</div>
-            <div class="stat-label">JC STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="stat-value" id="ugCount">0</div>
-            <div class="stat-label">UG STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-user-tie"></i>
-            </div>
-            <div class="stat-value" id="pgCount">0</div>
-            <div class="stat-label">PG STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-value" id="avgDuration">0</div>
-            <div class="stat-label">AVG DURATION (MIN)</div>
-        </div>
-    </section>
-
-    <!-- Statistics Tabs - SIRF 2 TAB (Student aur Teacher) -->
+    <!-- CHANGE 2 & 3: Statistics Tabs - Sirf 2 tabs (Student aur Teacher) -->
     <div class="stats-tabs-container">
         <button class="stats-tab active" onclick="showStatsTab('student')" title="View student statistics">
             <i class="fas fa-user-graduate"></i> Student Stats
@@ -383,65 +332,201 @@
         </button>
     </div>
 
-    <!-- Student Stats Section (pehle dailyStats tha, ab studentStats) -->
+    <!-- Student Stats Section - Yahan upar wale 6 cards shift kiye hain -->
     <div id="studentStats" class="stats-section active">
+        <!-- CHANGE 4: Upar wale 6 cards ab yahan hain -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="dailyTotalVisitors">0</div>
-                <div class="stat-label">Today's Visitors</div>
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="totalVisitors">0</div>
+                <div class="stat-label">TOTAL VISITORS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyCurrentVisitors">0</div>
-                <div class="stat-label">Currently Inside</div>
+                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+                <div class="stat-value" id="currentVisitors">0</div>
+                <div class="stat-label">CURRENTLY INSIDE</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyAvgDuration">0</div>
-                <div class="stat-label">Avg Duration (min)</div>
+                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                <div class="stat-value" id="jcCount">0</div>
+                <div class="stat-label">JC STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyJcCount">0</div>
-                <div class="stat-label">JC Today</div>
+                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="stat-value" id="ugCount">0</div>
+                <div class="stat-label">UG STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyUgCount">0</div>
-                <div class="stat-label">UG Today</div>
+                <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-value" id="pgCount">0</div>
+                <div class="stat-label">PG STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyPgCount">0</div>
-                <div class="stat-label">PG Today</div>
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-value" id="avgDuration">0</div>
+                <div class="stat-label">AVG DURATION (MIN)</div>
             </div>
         </div>
 
-        <!-- Lifetime Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeTotalVisitors">0</div>
-                <div class="stat-label">All Time Visitors</div>
+        <!-- Charts Section - Bilkul waise hi jaise pehle the -->
+        <section class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
+                    <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for level distribution">
+                        <option value="pie">Pie Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="levelChart" aria-label="Level Distribution Chart" role="img"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeJcCount">0</div>
-                <div class="stat-label">Total JC</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
+                    <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for daily trend">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart" aria-label="Daily Trend Chart" role="img"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeUgCount">0</div>
-                <div class="stat-label">Total UG</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
+                    <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for course distribution">
+                        <option value="bar">Vertical Bar Chart</option>
+                        <option value="horizontalBar">Horizontal Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="courseChart" aria-label="Course Distribution Chart" role="img"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimePgCount">0</div>
-                <div class="stat-label">Total PG</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
+                    <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for purpose distribution">
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="pie">Pie Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="purposeChart" aria-label="Purpose Distribution Chart" role="img"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalDays">0</div>
-                <div class="stat-label">Days of Operation</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-clock"></i> Peak Hours</h3>
+                    <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for peak hours">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="peakHoursChart" aria-label="Peak Hours Chart" role="img"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgDaily">0</div>
-                <div class="stat-label">Avg Daily Visitors</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="durationChart" aria-label="Duration Analysis Chart" role="img"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Student Visitor Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>
+                    <i class="fas fa-table"></i> Visitor Records
+                    <span class="record-count">
+                        Showing <span id="recordCount">0</span> records
+                    </span>
+                </h2>
+                
+                <div class="table-actions">
+                    <div class="bulk-actions">
+                        <select id="bulkAction" class="form-control bulk-select" title="Select bulk action for visitors">
+                            <option value="">Bulk Actions</option>
+                            <option value="mark_exit">Mark as Exited</option>
+                            <option value="delete">Delete Selected</option>
+                        </select>
+                        <button onclick="applyBulkAction()" class="btn btn-secondary" title="Apply bulk action">
+                            <i class="fas fa-play"></i> Apply
+                        </button>
+                    </div>
+                    
+                    <button onclick="selectAllRows()" class="btn btn-secondary" title="Select all visitor records">
+                        <i class="fas fa-check-square"></i> Select All
+                    </button>
+                    
+                    <button onclick="loadVisitors()" class="btn btn-primary refresh-btn" title="Refresh visitor data">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="Select all visitors">
+                            </th>
+                            <th>Name</th>
+                            <th>Roll No</th>
+                            <th>Level</th>
+                            <th>Course/Stream</th>
+                            <th>Year</th>
+                            <th>Purpose</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitorTable">
+                        <tr>
+                            <td colspan="13" class="loading-row">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <div>Loading visitor data...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination-container">
+                <div class="pagination-controls">
+                    <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled title="Previous page">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="page-info">
+                        Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                    </span>
+                    <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled title="Next page">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Teacher Stats Section -->
+    <!-- Teacher Stats Section - Sirf teacher ka data dikhega -->
     <div id="teachersStats" class="stats-section" style="display: none;">
         <div class="stats-grid">
             <div class="stat-card">
@@ -522,163 +607,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Charts Section -->
-    <section class="charts-section">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
-                <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for level distribution">
-                    <option value="pie">Pie Chart</option>
-                    <option value="doughnut">Doughnut Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="levelChart" aria-label="Level Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
-                <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for daily trend">
-                    <option value="line">Line Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="trendChart" aria-label="Daily Trend Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
-                <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for course distribution">
-                    <option value="bar">Vertical Bar Chart</option>
-                    <option value="horizontalBar">Horizontal Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="courseChart" aria-label="Course Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
-                <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for purpose distribution">
-                    <option value="doughnut">Doughnut Chart</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="purposeChart" aria-label="Purpose Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-clock"></i> Peak Hours</h3>
-                <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for peak hours">
-                    <option value="line">Line Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="peakHoursChart" aria-label="Peak Hours Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
-            </div>
-            <div class="chart-container">
-                <canvas id="durationChart" aria-label="Duration Analysis Chart" role="img"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <!-- Visitor Table -->
-    <section class="table-container">
-        <div class="table-header">
-            <h2>
-                <i class="fas fa-table"></i> Visitor Records
-                <span class="record-count">
-                    Showing <span id="recordCount">0</span> records
-                </span>
-            </h2>
-            
-            <div class="table-actions">
-                <div class="bulk-actions">
-                    <select id="bulkAction" class="form-control bulk-select" title="Select bulk action for visitors">
-                        <option value="">Bulk Actions</option>
-                        <option value="mark_exit">Mark as Exited</option>
-                        <option value="delete">Delete Selected</option>
-                    </select>
-                    <button onclick="applyBulkAction()" class="btn btn-secondary" title="Apply bulk action">
-                        <i class="fas fa-play"></i> Apply
-                    </button>
-                </div>
-                
-                <button onclick="selectAllRows()" class="btn btn-secondary" title="Select all visitor records">
-                    <i class="fas fa-check-square"></i> Select All
-                </button>
-                
-                <button onclick="loadVisitors()" class="btn btn-primary refresh-btn" title="Refresh visitor data">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="checkbox-cell">
-                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="Select all visitors">
-                        </th>
-                        <th>Name</th>
-                        <th>Roll No</th>
-                        <th>Level</th>
-                        <th>Course/Stream</th>
-                        <th>Year</th>
-                        <th>Purpose</th>
-                        <th>Entry Time</th>
-                        <th>Exit Time</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Duration</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="visitorTable">
-                    <tr>
-                        <td colspan="13" class="loading-row">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <div>Loading visitor data...</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container">
-            <div class="pagination-controls">
-                <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled title="Previous page">
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="page-info">
-                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-                </span>
-                <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled title="Next page">
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </section>
 </div>
 
 <!-- Add Visitor Modal -->
