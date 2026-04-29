@@ -4,210 +4,341 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Exit | Library Management</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body class="teacher-page">
+
     <div class="teacher-exit-container">
+
         <div class="exit-card">
+
+            <!-- Header -->
             <div class="exit-header">
+
                 <div class="exit-icon">
                     <i class="fas fa-door-open"></i>
                 </div>
+
                 <h1>Teacher Exit Portal</h1>
                 <p>Enter your Employee ID to mark exit</p>
+
             </div>
-            
+
+            <!-- Exit Form -->
             <div class="exit-form">
+
                 <form id="teacherExitForm">
+
+                    <!-- Employee ID -->
                     <div class="form-group">
+
                         <label class="form-label">
                             <i class="fas fa-id-badge"></i>
                             Employee ID
                         </label>
-                        <input type="text" id="employee_id" class="form-control input-uppercase" 
-                               placeholder="Enter your Employee ID" required>
+
+                        <input 
+                            type="text"
+                            id="employee_id"
+                            class="form-control input-uppercase"
+                            placeholder="Enter your Employee ID"
+                            required
+                        >
+
                     </div>
-                    
+
+                    <!-- Teacher Details -->
                     <div id="teacherDetails" class="teacher-details">
-                        <!-- Teacher details will appear here -->
+                        <!-- Details appear here -->
                     </div>
-                    
+
+                    <!-- Exit Button -->
                     <button type="submit" class="exit-btn" id="exitBtn" disabled>
                         <i class="fas fa-sign-out-alt"></i>
                         Mark Exit
                     </button>
+
                 </form>
-                
+
+                <!-- Message -->
                 <div id="message" class="message"></div>
-                
-                <div class="back-link">
-                    <a href="/teacher/entry">
-                        <i class="fas fa-arrow-left"></i> Back to Entry
+
+                <!-- Back Home -->
+                <div class="back-home">
+                    <a href="/">
+                        <i class="fas fa-home"></i>
+                        Back to Home
                     </a>
                 </div>
+
+                <!-- Back Entry -->
+                <div class="back-link">
+                    <a href="/teacher/entry">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Entry
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
-    
+
     <script>
+
         const employeeIdInput = document.getElementById('employee_id');
         const teacherDetailsDiv = document.getElementById('teacherDetails');
         const exitBtn = document.getElementById('exitBtn');
         const messageDiv = document.getElementById('message');
-        
+
         let currentTeacher = null;
-        
-        // Auto-check teacher on input
-        employeeIdInput.addEventListener('input', async function() {
+
+        // Auto check teacher
+        employeeIdInput.addEventListener('input', async function () {
+
             const employee_id = this.value.trim().toUpperCase();
-            
+
             if (employee_id.length < 3) {
                 teacherDetailsDiv.style.display = 'none';
                 exitBtn.disabled = true;
                 return;
             }
-            
+
             try {
+
                 const response = await fetch(`/teacher/check/${employee_id}`);
                 const data = await response.json();
-                
+
+                // Active Teacher Found
                 if (data.teacher && !data.teacher.exit_time) {
+
                     currentTeacher = data.teacher;
-                    
+
                     let workDisplay = data.teacher.nature_of_work || '-';
-                    
+
                     teacherDetailsDiv.innerHTML = `
-                        <h4><i class="fas fa-user-check"></i> Teacher Found</h4>
+                        <h4>
+                            <i class="fas fa-user-check"></i>
+                            Teacher Found
+                        </h4>
+
                         <div class="detail-row">
                             <span class="detail-label">Name:</span>
                             <span class="detail-value">${data.teacher.name}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Employee ID:</span>
                             <span class="detail-value">${data.teacher.employee_id}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Designation:</span>
                             <span class="detail-value">${data.teacher.designation}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Nature of Work:</span>
                             <span class="detail-value">${workDisplay}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Entry Time:</span>
                             <span class="detail-value">${data.teacher.entry_time || 'Just now'}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Status:</span>
+
                             <span class="detail-value text-success">
-                                <i class="fas fa-door-open"></i> Currently Inside
+                                <i class="fas fa-door-open"></i>
+                                Currently Inside
                             </span>
                         </div>
                     `;
+
                     teacherDetailsDiv.style.display = 'block';
                     exitBtn.disabled = false;
                     messageDiv.style.display = 'none';
-                    
-                } else if (data.teacher && data.teacher.exit_time) {
+
+                }
+
+                // Already Exited
+                else if (data.teacher && data.teacher.exit_time) {
+
                     teacherDetailsDiv.innerHTML = `
-                        <h4><i class="fas fa-info-circle"></i> Already Exited</h4>
+                        <h4>
+                            <i class="fas fa-info-circle"></i>
+                            Already Exited
+                        </h4>
+
                         <div class="detail-row">
                             <span class="detail-label">Name:</span>
                             <span class="detail-value">${data.teacher.name}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Exit Time:</span>
                             <span class="detail-value">${data.teacher.exit_time}</span>
                         </div>
                     `;
+
                     teacherDetailsDiv.style.display = 'block';
                     exitBtn.disabled = true;
                     messageDiv.style.display = 'none';
-                    
-                } else {
+                }
+
+                // No Entry Found
+                else {
+
                     teacherDetailsDiv.innerHTML = `
-                        <h4><i class="fas fa-exclamation-triangle"></i> No Active Entry Found</h4>
-                        <p style="margin-top: 10px; color: #64748b;">No active teacher found with Employee ID: ${employee_id}</p>
-                        <p style="margin-top: 5px; font-size: 0.9rem;">Please record your entry first.</p>
+                        <h4>
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No Active Entry Found
+                        </h4>
+
+                        <p style="margin-top:10px; color:#64748b;">
+                            No active teacher found with Employee ID: ${employee_id}
+                        </p>
+
+                        <p style="margin-top:5px; font-size:0.9rem;">
+                            Please record your entry first.
+                        </p>
                     `;
+
                     teacherDetailsDiv.style.display = 'block';
                     exitBtn.disabled = true;
                     currentTeacher = null;
                     messageDiv.style.display = 'none';
                 }
-                
+
             } catch (error) {
+
                 console.error('Error checking teacher:', error);
-                teacherDetailsDiv.innerHTML = `<p class="text-error">Error checking teacher. Please try again.</p>`;
+
+                teacherDetailsDiv.innerHTML = `
+                    <p class="text-error">
+                        Error checking teacher. Please try again.
+                    </p>
+                `;
+
                 teacherDetailsDiv.style.display = 'block';
                 exitBtn.disabled = true;
             }
         });
-        
-        // Handle exit submission
+
+        // Handle Exit
         const form = document.getElementById('teacherExitForm');
-        
+
         form.addEventListener('submit', async (e) => {
+
             e.preventDefault();
-            
+
             if (!currentTeacher) {
+
                 messageDiv.textContent = 'No active teacher found to mark exit';
                 messageDiv.className = 'message error';
-                setTimeout(() => messageDiv.style.display = 'none', 3000);
+                messageDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+
                 return;
             }
-            
+
             exitBtn.disabled = true;
-            exitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
+
+            exitBtn.innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i>
+                Processing...
+            `;
+
             try {
+
                 const response = await fetch(`/teacher/exit/${currentTeacher.id}`, {
                     method: 'PUT'
                 });
-                
+
                 const result = await response.json();
-                
+
+                // Success
                 if (response.ok) {
-                    messageDiv.textContent = '✓ Exit marked successfully! Thank you for visiting.';
+
+                    messageDiv.textContent = '✓ Exit marked successfully!';
                     messageDiv.className = 'message success';
-                    
+                    messageDiv.style.display = 'block';
+
                     teacherDetailsDiv.innerHTML = `
-                        <h4><i class="fas fa-check-circle"></i> Exit Complete</h4>
+                        <h4>
+                            <i class="fas fa-check-circle"></i>
+                            Exit Complete
+                        </h4>
+
                         <div class="detail-row">
                             <span class="detail-label">Name:</span>
                             <span class="detail-value">${currentTeacher.name}</span>
                         </div>
+
                         <div class="detail-row">
                             <span class="detail-label">Exit Time:</span>
-                            <span class="detail-value">${new Date().toLocaleTimeString()}</span>
+                            <span class="detail-value">
+                                ${new Date().toLocaleTimeString()}
+                            </span>
                         </div>
                     `;
-                    
+
                     employeeIdInput.value = '';
                     exitBtn.disabled = true;
-                    
+
                     setTimeout(() => {
                         window.location.href = '/teacher/entry';
                     }, 2000);
-                } else {
+
+                }
+
+                // Error
+                else {
+
                     messageDiv.textContent = result.error || 'Failed to mark exit';
                     messageDiv.className = 'message error';
-                    setTimeout(() => messageDiv.style.display = 'none', 3000);
+                    messageDiv.style.display = 'block';
+
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 3000);
+
                     exitBtn.disabled = false;
-                    exitBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Mark Exit';
+
+                    exitBtn.innerHTML = `
+                        <i class="fas fa-sign-out-alt"></i>
+                        Mark Exit
+                    `;
                 }
-                
+
             } catch (error) {
+
                 messageDiv.textContent = 'Connection error. Please try again.';
                 messageDiv.className = 'message error';
-                setTimeout(() => messageDiv.style.display = 'none', 3000);
+                messageDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+
                 exitBtn.disabled = false;
-                exitBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Mark Exit';
+
+                exitBtn.innerHTML = `
+                    <i class="fas fa-sign-out-alt"></i>
+                    Mark Exit
+                `;
             }
         });
+
     </script>
+
 </body>
 </html>
