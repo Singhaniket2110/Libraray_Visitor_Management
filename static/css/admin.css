@@ -9,6 +9,7 @@
 /* Header */
 .dashboard-header {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(226, 232, 240, 0.8);
     padding: 1.5rem 2rem;
@@ -489,6 +490,7 @@ tbody tr:last-child td {
     width: 100%;
     max-width: 440px;
     background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
     box-shadow: 
@@ -698,6 +700,7 @@ tbody tr:last-child td {
         align-items: stretch;
     }
 }
+
 /* Additional styles for enhanced dashboard */
 
 .date-range-controls {
