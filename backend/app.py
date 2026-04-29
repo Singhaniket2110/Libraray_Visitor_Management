@@ -616,7 +616,7 @@ def create_app():
             return jsonify({"error": str(e)}), 500
 
     @app.route('/admin/force_auto_exit', methods=['POST'])
-def force_auto_exit():
+    def force_auto_exit():
     try:
         return jsonify({"success": True, "visitors": 0, "teachers": 0}), 200
     except Exception as e:
