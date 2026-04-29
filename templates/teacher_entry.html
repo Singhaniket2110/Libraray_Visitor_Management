@@ -1,48 +1,77 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Entry | Library Management</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="teacher-page">
+
     <div class="teacher-entry-container">
         <div class="entry-card">
+
             <div class="entry-header">
                 <div class="entry-icon">
                     <i class="fas fa-chalkboard-user"></i>
                 </div>
+
                 <h1>Teacher Entry Portal</h1>
                 <p>Please fill in your details to record library entry</p>
             </div>
-            
+
             <div class="entry-form">
                 <form id="teacherEntryForm">
+
+                    <!-- Full Name -->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-user"></i>
                             Full Name
                         </label>
-                        <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+
+                        <input
+                            type="text"
+                            id="name"
+                            class="form-control"
+                            placeholder="Enter your full name"
+                            required
+                        >
                     </div>
-                    
+
+                    <!-- Employee ID -->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-id-badge"></i>
                             Employee ID
                         </label>
-                        <input type="text" id="employee_id" class="form-control input-uppercase" placeholder="Enter employee ID (e.g., TCH001)" required>
+
+                        <input
+                            type="text"
+                            id="employee_id"
+                            class="form-control input-uppercase"
+                            placeholder="Enter employee ID (e.g., TCH001)"
+                            required
+                        >
                     </div>
-                    
+
+                    <!-- Designation -->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-briefcase"></i>
                             Designation
                         </label>
-                        <select id="designation" class="form-control" required title="Select your designation">
+
+                        <select
+                            id="designation"
+                            class="form-control"
+                            required
+                            title="Select your designation"
+                        >
                             <option value="">Select Designation</option>
                             <option value="Professor">Professor</option>
                             <option value="Associate Professor">Associate Professor</option>
@@ -53,181 +82,232 @@
                             <option value="Admin Staff">Admin Staff</option>
                         </select>
                     </div>
-                    
+
+                    <!-- Nature of Work -->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-tasks"></i>
                             Nature of Work
                         </label>
-                        <div class="nature-options" id="natureOptions" role="group" aria-label="Nature of work options">
-                            <div class="nature-option" data-value="Teaching" role="button" tabindex="0" aria-label="Teaching">
+
+                        <div
+                            class="nature-options"
+                            id="natureOptions"
+                            role="group"
+                            aria-label="Nature of work options"
+                        >
+
+                            <div class="nature-option" data-value="Teaching" role="button" tabindex="0">
                                 <i class="fas fa-chalkboard"></i>
                                 Teaching
                             </div>
-                            <div class="nature-option" data-value="Research" role="button" tabindex="0" aria-label="Research">
+
+                            <div class="nature-option" data-value="Research" role="button" tabindex="0">
                                 <i class="fas fa-flask"></i>
                                 Research
                             </div>
-                            <div class="nature-option" data-value="Meeting" role="button" tabindex="0" aria-label="Meeting">
+
+                            <div class="nature-option" data-value="Meeting" role="button" tabindex="0">
                                 <i class="fas fa-users"></i>
                                 Meeting
                             </div>
-                            <div class="nature-option" data-value="Library Work" role="button" tabindex="0" aria-label="Library Work">
+
+                            <div class="nature-option" data-value="Library Work" role="button" tabindex="0">
                                 <i class="fas fa-book"></i>
                                 Library Work
                             </div>
-                            <div class="nature-option" data-value="Administrative" role="button" tabindex="0" aria-label="Administrative">
+
+                            <div class="nature-option" data-value="Administrative" role="button" tabindex="0">
                                 <i class="fas fa-clipboard-list"></i>
                                 Administrative
                             </div>
-                            <div class="nature-option" data-value="Student Guidance" role="button" tabindex="0" aria-label="Student Guidance">
+
+                            <div class="nature-option" data-value="Student Guidance" role="button" tabindex="0">
                                 <i class="fas fa-user-graduate"></i>
                                 Student Guidance
                             </div>
                         </div>
+
                         <input type="hidden" id="nature_of_work" required>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-bullseye"></i>
-                            Purpose (Optional)
-                        </label>
-                        <select id="purpose" class="form-control" title="Select purpose of visit (optional)">
-                            <option value="">Select Purpose (Optional)</option>
-                            <option value="Book Issue/Return">Book Issue/Return</option>
-                            <option value="Reference Reading">Reference Reading</option>
-                            <option value="Research Material">Research Material</option>
-                            <option value="Meeting with Librarian">Meeting with Librarian</option>
-                            <option value="Department Work">Department Work</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    
+                    <!-- Auto Info -->
                     <div class="auto-info">
-                        <p><strong><i class="fas fa-calendar-day"></i> Date:</strong> <span id="currentDate"></span></p>
-                        <p><strong><i class="fas fa-clock"></i> Day:</strong> <span id="currentDay"></span></p>
-                        <p><strong><i class="fas fa-hourglass-start"></i> Entry Time:</strong> <span id="currentTime">Auto-recorded</span></p>
+                        <p>
+                            <strong>
+                                <i class="fas fa-calendar-day"></i> Date:
+                            </strong>
+                            <span id="currentDate"></span>
+                        </p>
+
+                        <p>
+                            <strong>
+                                <i class="fas fa-clock"></i> Day:
+                            </strong>
+                            <span id="currentDay"></span>
+                        </p>
+
+                        <p>
+                            <strong>
+                                <i class="fas fa-hourglass-start"></i> Entry Time:
+                            </strong>
+                            <span id="currentTime">Auto-recorded</span>
+                        </p>
                     </div>
-                    
+
+                    <!-- Submit Button -->
                     <button type="submit" class="submit-btn">
                         <i class="fas fa-sign-in-alt"></i>
                         Record Entry
                     </button>
+
+                    <!-- Message -->
+                    <div id="formMessage" class="message"></div>
+
                 </form>
-                
-                <div id="formMessage" class="message"></div>
-                
+
+                <!-- Back Home -->
+                <div class="back-home">
+                    <a href="/">
+                        <i class="fas fa-home"></i>
+                        Back to Home
+                    </a>
+                </div>
+
+                <!-- Exit Link -->
                 <div class="back-link">
                     <a href="/teacher/exit">
-                        <i class="fas fa-door-open"></i> Need to Exit? Click here
+                        <i class="fas fa-door-open"></i>
+                        Need to Exit? Click here
                     </a>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script>
         // Update date and time
         function updateDateTime() {
             const now = new Date();
+
             const formattedDate = now.toLocaleDateString('en-IN', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
-            const formattedDay = now.toLocaleDateString('en-US', { weekday: 'long' });
-            
+
+            const formattedDay = now.toLocaleDateString('en-US', {
+                weekday: 'long'
+            });
+
+            const formattedTime = now.toLocaleTimeString('en-IN');
+
             document.getElementById('currentDate').textContent = formattedDate;
             document.getElementById('currentDay').textContent = formattedDay;
+            document.getElementById('currentTime').textContent = formattedTime;
         }
-        
+
         updateDateTime();
-        setInterval(updateDateTime, 60000);
-        
+        setInterval(updateDateTime, 1000);
+
         // Nature of work selection
         const natureOptions = document.querySelectorAll('.nature-option');
         const natureOfWorkInput = document.getElementById('nature_of_work');
-        
+
         natureOptions.forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', function () {
                 natureOptions.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
                 natureOfWorkInput.value = this.getAttribute('data-value');
             });
-            
-            // Add keyboard support for accessibility
-            option.addEventListener('keydown', function(e) {
+
+            // Keyboard support
+            option.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     this.click();
                 }
             });
         });
-        
+
         // Form submission
         const form = document.getElementById('teacherEntryForm');
         const messageDiv = document.getElementById('formMessage');
-        
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const submitBtn = form.querySelector('.submit-btn');
             const originalText = submitBtn.innerHTML;
-            
+
             // Get values
             const name = document.getElementById('name').value.trim();
             const employee_id = document.getElementById('employee_id').value.trim().toUpperCase();
             const designation = document.getElementById('designation').value;
             const nature_of_work = natureOfWorkInput.value;
-            const purpose = document.getElementById('purpose').value;
-            
-            // Validate
+
+            // Validation
             if (!name || !employee_id || !designation || !nature_of_work) {
                 messageDiv.textContent = 'Please fill all required fields';
                 messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+
                 setTimeout(() => {
-                    messageDiv.className = 'message';
                     messageDiv.style.display = 'none';
                 }, 3000);
+
                 return;
             }
-            
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recording...';
-            
+
             try {
                 const response = await fetch('/teacher/entry', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, employee_id, designation, nature_of_work, purpose })
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        employee_id,
+                        designation,
+                        nature_of_work
+                    })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     messageDiv.textContent = '✓ Entry recorded successfully!';
                     messageDiv.className = 'message success';
+                    messageDiv.style.display = 'block';
+
                     form.reset();
-                    natureOptions.forEach(opt => opt.classList.remove('selected'));
+
+                    natureOptions.forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+
                     natureOfWorkInput.value = '';
-                    
+
                     setTimeout(() => {
                         window.location.href = '/teacher/exit';
                     }, 2000);
                 } else {
                     messageDiv.textContent = result.error || 'Failed to record entry';
                     messageDiv.className = 'message error';
+                    messageDiv.style.display = 'block';
+
                     setTimeout(() => {
-                        messageDiv.className = 'message';
                         messageDiv.style.display = 'none';
                     }, 3000);
                 }
             } catch (error) {
                 messageDiv.textContent = 'Connection error. Please try again.';
                 messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+
                 setTimeout(() => {
-                    messageDiv.className = 'message';
                     messageDiv.style.display = 'none';
                 }, 3000);
             } finally {
@@ -236,5 +316,7 @@
             }
         });
     </script>
+
 </body>
 </html>
+```
