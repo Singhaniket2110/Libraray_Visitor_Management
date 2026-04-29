@@ -34,55 +34,15 @@
             to { opacity: 1; transform: translateX(0); }
         }
         
-        .jc-badge {
-            display: inline-block;
-            background: #f59e0b;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .pg-badge {
-            display: inline-block;
-            background: #3b82f6;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .ug-badge {
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .level-option {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
         .form-container {
             max-width: 520px;
             margin: 3rem auto;
             background: white;
             border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             padding: 2.5rem;
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(226, 232, 240, 0.8);
         }
         
         .form-container::before {
@@ -99,21 +59,7 @@
             text-align: center;
             margin-bottom: 2rem;
             font-size: 2rem;
-            position: relative;
-            padding-bottom: 1rem;
             color: #1e293b;
-        }
-        
-        .form-container h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 2px;
         }
         
         .form-group {
@@ -127,12 +73,10 @@
             margin-bottom: 0.75rem;
             font-weight: 600;
             color: #1e293b;
-            font-size: 0.95rem;
         }
         
-        .form-label .icon {
+        .form-label i {
             color: #6366f1;
-            font-size: 1.1rem;
         }
         
         .form-control {
@@ -141,8 +85,6 @@
             font-size: 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            background: white;
-            color: #1e293b;
             transition: all 0.3s ease;
             outline: none;
         }
@@ -153,37 +95,32 @@
             transform: translateY(-2px);
         }
         
+        .form-control.error-field {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+        
         .auto-fields {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             padding: 1.5rem;
             border-radius: 12px;
             margin: 2rem 0;
             border-left: 4px solid #6366f1;
-            border-right: 1px solid #e2e8f0;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
         }
         
         .auto-fields p {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin: 0.75rem 0;
-            font-size: 1rem;
         }
         
         .auto-fields strong {
             color: #1e293b;
-            font-weight: 600;
         }
         
         .auto-fields span {
             color: #6366f1;
             font-weight: 700;
-            font-size: 1.1rem;
-            padding: 0.25rem 0.75rem;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 8px;
         }
         
         .submit-btn {
@@ -191,15 +128,12 @@
             padding: 1.25rem;
             font-size: 1.1rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
             border: none;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
             margin-top: 1rem;
         }
         
@@ -208,31 +142,9 @@
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
         }
         
-        .submit-btn:active {
-            transform: translateY(-1px);
-        }
-        
         .submit-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        .submit-btn.loading::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease infinite;
-            right: 1rem;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
         
         #formMsg {
@@ -241,35 +153,21 @@
             border-radius: 10px;
             font-weight: 600;
             text-align: center;
-            animation: slideIn 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-        }
-        
-        #formMsg::before {
-            font-size: 1.2rem;
+            display: none;
         }
         
         #formMsg.success {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #86efac;
+            background: #f0fdf4;
             color: #166534;
-        }
-        
-        #formMsg.success::before {
-            content: '✓';
+            border: 1px solid #86efac;
+            display: block;
         }
         
         #formMsg.error {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border: 1px solid #fca5a5;
+            background: #fef2f2;
             color: #991b1b;
-        }
-        
-        #formMsg.error::before {
-            content: '✗';
+            border: 1px solid #fca5a5;
+            display: block;
         }
         
         select.form-control {
@@ -282,28 +180,45 @@
         }
         
         @media (max-width: 640px) {
-            body {
-                padding: 20px 10px !important;
-            }
-            
             .form-container {
                 margin: 1rem;
-                padding: 2rem 1.5rem;
+                padding: 1.5rem;
             }
-            
             .form-container h2 {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
             }
+        }
+        
+        .back-home {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .back-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            background: white;
+            color: #6366f1;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .back-home a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
     </style>
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; position: relative;">
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%); z-index: -1; pointer-events: none;"></div>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px;">
     
     <div class="form-container">
         <h2>📝 Library Visitor Entry</h2>
         
-        <!-- PG Note -->
         <div id="pgNote" class="pg-note">
             <i class="fas fa-graduation-cap"></i>
             <strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).
@@ -311,27 +226,18 @@
         
         <form id="visitorForm">
             <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-user-graduate"></i>
-                    Student Name
-                </label>
-                <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+                <label class="form-label"><i class="fas fa-user-graduate"></i> Student Name</label>
+                <input type="text" id="name" class="form-control" placeholder="Enter your full name" required title="Enter your full name">
             </div>
             
             <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-id-card"></i>
-                    Roll Number
-                </label>
-                <input type="text" id="roll_no" class="form-control" placeholder="Enter your roll number(For Eg. TYBSC-IT20)" required>
+                <label class="form-label"><i class="fas fa-id-card"></i> Roll Number</label>
+                <input type="text" id="roll_no" class="form-control" placeholder="Enter your roll number" required title="Enter your roll number">
             </div>
             
             <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-layer-group"></i>
-                    Education Level
-                </label>
-                <select id="level" class="form-control" required>
+                <label class="form-label"><i class="fas fa-layer-group"></i> Education Level</label>
+                <select id="level" class="form-control" required title="Select your education level">
                     <option value="">Select Level</option>
                     <option value="JC">Junior College (JC)</option>
                     <option value="UG">Undergraduate (UG)</option>
@@ -340,23 +246,16 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-book-open"></i>
-                    Course / Stream
-                </label>
-                <select id="course" class="form-control" required>
+                <label class="form-label"><i class="fas fa-book-open"></i> Course / Stream</label>
+                <select id="course" class="form-control" required title="Select your course or stream">
                     <option value="">Select Course / Stream</option>
                 </select>
             </div>
             
-            <!-- JC Specific Fields -->
             <div id="jcFields" class="jc-fields">
                 <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-calendar-alt"></i>
-                        JC Year
-                    </label>
-                    <select id="jcYear" class="form-control">
+                    <label class="form-label"><i class="fas fa-calendar-alt"></i> JC Year</label>
+                    <select id="jcYear" class="form-control" required title="Select your Junior College year">
                         <option value="">Select JC Year</option>
                         <option value="FYJC">First Year Junior College (FYJC)</option>
                         <option value="SYJC">Second Year Junior College (SYJC)</option>
@@ -364,11 +263,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-stream"></i>
-                        Stream
-                    </label>
-                    <select id="jcStream" class="form-control">
+                    <label class="form-label"><i class="fas fa-stream"></i> Stream</label>
+                    <select id="jcStream" class="form-control" required title="Select your stream">
                         <option value="">Select Stream</option>
                         <option value="Science">Science</option>
                         <option value="Arts">Arts</option>
@@ -377,23 +273,16 @@
                 </div>
             </div>
             
-            <!-- UG/PG Year Field -->
             <div class="form-group" id="yearGroup" style="display: none;">
-                <label class="form-label">
-                    <i class="fas fa-calendar-alt"></i>
-                    Year
-                </label>
-                <select id="year" class="form-control">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> Year</label>
+                <select id="year" class="form-control" required title="Select your year of study">
                     <option value="">Select Year</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-bullseye"></i>
-                    Purpose of Visit
-                </label>
-                <select id="purpose" class="form-control" required>
+                <label class="form-label"><i class="fas fa-bullseye"></i> Purpose of Visit</label>
+                <select id="purpose" class="form-control" required title="Select your purpose of visit">
                     <option value="">Purpose of Visit</option>
                     <option>Reading</option>
                     <option>Book Issue</option>
@@ -409,46 +298,25 @@
             <div class="auto-fields">
                 <p><strong><i class="fas fa-calendar-day"></i> Date:</strong> <span id="currentDate"></span></p>
                 <p><strong><i class="fas fa-clock"></i> Day:</strong> <span id="currentDay"></span></p>
-                <p><strong><i class="fas fa-hourglass-start"></i> Entry Time:</strong> <span id="currentTime">Now</span></p>
+                <p><strong><i class="fas fa-hourglass-start"></i> Entry Time:</strong> <span id="currentTime">Auto-recorded</span></p>
             </div>
             
-            <button type="submit" class="submit-btn">
-                <i class="fas fa-paper-plane"></i>
-                Submit Entry
-            </button>
-            <p id="formMsg"></p>
+            <button type="submit" class="submit-btn" title="Submit your entry"><i class="fas fa-paper-plane"></i> Submit Entry</button>
+            <div id="formMsg"></div>
         </form>
         
         <div style="text-align: center; margin-top: 20px;">
-            <a href="/student/exit" style="color: #ef4444; text-decoration: none; font-weight: 500;">
+            <a href="/student/exit" style="color: #ef4444; text-decoration: none; font-weight: 500;" title="Go to exit portal">
                 <i class="fas fa-door-open"></i> Need to Exit? Click here
             </a>
         </div>
         <div class="back-home">
-            <a href="/">
-                <i class="fas fa-home"></i>
-                Back to Home
-            </a>
+            <a href="/" title="Go to home page"><i class="fas fa-home"></i> Back to Home</a>
         </div>
     </div>
 
-    <!-- DEBUG ELEMENT TO CHECK IF JS IS LOADING -->
-    <div id="debugInfo" style="display: none; text-align: center; color: #666; padding: 10px;">
-        JavaScript loaded: <span id="jsStatus">No</span>
-    </div>
-
     <script>
-        // First, check if DOM elements exist
-        console.log("📢 Script loaded!");
-        console.log("Level select exists:", document.getElementById("level"));
-        console.log("Course select exists:", document.getElementById("course"));
-        console.log("Form exists:", document.getElementById("visitorForm"));
-        
-        // Update debug info
-        document.getElementById("debugInfo").style.display = "block";
-        document.getElementById("jsStatus").textContent = "Yes";
-        
-        // Define courses and years data FIRST
+        // Courses and years data
         const courses = {
             UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
             PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
@@ -467,50 +335,33 @@
         const jcFields = document.getElementById("jcFields");
         const jcYearSelect = document.getElementById("jcYear");
         const jcStreamSelect = document.getElementById("jcStream");
-        const dateSpan = document.getElementById("currentDate");
-        const daySpan = document.getElementById("currentDay");
-        const formMsg = document.getElementById("formMsg");
-        const visitorForm = document.getElementById("visitorForm");
         const yearGroup = document.getElementById("yearGroup");
+        const visitorForm = document.getElementById("visitorForm");
+        const formMsg = document.getElementById("formMsg");
 
         // Update date and time
         function updateDateTime() {
             const now = new Date();
-            const formattedDate = now.toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-IN', {
+                year: 'numeric', month: 'long', day: 'numeric'
             });
-            const formattedDay = now.toLocaleDateString("en-US", { 
-                weekday: "long" 
-            });
-            
-            if (dateSpan) dateSpan.textContent = formattedDate;
-            if (daySpan) daySpan.textContent = formattedDay;
-            
+            document.getElementById('currentDay').textContent = now.toLocaleDateString("en-US", { weekday: "long" });
             setTimeout(updateDateTime, 60000);
         }
-
-        // Initialize date/time
         updateDateTime();
 
-        // Level change handler - SIMPLIFIED VERSION
+        // Level change handler
         levelSelect.addEventListener("change", function() {
             const level = this.value;
-            console.log("Level changed to:", level);
             
-            // Reset dependent fields
             courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
             yearSelect.innerHTML = '<option value="">Select Year</option>';
-            
-            // Hide all optional fields
             jcFields.style.display = "none";
             yearGroup.style.display = "none";
             document.getElementById('pgNote').style.display = 'none';
 
             if (!level) return;
 
-            // Populate courses
             if (courses[level]) {
                 courses[level].forEach(course => {
                     const option = document.createElement('option');
@@ -520,13 +371,17 @@
                 });
             }
 
-            // Show relevant fields
             if (level === "JC") {
                 jcFields.style.display = "block";
+                jcYearSelect.required = true;
+                jcStreamSelect.required = true;
+                yearSelect.required = false;
             } else if (level === "UG" || level === "PG") {
                 yearGroup.style.display = "block";
+                yearSelect.required = true;
+                jcYearSelect.required = false;
+                jcStreamSelect.required = false;
                 
-                // Populate years
                 if (years[level]) {
                     years[level].forEach(year => {
                         const option = document.createElement('option');
@@ -542,65 +397,96 @@
             }
         });
 
-        // Course change handler for JC
-        courseSelect.addEventListener("change", function() {
-            const level = levelSelect.value;
-            const selectedCourse = this.value;
-            
-            if (level === "JC" && selectedCourse) {
-                jcStreamSelect.value = selectedCourse;
+        // Show field error
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('error-field');
+                field.focus();
+                setTimeout(() => field.classList.remove('error-field'), 3000);
             }
-        });
+            formMsg.textContent = message;
+            formMsg.className = 'error';
+            formMsg.style.display = 'block';
+            setTimeout(() => {
+                formMsg.style.display = 'none';
+                formMsg.className = '';
+            }, 3000);
+        }
 
-        // Form validation
+        // Strict validation
         function validateForm() {
-            let isValid = true;
-            const inputs = visitorForm.querySelectorAll('input[required], select[required]');
+            formMsg.style.display = 'none';
             
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.style.borderColor = '#ef4444';
-                    isValid = false;
-                } else {
-                    input.style.borderColor = '#10b981';
+            const name = document.getElementById('name').value.trim();
+            const rollNo = document.getElementById('roll_no').value.trim();
+            const level = levelSelect.value;
+            const purpose = document.getElementById('purpose').value;
+            const course = courseSelect.value;
+            
+            if (!name) {
+                showFieldError('name', 'Name is required');
+                return false;
+            }
+            
+            if (!rollNo) {
+                showFieldError('roll_no', 'Roll Number is required');
+                return false;
+            }
+            
+            if (!level) {
+                showFieldError('level', 'Please select Education Level');
+                return false;
+            }
+            
+            if (!course) {
+                showFieldError('course', 'Please select Course / Stream');
+                return false;
+            }
+            
+            if (!purpose) {
+                showFieldError('purpose', 'Please select Purpose of Visit');
+                return false;
+            }
+            
+            if (level === "JC") {
+                const jcYear = jcYearSelect.value;
+                const jcStream = jcStreamSelect.value;
+                
+                if (!jcYear) {
+                    showFieldError('jcYear', 'Please select JC Year');
+                    return false;
                 }
-            });
-            
-            if (levelSelect.value === "JC") {
-                if (!jcYearSelect.value || !jcStreamSelect.value) {
-                    jcFields.style.borderColor = '#ef4444';
-                    isValid = false;
+                if (!jcStream) {
+                    showFieldError('jcStream', 'Please select Stream');
+                    return false;
+                }
+            } else if (level === "UG" || level === "PG") {
+                const year = yearSelect.value;
+                
+                if (!year) {
+                    showFieldError('year', 'Please select Year');
+                    return false;
                 }
             }
             
-            return isValid;
+            return true;
         }
 
         // Form submission
         visitorForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             
-            // Remove validation styles
-            const inputs = visitorForm.querySelectorAll('input, select');
-            inputs.forEach(input => input.style.borderColor = '');
-            jcFields.style.borderColor = '';
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitBtn = visitorForm.querySelector('.submit-btn');
             const originalText = submitBtn.innerHTML;
             
-            // Loading state
+            if (!validateForm()) {
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-            // Validate
-            if (!validateForm()) {
-                alert("Please fill all required fields");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-                return;
-            }
-
-            // Prepare data
             const formData = {
                 name: document.getElementById("name").value.trim(),
                 roll_no: document.getElementById("roll_no").value.trim().toUpperCase(),
@@ -608,7 +494,6 @@
                 purpose: document.getElementById("purpose").value
             };
             
-            // Add course and year based on level
             if (levelSelect.value === "JC") {
                 formData.course = "Junior College";
                 formData.jc_year = jcYearSelect.value;
@@ -616,12 +501,10 @@
                 formData.year = null;
             } else {
                 formData.course = courseSelect.value;
-                formData.year = yearSelect.value || null;
+                formData.year = yearSelect.value;
                 formData.jc_year = null;
                 formData.jc_stream = null;
             }
-
-            console.log("Submitting data:", formData);
 
             try {
                 const res = await fetch("/student/visit", {
@@ -631,28 +514,38 @@
                 });
 
                 const result = await res.json();
-                console.log("Response:", result);
 
                 if (res.status === 201) {
-                    alert("Visit recorded successfully!");
+                    formMsg.textContent = '✓ Visit recorded successfully!';
+                    formMsg.className = 'success';
+                    formMsg.style.display = 'block';
                     
-                    // Reset form
                     visitorForm.reset();
                     courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
                     yearSelect.innerHTML = '<option value="">Select Year</option>';
                     yearGroup.style.display = "none";
                     jcFields.style.display = "none";
-                    jcYearSelect.value = "";
-                    jcStreamSelect.value = "";
                     document.getElementById('pgNote').style.display = 'none';
-                    
                     document.getElementById("name").focus();
+                    
+                    setTimeout(() => {
+                        formMsg.style.display = 'none';
+                    }, 3000);
                 } else {
-                    alert(result.error || "Failed to record visit");
+                    formMsg.textContent = result.error || 'Failed to record visit';
+                    formMsg.className = 'error';
+                    formMsg.style.display = 'block';
+                    setTimeout(() => {
+                        formMsg.style.display = 'none';
+                    }, 3000);
                 }
             } catch (error) {
-                console.error("Error:", error);
-                alert("Connection error. Please try again.");
+                formMsg.textContent = 'Connection error. Please try again.';
+                formMsg.className = 'error';
+                formMsg.style.display = 'block';
+                setTimeout(() => {
+                    formMsg.style.display = 'none';
+                }, 3000);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
@@ -660,12 +553,7 @@
         });
 
         // Auto-focus first input
-        window.addEventListener('load', () => {
-            if (document.getElementById("name")) {
-                document.getElementById("name").focus();
-            }
-        });
+        document.getElementById("name").focus();
     </script>
-
 </body>
 </html>
