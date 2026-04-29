@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, make_response,session
+from flask import Blueprint, jsonify, request, render_template, make_response, session
 from functools import wraps
 from datetime import datetime, timedelta
 import json
@@ -15,6 +15,9 @@ from backend.supabase_direct import SupabaseDirect as Database
 # Import models
 from backend.models.visitor_model import get_all_visitors, get_today_visitors, get_filtered_visitors, get_visitors_by_date_range
 from backend.config import Config
+
+# Import email service for reports
+from backend.email_service import EmailService
 
 # ==================== JWT HELPER FUNCTIONS ====================
 
@@ -256,6 +259,10 @@ def add_visitor_admin():
 def today_visitors():
     """Get today's visitors"""
     try:
+        # 🔴 TRIGGER AUTO-EXIT CHECK (runs at 4 PM)
+        Database.auto_exit_overdue_visitors()
+        Database.auto_exit_overdue_teachers()
+        
         # ✅ USE DIRECT API
         visitors = Database.get_today_visitors()
         return jsonify(visitors), 200
@@ -366,22 +373,26 @@ def advanced_analytics():
                 try:
                     entry_str = str(v['entry_time'])
                     exit_str = str(v['exit_time'])
-                    
-                    entry = datetime.strptime(entry_str, '%H:%M:%S')
-                    exit_time = datetime.strptime(exit_str, '%H:%M:%S')
-                    
-                    if exit_time < entry:
-                        exit_time = datetime.combine(
-                            exit_time.date() + timedelta(days=1),
-                            exit_time.time()
-                        )
-                    
-                    duration = (exit_time - entry).total_seconds() / 60
-                    if duration >= 0:
+                    visit_date = v.get('visit_date')
+            
+                    # Create full datetime objects
+                    entry_datetime = datetime.strptime(f"{visit_date} {entry_str}", '%Y-%m-%d %H:%M:%S')
+                    exit_datetime = datetime.strptime(f"{visit_date} {exit_str}", '%Y-%m-%d %H:%M:%S')
+            
+                    # If exit time is earlier than entry, it's next day
+                    if exit_datetime < entry_datetime:
+                        exit_datetime = exit_datetime + timedelta(days=1)
+            
+                    duration = (exit_datetime - entry_datetime).total_seconds() / 60
+            
+                    # Cap at 12 hours max (reasonable limit)
+                    if 0 <= duration <= 720:  # 12 hours max
                         durations.append(duration)
-                except:
+                
+                except Exception as e:
+                    print(f"Duration calc error: {e}")
                     pass
-        
+
         avg_duration = sum(durations) / len(durations) if durations else 0
         
         response_data = {
@@ -636,4 +647,81 @@ def bulk_actions():
         print(f"Bulk action error: {e}")
         return jsonify({"error": "Bulk action failed"}), 500
 
+# ==================== TEACHER ADMIN ROUTES ====================
 
+@admin_bp.route('/teachers/all')
+@login_required
+def admin_teachers_all():
+    """Get all teachers for admin dashboard"""
+    try:
+        teachers = Database.get_all_teachers()
+        return jsonify(teachers), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/teachers/filter')
+@login_required
+def admin_teachers_filter():
+    """Get filtered teachers for admin dashboard"""
+    try:
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        status = request.args.get('status', '')
+        
+        if start_date and end_date:
+            teachers = Database.get_teachers_by_date_range(start_date, end_date)
+        else:
+            teachers = Database.get_all_teachers()
+        
+        # Apply status filter
+        if status == 'active':
+            teachers = [t for t in teachers if not t.get('exit_time')]
+        elif status == 'exited':
+            teachers = [t for t in teachers if t.get('exit_time')]
+        
+        return jsonify(teachers), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/teachers/mark_exit/<int:teacher_id>', methods=['PUT'])
+@login_required
+def admin_mark_teacher_exit(teacher_id):
+    """Admin force exit for teacher"""
+    try:
+        result = Database.update_teacher_exit_by_id(teacher_id)
+        if result:
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"error": "Failed to mark exit"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ==================== EMAIL REPORT ROUTES ====================
+
+@admin_bp.route('/send_monthly_report', methods=['POST'])
+@login_required
+def send_monthly_report():
+    """Send monthly report email"""
+    try:
+        success = EmailService.send_monthly_report()
+        if success:
+            return jsonify({"success": True, "message": "Monthly report sent successfully"}), 200
+        else:
+            return jsonify({"success": False, "error": "Failed to send monthly report. Check email configuration."}), 500
+    except Exception as e:
+        print(f"Error sending monthly report: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/send_lifetime_report', methods=['POST'])
+@login_required
+def send_lifetime_report():
+    """Send lifetime report email"""
+    try:
+        success = EmailService.send_lifetime_report()
+        if success:
+            return jsonify({"success": True, "message": "Lifetime report sent successfully"}), 200
+        else:
+            return jsonify({"success": False, "error": "Failed to send lifetime report. Check email configuration."}), 500
+    except Exception as e:
+        print(f"Error sending lifetime report: {e}")
+        return jsonify({"error": str(e)}), 500
