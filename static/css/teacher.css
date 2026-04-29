@@ -1,16 +1,16 @@
 /* ============================================
-   Teacher Portal Styles - Complete
+   Teacher Portal Styles - Fixed Complete
    ============================================ */
 
 /* --------------------------------------------
    Global & Body Styles
-   -------------------------------------------- */
+-------------------------------------------- */
 
-/* Body background for teacher pages */
 body.teacher-page {
-    background: linear-gradient(135deg, #0f2027 0%, #203a43 100%, #2c5364 100%);
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
     min-height: 100vh;
     padding: 40px 20px;
+    font-family: Arial, sans-serif;
 }
 
 /* Utility Classes */
@@ -26,12 +26,13 @@ body.teacher-page {
     color: #ef4444;
 }
 
-/* Animations */
+/* Animation */
 @keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -39,8 +40,8 @@ body.teacher-page {
 }
 
 /* --------------------------------------------
-   Form Elements (Shared)
-   -------------------------------------------- */
+   Shared Form Styles
+-------------------------------------------- */
 
 .form-group {
     margin-bottom: 25px;
@@ -64,17 +65,14 @@ body.teacher-page {
     border-radius: 12px;
     transition: all 0.3s ease;
     outline: none;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
     transform: translateY(-2px);
 }
 
-select.form-control {
-    cursor: pointer;
-    background: white;
-}
-
+/* Message Box */
 .message {
     margin-top: 20px;
     padding: 12px;
@@ -87,161 +85,48 @@ select.form-control {
 .message.success {
     background: #d1fae5;
     color: #065f46;
-    display: block;
     border-left: 4px solid #10b981;
+    display: block;
 }
 
 .message.error {
     background: #fee2e2;
     color: #991b1b;
-    display: block;
     border-left: 4px solid #ef4444;
+    display: block;
 }
 
+/* --------------------------------------------
+   Back Links FIXED
+-------------------------------------------- */
+
+.back-home,
 .back-link {
     text-align: center;
     margin-top: 20px;
+    display: block;
+    width: 100%;
 }
 
+.back-home a,
 .back-link a {
-    color: white;
+    color: #2563eb;
     text-decoration: none;
-    font-weight: 500;
-    transition: opacity 0.3s;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-block;
+    transition: all 0.3s ease;
 }
 
+.back-home a:hover,
 .back-link a:hover {
     text-decoration: underline;
     opacity: 0.8;
 }
 
 /* --------------------------------------------
-   Teacher Exit Portal Styles
-   -------------------------------------------- */
-
-.teacher-exit-container {
-    max-width: 550px;
-    margin: 0 auto;
-}
-
-.exit-card {
-    background: white;
-    border-radius: 32px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    animation: fadeInUp 0.6s ease;
-}
-
-.exit-header {
-    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
-    padding: 40px 30px;
-    text-align: center;
-    color: white;
-}
-
-.exit-icon {
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 2.5rem;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-}
-
-.exit-header h1 {
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-}
-
-.exit-header p {
-    opacity: 0.9;
-    font-size: 0.95rem;
-}
-
-.exit-form {
-    padding: 40px;
-}
-
-.exit-form .form-label i {
-    color: #e74c3c;
-    width: 20px;
-}
-
-.exit-form .form-control:focus {
-    border-color: #e74c3c;
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
-}
-
-.teacher-details {
-    background: #f8fafc;
-    border-radius: 16px;
-    padding: 20px;
-    margin: 20px 0;
-    border-left: 4px solid #e74c3c;
-    display: none;
-}
-
-.teacher-details h4 {
-    color: #2c3e50;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.detail-row:last-child {
-    border-bottom: none;
-}
-
-.detail-label {
-    font-weight: 600;
-    color: #64748b;
-}
-
-.detail-value {
-    color: #2c3e50;
-    font-weight: 500;
-}
-
-.exit-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.exit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
-}
-
-.exit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* --------------------------------------------
-   Teacher Entry Portal Styles
-   -------------------------------------------- */
+   Teacher Entry Portal
+-------------------------------------------- */
 
 .teacher-entry-container {
     max-width: 600px;
@@ -251,8 +136,8 @@ select.form-control {
 .entry-card {
     background: white;
     border-radius: 32px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     animation: fadeInUp 0.6s ease;
 }
 
@@ -261,7 +146,6 @@ select.form-control {
     padding: 40px 30px;
     text-align: center;
     color: white;
-    position: relative;
 }
 
 .entry-icon {
@@ -284,7 +168,6 @@ select.form-control {
 
 .entry-header p {
     opacity: 0.9;
-    font-size: 0.95rem;
 }
 
 .entry-form {
@@ -293,7 +176,6 @@ select.form-control {
 
 .entry-form .form-label i {
     color: #3498db;
-    width: 20px;
 }
 
 .entry-form .form-control:focus {
@@ -301,12 +183,12 @@ select.form-control {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-/* Nature of Work Options */
+/* Nature Options */
+
 .nature-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    margin-top: 5px;
 }
 
 .nature-option {
@@ -337,7 +219,8 @@ select.form-control {
     margin-bottom: 8px;
 }
 
-/* Auto Info Section */
+/* Auto Info */
+
 .auto-info {
     background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
     padding: 20px;
@@ -350,7 +233,6 @@ select.form-control {
     display: flex;
     justify-content: space-between;
     margin: 10px 0;
-    font-size: 0.95rem;
 }
 
 .auto-info strong {
@@ -363,6 +245,7 @@ select.form-control {
 }
 
 /* Submit Button */
+
 .submit-btn {
     width: 100%;
     padding: 16px;
@@ -382,37 +265,136 @@ select.form-control {
     box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
 }
 
-.submit-btn:disabled {
+/* --------------------------------------------
+   Teacher Exit Portal
+-------------------------------------------- */
+
+.teacher-exit-container {
+    max-width: 550px;
+    margin: 0 auto;
+}
+
+.exit-card {
+    background: white;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.6s ease;
+}
+
+.exit-header {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    padding: 40px 30px;
+    text-align: center;
+    color: white;
+}
+
+.exit-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.exit-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.exit-form {
+    padding: 40px;
+}
+
+.exit-form .form-label i {
+    color: #e74c3c;
+}
+
+.exit-form .form-control:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+/* Teacher Details */
+
+.teacher-details {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 4px solid #e74c3c;
+    display: none;
+}
+
+.teacher-details h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.detail-value {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Exit Button */
+
+.exit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.exit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+}
+
+.exit-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
 }
 
 /* --------------------------------------------
-   Responsive Styles
-   -------------------------------------------- */
+   Responsive
+-------------------------------------------- */
 
 @media (max-width: 640px) {
+
     body.teacher-page {
         padding: 20px 15px;
     }
 
-    /* Exit Portal Responsive */
+    .entry-form,
     .exit-form {
-        padding: 25px;
-    }
-
-    .detail-row {
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .exit-header h1 {
-        font-size: 1.5rem;
-    }
-
-    /* Entry Portal Responsive */
-    .entry-form {
         padding: 25px;
     }
 
@@ -420,12 +402,14 @@ select.form-control {
         grid-template-columns: 1fr;
     }
 
-    .entry-header h1 {
-        font-size: 1.5rem;
-    }
-
+    .detail-row,
     .auto-info p {
         flex-direction: column;
         gap: 5px;
+    }
+
+    .entry-header h1,
+    .exit-header h1 {
+        font-size: 1.5rem;
     }
 }
