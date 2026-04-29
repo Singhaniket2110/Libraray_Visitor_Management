@@ -895,6 +895,19 @@ async function applyTeacherBulkAction() {
         loadTeacherVisits();
         loadTeacherStats();
     }
+    else if (action === 'delete') {
+        if (!confirm(`⚠️ Delete ${selectedIds.length} teacher record(s) permanently? This action cannot be undone.`)) return;
+        
+        let successCount = 0;
+        for (const id of selectedIds) {
+            const response = await fetch(`/admin/teachers/delete/${id}`, { method: 'DELETE' });
+            if (response.ok) successCount++;
+        }
+        
+        showNotification(`Deleted ${successCount} teacher(s) permanently`, 'success');
+        loadTeacherVisits();
+        loadTeacherStats();
+    }
 }
 
 async function markTeacherExit(teacherId) {
