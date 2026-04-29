@@ -591,6 +591,15 @@ def create_app():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/admin/force_auto_exit', methods=['POST'])
+def force_auto_exit():
+    try:
+        from backend.supabase_direct import SupabaseDirect as Database
+        visitors = Database.auto_exit_overdue_visitors()
+        teachers = Database.auto_exit_overdue_teachers()
+        return jsonify({"success": True, "visitors": visitors, "teachers": teachers}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     # ==================== AUTO MONTHLY REPORT TRIGGER (for cron-job.org) ====================
     
     @app.route('/admin/trigger_monthly_report', methods=['GET'])
