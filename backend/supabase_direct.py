@@ -355,6 +355,7 @@ class SupabaseDirect:
         except Exception as e:
             print(f"❌ Connection failed: {e}")
             return False
+
     
     @classmethod
     def test_indian_time(cls):
@@ -369,3 +370,270 @@ class SupabaseDirect:
         except Exception as e:
             print(f"❌ Time test failed: {e}")
             return False
+    
+    @classmethod
+    def insert_teacher(cls, teacher_data):
+        """Insert teacher visit record with INDIAN TIME (IST)"""
+        try:
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            
+            ist_now = cls._get_indian_time()
+            
+            data = {
+                'name': teacher_data.get('name', '').strip(),
+                'employee_id': teacher_data.get('employee_id', '').strip().upper(),
+                'designation': teacher_data.get('designation', ''),
+                'nature_of_work': teacher_data.get('nature_of_work', ''),
+                'purpose': teacher_data.get('purpose', 'Library Work'),
+                'notes': teacher_data.get('notes', ''),
+                'entry_time': ist_now.strftime('%H:%M:%S'),
+                'visit_date': ist_now.date().isoformat(),
+                'visit_day': ist_now.strftime('%A')
+            }
+            
+            print(f"👨‍🏫 TEACHER ENTRY: {data['name']} at {data['entry_time']} IST")
+            
+            response = requests.post(
+                url, 
+                headers=cls._get_headers(),
+                json=data
+            )
+            
+            if response.status_code == 201:
+                print(f"✅ Teacher inserted successfully")
+                return response.json()[0]
+            else:
+                print(f"❌ Teacher insert failed: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Insert teacher error: {e}")
+            return None
+
+    @classmethod
+    def get_active_teacher_by_employee_id(cls, employee_id):
+        """Get active teacher by employee ID"""
+        try:
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            ist_now = cls._get_indian_time()
+            today = ist_now.date().isoformat()
+            
+            params = {
+                'employee_id': f'eq.{employee_id.upper()}',
+                'visit_date': f'eq.{today}',
+                'exit_time': f'is.null',
+                'select': '*',
+                'order': 'id.desc',
+                'limit': '1'
+            }
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data[0] if data else None
+            return None
+            
+        except Exception as e:
+            print(f"❌ Get active teacher error: {e}")
+            return None
+
+    @classmethod
+    def update_teacher_exit_by_id(cls, teacher_id):
+        """Update exit time for teacher by ID"""
+        try:
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            params = {'id': f'eq.{teacher_id}'}
+            
+            ist_now = cls._get_indian_time()
+            exit_time = ist_now.strftime('%H:%M:%S')
+            
+            data = {'exit_time': exit_time}
+            
+            print(f"👨‍🏫 TEACHER EXIT: ID {teacher_id} at {exit_time} IST")
+            
+            response = requests.patch(
+                url,
+                headers=cls._get_headers(),
+                params=params,
+                json=data
+            )
+            
+            if response.status_code == 200:
+                return response.json()[0] if response.json() else None
+            return None
+            
+        except Exception as e:
+            print(f"❌ Update teacher exit error: {e}")
+            return None
+
+    @classmethod
+    def get_all_teachers(cls):
+        """Get all teacher visits"""
+        try:
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            params = {'select': '*', 'order': 'id.desc'}
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                return response.json()
+            return []
+            
+        except Exception as e:
+            print(f"❌ Get all teachers error: {e}")
+            return []
+
+    @classmethod
+    def get_teachers_by_date_range(cls, start_date, end_date):
+        """Get teachers by date range"""
+        try:
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            params = {
+                'visit_date': f'gte.{start_date}',
+                'visit_date': f'lte.{end_date}',
+                'select': '*',
+                'order': 'visit_date.desc,id.desc'
+            }
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                return response.json()
+            return []
+            
+        except Exception as e:
+            print(f"❌ Get teachers by date range error: {e}")
+            return []
+
+    @classmethod
+    def get_today_teachers(cls):
+        """Get today's teachers"""
+        try:
+            ist_now = cls._get_indian_time()
+            today = ist_now.date().isoformat()
+            
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            params = {
+                'visit_date': f'eq.{today}',
+                'select': '*',
+                'order': 'id.desc'
+            }
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                return response.json()
+            return []
+            
+        except Exception as e:
+            print(f"❌ Get today teachers error: {e}")
+            return []
+        
+    @classmethod
+    def auto_exit_overdue_visitors(cls):
+        """Automatically mark exit for visitors still inside after 4 PM"""
+        try:
+            ist_now = cls._get_indian_time()
+            current_hour = ist_now.hour
+            
+            # Only run between 4:00 PM and 4:30 PM
+            if current_hour < 16 or current_hour > 16:
+                return 0
+            
+            today = ist_now.date().isoformat()
+            closing_time = "16:00:00"
+            
+            url = f"{Config.SUPABASE_URL}/rest/v1/visitors"
+            params = {
+                'visit_date': f'eq.{today}',
+                'exit_time': 'is.null',
+                'select': 'id'
+            }
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                active_visitors = response.json()
+                
+                if not active_visitors:
+                    return 0
+                
+                updated_count = 0
+                for visitor in active_visitors:
+                    url_update = f"{Config.SUPABASE_URL}/rest/v1/visitors"
+                    params_update = {'id': f'eq.{visitor["id"]}'}
+                    data = {'exit_time': closing_time}
+                    
+                    update_response = requests.patch(
+                        url_update,
+                        headers=cls._get_headers(),
+                        params=params_update,
+                        json=data
+                    )
+                    
+                    if update_response.status_code == 200:
+                        updated_count += 1
+                
+                print(f"🕐 AUTO-EXIT: Marked {updated_count} visitors as exited at 4 PM")
+                return updated_count
+            
+            return 0
+            
+        except Exception as e:
+            print(f"❌ Auto-exit visitor error: {e}")
+            return 0
+
+    @classmethod
+    def auto_exit_overdue_teachers(cls):
+        """Automatically mark exit for teachers still inside after 4 PM"""
+        try:
+            ist_now = cls._get_indian_time()
+            current_hour = ist_now.hour
+            
+            # Only run between 4:00 PM and 4:30 PM
+            if current_hour < 16 or current_hour > 16:
+                return 0
+            
+            today = ist_now.date().isoformat()
+            closing_time = "16:00:00"
+            
+            url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+            params = {
+                'visit_date': f'eq.{today}',
+                'exit_time': 'is.null',
+                'select': 'id'
+            }
+            
+            response = requests.get(url, headers=cls._get_headers(), params=params)
+            
+            if response.status_code == 200:
+                active_teachers = response.json()
+                
+                if not active_teachers:
+                    return 0
+                
+                updated_count = 0
+                for teacher in active_teachers:
+                    url_update = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+                    params_update = {'id': f'eq.{teacher["id"]}'}
+                    data = {'exit_time': closing_time}
+                    
+                    update_response = requests.patch(
+                        url_update,
+                        headers=cls._get_headers(),
+                        params=params_update,
+                        json=data
+                    )
+                    
+                    if update_response.status_code == 200:
+                        updated_count += 1
+                
+                print(f"🕐 AUTO-EXIT: Marked {updated_count} teachers as exited at 4 PM")
+                return updated_count
+            
+            return 0
+            
+        except Exception as e:
+            print(f"❌ Auto-exit teacher error: {e}")
+            return 0
