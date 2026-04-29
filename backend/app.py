@@ -44,7 +44,8 @@ def create_app():
                 'message': 'Database is working'
             }
         except Exception as e:
-            return {'db_status': 'error', 'message': str(e)[:200]}, 500    
+            return {'db_status': 'error', 'message': str(e)[:200]}, 500
+    
     # ==================== REGISTER BLUEPRINTS ====================
     
     try:
@@ -59,8 +60,6 @@ def create_app():
         print("✅ Blueprints registered")
     except Exception as e:
         print(f"❌ Blueprint registration error: {e}")
-
-    
     
     # ==================== HOME ROUTE ====================
     
@@ -524,7 +523,6 @@ def create_app():
     </div>
 </body>
 </html>'''
-
     
     # ==================== OTHER PAGE ROUTES ====================
     
@@ -615,12 +613,15 @@ def create_app():
             print(f"Error in trigger_monthly_report: {e}")
             return jsonify({"error": str(e)}), 500
 
+    # ==================== FORCE AUTO EXIT ROUTE ====================
+    
     @app.route('/admin/force_auto_exit', methods=['POST'])
     def force_auto_exit():
-    try:
-        return jsonify({"success": True, "visitors": 0, "teachers": 0}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        try:
+            return jsonify({"success": True, "visitors": 0, "teachers": 0}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     # ==================== ERROR HANDLERS ====================
     
     @app.errorhandler(404)
