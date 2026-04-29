@@ -739,3 +739,44 @@ def send_lifetime_report():
     except Exception as e:
         print(f"Error sending lifetime report: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# ==================== ADD TEACHER (ADMIN ONLY) ====================
+
+@admin_bp.route('/add_teacher', methods=['POST'])
+@login_required
+def add_teacher_admin():
+    """Add new teacher record - Admin only"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['name', 'employee_id', 'designation', 'nature_of_work']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"error": f"{field} is required"}), 400
+        
+        # Prepare data for direct API (entry_time, visit_date, visit_day will be auto-set by insert_teacher)
+        teacher_data = {
+            'name': data['name'].strip(),
+            'employee_id': data['employee_id'].strip().upper(),
+            'designation': data['designation'],
+            'nature_of_work': data['nature_of_work'],
+            'notes': data.get('notes', '')
+        }
+        
+        # ✅ USE DIRECT API
+        result = Database.insert_teacher(teacher_data)
+        
+        if result:
+            return jsonify({
+                "success": True,
+                "message": "Teacher added successfully",
+                "teacher_id": result.get('id')
+            }), 201
+        else:
+            return jsonify({"error": "Failed to add teacher"}), 500
+        
+    except Exception as e:
+        print(f"Error adding teacher: {e}")
+        return jsonify({"error": f"Failed to add teacher: {str(e)}"}), 500
