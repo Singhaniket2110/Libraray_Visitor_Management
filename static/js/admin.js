@@ -46,8 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 console.log("📈 Loading all data...");
                 loadAnalytics();
-                loadDailyStats();
-                loadLifetimeStats();
                 loadTeacherStats();
                 loadTeacherVisits();
             }, 200);
@@ -57,16 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!document.hidden) {
                     console.log("🔄 Auto-refreshing...");
                     loadAnalytics();
-                    
-                    // Refresh active stats tab
-                    if (document.getElementById('dailyStats').classList.contains('active')) {
-                        loadDailyStats();
-                    } else if (document.getElementById('lifetimeStats').classList.contains('active')) {
-                        loadLifetimeStats();
-                    } else if (document.getElementById('teacherStats').classList.contains('active')) {
-                        loadTeacherStats();
-                    }
-                    
                     loadVisitors();
                     loadTeacherVisits();
                 }
@@ -112,132 +100,23 @@ function showStatsTab(tabName) {
     });
     
     // Show selected tab
-    document.getElementById(tabName + 'Stats').classList.add('active');
+    const targetSection = document.getElementById(tabName + 'Stats');
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
     
     // Activate selected button
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     // Load appropriate data
-    if (tabName === 'daily') {
-        loadDailyStats();
-    } else if (tabName === 'lifetime') {
-        loadLifetimeStats();
+    if (tabName === 'student') {
+        loadAnalytics();
+        loadVisitors();
     } else if (tabName === 'teachers') {
         loadTeacherStats();
-    }
-}
-
-async function loadDailyStats() {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const response = await fetch(`/admin/analytics/advanced?start_date=${today}&end_date=${today}`);
-        const data = await response.json();
-        
-        if (data.stats) {
-            document.getElementById('dailyTotalVisitors').textContent = data.stats.total || 0;
-            document.getElementById('dailyCurrentVisitors').textContent = data.stats.active || 0;
-            document.getElementById('dailyAvgDuration').textContent = data.stats.avgDuration || 0;
-        }
-        
-        if (data.levelData) {
-            const jcIndex = data.levelData.labels.indexOf('JC');
-            const ugIndex = data.levelData.labels.indexOf('UG');
-            const pgIndex = data.levelData.labels.indexOf('PG');
-            
-            document.getElementById('dailyJcCount').textContent = jcIndex !== -1 ? data.levelData.values[jcIndex] : 0;
-            document.getElementById('dailyUgCount').textContent = ugIndex !== -1 ? data.levelData.values[ugIndex] : 0;
-            document.getElementById('dailyPgCount').textContent = pgIndex !== -1 ? data.levelData.values[pgIndex] : 0;
-        }
-        
-    } catch (error) {
-        console.error('Error loading daily stats:', error);
-    }
-}
-
-async function loadLifetimeStats() {
-    try {
-        // Get all visitors
-        const response = await fetch('/admin/visitors/all');
-        const visitors = await response.json();
-        
-        // Calculate lifetime stats
-        const totalVisitors = visitors.length;
-        const jcCount = visitors.filter(v => v.level === 'JC').length;
-        const ugCount = visitors.filter(v => v.level === 'UG').length;
-        const pgCount = visitors.filter(v => v.level === 'PG').length;
-        
-        // Get unique dates for days of operation
-        const uniqueDates = [...new Set(visitors.map(v => v.visit_date))].filter(date => date);
-        const totalDays = uniqueDates.length;
-        const avgDaily = totalDays > 0 ? (totalVisitors / totalDays).toFixed(1) : 0;
-        
-        // Update UI
-        document.getElementById('lifetimeTotalVisitors').textContent = totalVisitors;
-        document.getElementById('lifetimeJcCount').textContent = jcCount;
-        document.getElementById('lifetimeUgCount').textContent = ugCount;
-        document.getElementById('lifetimePgCount').textContent = pgCount;
-        document.getElementById('totalDays').textContent = totalDays;
-        document.getElementById('avgDaily').textContent = avgDaily;
-        
-    } catch (error) {
-        console.error('Error loading lifetime stats:', error);
-    }
-}
-
-async function loadTeacherStats() {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Get all teacher visits
-        const allResponse = await fetch('/admin/teachers/all');
-        const allTeachers = await allResponse.json();
-        
-        // Get today's teacher visits
-        const todayResponse = await fetch(`/admin/teachers/filter?start_date=${today}&end_date=${today}`);
-        const todayTeachers = await todayResponse.json();
-        
-        // Calculate stats
-        const teacherTotalVisits = allTeachers.length;
-        const teacherTodayVisits = todayTeachers.length;
-        const teacherActiveNow = todayTeachers.filter(t => !t.exit_time).length;
-        
-        // Unique teachers
-        const uniqueTeachers = [...new Set(allTeachers.map(t => t.name))].length;
-        
-        // Average duration for today
-        let totalDuration = 0;
-        let count = 0;
-        todayTeachers.forEach(t => {
-            if (t.entry_time && t.exit_time) {
-                const entry = new Date(`2000-01-01 ${t.entry_time}`);
-                const exit = new Date(`2000-01-01 ${t.exit_time}`);
-                totalDuration += (exit - entry) / 60000; // Convert to minutes
-                count++;
-            }
-        });
-        const teacherAvgDuration = count > 0 ? Math.round(totalDuration / count) : 0;
-        
-        // This month's visits
-        const now = new Date();
-        const thisMonth = now.getMonth() + 1;
-        const thisYear = now.getFullYear();
-        const thisMonthTeachers = allTeachers.filter(t => {
-            if (!t.visit_date) return false;
-            const visitDate = new Date(t.visit_date);
-            return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
-        });
-        const teacherThisMonth = thisMonthTeachers.length;
-        
-        // Update UI
-        document.getElementById('teacherTotalVisits').textContent = teacherTotalVisits;
-        document.getElementById('teacherTodayVisits').textContent = teacherTodayVisits;
-        document.getElementById('teacherActiveNow').textContent = teacherActiveNow;
-        document.getElementById('teacherUnique').textContent = uniqueTeachers;
-        document.getElementById('teacherAvgDuration').textContent = teacherAvgDuration;
-        document.getElementById('teacherThisMonth').textContent = teacherThisMonth;
-        
-    } catch (error) {
-        console.error('Error loading teacher stats:', error);
+        loadTeacherVisits();
     }
 }
 
@@ -253,7 +132,9 @@ function selectDateRange(type) {
     document.querySelectorAll('.quick-dates button').forEach(btn => {
         btn.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     switch(type) {
         case 'today':
@@ -305,7 +186,6 @@ function applyCustomDateRange() {
     let startDate = startDateEl.value;
     let endDate = endDateEl.value;
     
-    // If dates are empty, set to today
     if (!startDate) {
         const today = new Date().toISOString().split('T')[0];
         startDate = today;
@@ -323,7 +203,6 @@ function applyCustomDateRange() {
         return;
     }
     
-    // Remove active class from quick date buttons
     document.querySelectorAll('.quick-dates button').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -339,11 +218,9 @@ async function loadAnalytics() {
     try {
         console.log("📊 Loading analytics...");
         
-        // Ensure we have valid dates
         let startDate = currentDateRange.start;
         let endDate = currentDateRange.end;
         
-        // If dates are null or invalid, use today
         if (!startDate || startDate === 'null') {
             startDate = new Date().toISOString().split('T')[0];
             currentDateRange.start = startDate;
@@ -376,13 +253,8 @@ async function loadAnalytics() {
         const data = await response.json();
         console.log("✅ Analytics data received:", data);
         
-        // Update statistics
         updateStatistics(data);
-        
-        // Update charts with data
         updateChartData(data);
-        
-        // Load visitors
         loadVisitors();
         
     } catch (error) {
@@ -406,12 +278,10 @@ function updateStatistics(data) {
         pgCount: document.getElementById('pgCount')
     };
     
-    // Safely update each element
     if (elements.totalVisitors) elements.totalVisitors.textContent = stats.total || 0;
     if (elements.currentVisitors) elements.currentVisitors.textContent = stats.active || 0;
     if (elements.avgDuration) elements.avgDuration.textContent = stats.avgDuration || 0;
     
-    // Level counts
     if (levelData.labels && levelData.values) {
         const jcIndex = levelData.labels.indexOf('JC');
         const ugIndex = levelData.labels.indexOf('UG');
@@ -430,7 +300,6 @@ function updateStatistics(data) {
 function initializeCharts() {
     console.log("📊 Initializing charts...");
     
-    // Check if Chart.js is loaded
     if (typeof Chart === 'undefined') {
         console.error("❌ Chart.js is not loaded!");
         showNotification("Chart library not loaded. Please refresh the page.", "error");
@@ -446,194 +315,68 @@ function initializeCharts() {
         duration: document.getElementById('durationChart')
     };
     
-    // Check if we're on the enhanced dashboard
     if (!chartElements.level) {
         console.log("ℹ️ Not on enhanced dashboard - skipping chart initialization");
         return;
     }
     
     try {
-        // Level Distribution Chart
         if (chartElements.level) {
             const levelCtx = chartElements.level.getContext('2d');
             charts.level = new Chart(levelCtx, {
                 type: 'pie',
-                data: {
-                    labels: ['JC', 'UG', 'PG'],
-                    datasets: [{
-                        data: [0, 0, 0],
-                        backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            position: 'bottom',
-                            labels: { padding: 15, font: { size: 12 } }
-                        }
-                    }
-                }
+                data: { labels: ['JC', 'UG', 'PG'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'], borderWidth: 2, borderColor: '#fff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } } } }
             });
             console.log("✅ Level chart created");
         }
         
-        // Daily Trend Chart
         if (chartElements.trend) {
             const trendCtx = chartElements.trend.getContext('2d');
             charts.trend = new Chart(trendCtx, {
                 type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Daily Visitors',
-                        data: [],
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: true, position: 'top' }
-                    }
-                }
+                data: { labels: [], datasets: [{ label: 'Daily Visitors', data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', tension: 0.4, fill: true, borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: true, position: 'top' } } }
             });
             console.log("✅ Trend chart created");
         }
         
-        // Course Distribution Chart
         if (chartElements.course) {
             const courseCtx = chartElements.course.getContext('2d');
             charts.course = new Chart(courseCtx, {
                 type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Visitors by Course',
-                        data: [],
-                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                        borderColor: '#6366f1',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'x',
-                    scales: {
-                        x: {
-                            beginAtZero: true
-                        },
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+                data: { labels: [], datasets: [{ label: 'Visitors by Course', data: [], backgroundColor: 'rgba(99, 102, 241, 0.8)', borderColor: '#6366f1', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', scales: { x: { beginAtZero: true }, y: { beginAtZero: true } } }
             });
             console.log("✅ Course chart created");
         }
         
-        // Purpose Distribution Chart
         if (chartElements.purpose) {
             const purposeCtx = chartElements.purpose.getContext('2d');
             charts.purpose = new Chart(purposeCtx, {
                 type: 'doughnut',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        data: [],
-                        backgroundColor: [
-                            '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
-                            '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            position: 'bottom',
-                            labels: { padding: 10, font: { size: 11 } }
-                        }
-                    }
-                }
+                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'], borderWidth: 2, borderColor: '#fff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } } }
             });
             console.log("✅ Purpose chart created");
         }
         
-        // Peak Hours Chart
         if (chartElements.hours) {
             const hoursCtx = chartElements.hours.getContext('2d');
             charts.hours = new Chart(hoursCtx, {
                 type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Visitors per Hour',
-                        data: [],
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    }
-                }
+                data: { labels: [], datasets: [{ label: 'Visitors per Hour', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4, fill: true, borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
             console.log("✅ Peak hours chart created");
         }
         
-        // Duration Chart
         if (chartElements.duration) {
             const durationCtx = chartElements.duration.getContext('2d');
             charts.duration = new Chart(durationCtx, {
                 type: 'bar',
-                data: {
-                    labels: ['<30 min', '30-60 min', '1-2 hrs', '2-4 hrs', '>4 hrs'],
-                    datasets: [{
-                        label: 'Visitors by Duration',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: 'rgba(236, 72, 153, 0.8)',
-                        borderColor: '#ec4899',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    }
-                }
+                data: { labels: ['<30 min', '30-60 min', '1-2 hrs', '2-4 hrs', '>4 hrs'], datasets: [{ label: 'Visitors by Duration', data: [0, 0, 0, 0, 0], backgroundColor: 'rgba(236, 72, 153, 0.8)', borderColor: '#ec4899', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
             console.log("✅ Duration chart created");
         }
@@ -655,51 +398,38 @@ function updateChartData(data) {
     }
     
     try {
-        // Level Chart
         if (charts.level && data.levelData) {
             charts.level.data.labels = data.levelData.labels || [];
             charts.level.data.datasets[0].data = data.levelData.values || [];
             charts.level.update('none');
-            console.log("✅ Level chart updated");
         }
         
-        // Daily Trend
         if (charts.trend && data.dailyTrend) {
             charts.trend.data.labels = data.dailyTrend.labels || [];
             charts.trend.data.datasets[0].data = data.dailyTrend.values || [];
             charts.trend.update('none');
-            console.log("✅ Trend chart updated");
         }
         
-        // Course Distribution
         if (charts.course && data.courseData) {
             charts.course.data.labels = data.courseData.labels || [];
             charts.course.data.datasets[0].data = data.courseData.values || [];
             charts.course.update('none');
-            console.log("✅ Course chart updated");
         }
         
-        // Purpose Distribution
         if (charts.purpose && data.purposeData) {
             charts.purpose.data.labels = data.purposeData.labels || [];
             charts.purpose.data.datasets[0].data = data.purposeData.values || [];
             charts.purpose.update('none');
-            console.log("✅ Purpose chart updated");
         }
         
-        // Peak Hours
         if (charts.hours && data.peakHours) {
             charts.hours.data.labels = data.peakHours.labels || [];
             charts.hours.data.datasets[0].data = data.peakHours.values || [];
             charts.hours.update('none');
-            console.log("✅ Peak hours chart updated");
         }
         
-        // Duration Analysis
         if (charts.duration && data.visitors) {
-            // Calculate duration distribution
-            const durations = [0, 0, 0, 0, 0]; // <30, 30-60, 1-2, 2-4, >4 hours
-            
+            const durations = [0, 0, 0, 0, 0];
             if (Array.isArray(data.visitors)) {
                 data.visitors.forEach(v => {
                     if (v.entry_time && v.exit_time) {
@@ -707,30 +437,20 @@ function updateChartData(data) {
                             const entry = new Date(`2000-01-01 ${v.entry_time}`);
                             const exit = new Date(`2000-01-01 ${v.exit_time}`);
                             const minutes = (exit - entry) / 60000;
-                            
                             if (minutes < 30) durations[0]++;
                             else if (minutes < 60) durations[1]++;
                             else if (minutes < 120) durations[2]++;
                             else if (minutes < 240) durations[3]++;
                             else durations[4]++;
-                        } catch (e) {
-                            console.warn("⚠️ Error calculating duration:", e);
-                        }
+                        } catch (e) { console.warn(e); }
                     }
                 });
             }
-            
-            // Update the chart
             charts.duration.data.datasets[0].data = durations;
-            
-            // Make sure labels are set correctly
-            const durationLabels = ['<30 min', '30-60 min', '1-2 hrs', '2-4 hrs', '>4 hrs'];
             if (charts.duration.data.labels.length === 0) {
-                charts.duration.data.labels = durationLabels;
+                charts.duration.data.labels = ['<30 min', '30-60 min', '1-2 hrs', '2-4 hrs', '>4 hrs'];
             }
-            
             charts.duration.update();
-            console.log("✅ Duration chart updated with data:", durations);
         }
         
         console.log("✅ All charts updated successfully");
@@ -744,142 +464,59 @@ function updateCharts() {
     console.log("🔄 Updating chart types...");
     
     try {
-        // Level Chart
         if (charts.level) {
             const levelType = document.getElementById('chartLevelType');
             if (levelType) {
                 charts.level.config.type = levelType.value;
                 charts.level.update();
-                console.log("✅ Level chart type changed to:", levelType.value);
             }
         }
         
-        // Trend Chart
         if (charts.trend) {
             const trendType = document.getElementById('chartTrendType');
             if (trendType) {
                 charts.trend.config.type = trendType.value;
                 charts.trend.update();
-                console.log("✅ Trend chart type changed to:", trendType.value);
             }
         }
         
-        // Course Chart
         if (charts.course) {
             const courseType = document.getElementById('chartCourseType');
             if (courseType) {
                 const type = courseType.value;
-                
-                // Store current data
                 const currentData = {
                     labels: charts.course.data.labels || [],
-                    datasets: charts.course.data.datasets.map(dataset => ({
-                        ...dataset
-                    }))
+                    datasets: charts.course.data.datasets.map(dataset => ({ ...dataset }))
                 };
-                
-                // Destroy and recreate the chart with new configuration
                 charts.course.destroy();
                 
-                // For Chart.js v4.x: Use 'bar' type with different indexAxis
                 if (type === 'horizontalBar') {
                     charts.course = new Chart(document.getElementById('courseChart').getContext('2d'), {
-                        type: 'bar',
-                        data: currentData,
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            indexAxis: 'y',
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Courses'
-                                    },
-                                    grid: {
-                                        display: true
-                                    }
-                                },
-                                x: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Visitors'
-                                    },
-                                    ticks: {
-                                        callback: function(value) {
-                                            if (Math.floor(value) === value) {
-                                                return value;
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            }
-                        }
+                        type: 'bar', data: currentData,
+                        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { y: { beginAtZero: true, title: { display: true, text: 'Courses' } }, x: { beginAtZero: true, title: { display: true, text: 'Number of Visitors' } } }, plugins: { legend: { display: false } } }
                     });
                 } else {
-                    // Vertical bars
                     charts.course = new Chart(document.getElementById('courseChart').getContext('2d'), {
-                        type: 'bar',
-                        data: currentData,
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            indexAxis: 'x',
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Courses'
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Visitors'
-                                    },
-                                    ticks: {
-                                        callback: function(value) {
-                                            if (Math.floor(value) === value) {
-                                                return value;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        type: 'bar', data: currentData,
+                        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', scales: { x: { beginAtZero: true, title: { display: true, text: 'Courses' } }, y: { beginAtZero: true, title: { display: true, text: 'Number of Visitors' } } } }
                     });
                 }
-                
-                console.log("✅ Course chart type changed to:", type);
             }
         }
         
-        // Purpose Chart
         if (charts.purpose) {
             const purposeType = document.getElementById('chartPurposeType');
             if (purposeType) {
                 charts.purpose.config.type = purposeType.value;
                 charts.purpose.update();
-                console.log("✅ Purpose chart type changed to:", purposeType.value);
             }
         }
         
-        // Peak Hours Chart
         if (charts.hours) {
             const hoursType = document.getElementById('chartHoursType');
             if (hoursType) {
                 charts.hours.config.type = hoursType.value;
                 charts.hours.update();
-                console.log("✅ Peak hours chart type changed to:", hoursType.value);
             }
         }
         
@@ -901,22 +538,11 @@ async function loadVisitors() {
             return;
         }
         
-        // Show loading
-        table.innerHTML = `
-            <tr>
-                <td colspan="13" class="loading-row">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <div>Loading student data...</div>
-                 </td>
-             </tr>
-        `;
+        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i><div>Loading student data...</div></td></tr>`;
         
-        // Get filters
         const levelFilter = document.getElementById('levelFilter');
         const statusFilter = document.getElementById('statusFilter');
-        const dataTypeFilter = document.getElementById('dataTypeFilter');
         
-        // Build URL for student data
         let url = "/admin/visitors/filter";
         const params = new URLSearchParams();
         
@@ -924,13 +550,6 @@ async function loadVisitors() {
             params.append('level', levelFilter.value);
         }
         
-        if (statusFilter && statusFilter.value === 'active') {
-            params.append('status', 'active');
-        } else if (statusFilter && statusFilter.value === 'exited') {
-            params.append('status', 'exited');
-        }
-        
-        // Apply date range
         if (currentDateRange.start && currentDateRange.end) {
             params.append('start_date', currentDateRange.start);
             params.append('end_date', currentDateRange.end);
@@ -949,14 +568,12 @@ async function loadVisitors() {
         
         let data = await response.json();
         
-        // Handle analytics response format
         if (data.visitors) {
             allVisitors = data.visitors;
         } else {
             allVisitors = Array.isArray(data) ? data : [];
         }
         
-        // Apply status filter if needed
         if (statusFilter && statusFilter.value === 'active') {
             allVisitors = allVisitors.filter(v => !v.exit_time);
         } else if (statusFilter && statusFilter.value === 'exited') {
@@ -966,14 +583,7 @@ async function loadVisitors() {
         totalRecords = allVisitors.length;
         
         if (allVisitors.length === 0) {
-            table.innerHTML = `
-                <tr>
-                    <td colspan="13" class="loading-row">
-                        <i class="fas fa-inbox"></i>
-                        <div>No student visitors found</div>
-                    </td>
-                 </tr>
-            `;
+            table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
             updateRecordCount(totalRecords);
             return;
         }
@@ -987,14 +597,7 @@ async function loadVisitors() {
         console.error('❌ Error loading visitors:', error);
         const table = document.getElementById('visitorTable');
         if (table) {
-            table.innerHTML = `
-                <tr>
-                    <td colspan="13" class="loading-row" style="color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>Error loading student data. Please try again.</div>
-                    </td>
-                 </tr>
-            `;
+            table.innerHTML = `<tr><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div></td></tr>`;
         }
         showNotification('Error loading student data', 'error');
     }
@@ -1011,14 +614,7 @@ function renderTablePage() {
     const pageVisitors = allVisitors.slice(startIndex, endIndex);
     
     if (pageVisitors.length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="13" class="loading-row">
-                    <i class="fas fa-inbox"></i>
-                    <div>No student visitors found</div>
-                </td>
-             </tr>
-        `;
+        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
         return;
     }
     
@@ -1033,48 +629,35 @@ function renderTablePage() {
             yearDisplay = v.jc_year || "-";
         }
         
-        // Calculate duration - FIXED for next day exits
         let duration = '-';
         if (v.entry_time && v.exit_time) {
             try {
                 const entryTime = v.entry_time;
                 const exitTime = v.exit_time;
                 const visitDate = v.visit_date;
-                
-                // Parse entry date and time
                 const entryDateTime = new Date(`${visitDate}T${entryTime}`);
-                
-                // Parse exit - check if exit is on next day
                 let exitDateTime = new Date(`${visitDate}T${exitTime}`);
-                
-                // If exit time is earlier than entry time, it's next day
                 if (exitDateTime < entryDateTime) {
-                    // Add one day to exit
                     exitDateTime = new Date(exitDateTime);
                     exitDateTime.setDate(exitDateTime.getDate() + 1);
                 }
-                
                 const diffMs = exitDateTime - entryDateTime;
                 const minutes = Math.floor(diffMs / 60000);
                 const hours = Math.floor(minutes / 60);
                 const remainingMinutes = minutes % 60;
-                
                 if (hours > 0) {
                     duration = `${hours}h ${remainingMinutes}m`;
                 } else {
                     duration = `${minutes}m`;
                 }
             } catch (e) {
-                console.warn('Duration calculation error:', e);
                 duration = '-';
             }
         }
         
         tableHTML += `
             <tr>
-                <td class="checkbox-cell">
-                    <input type="checkbox" class="row-checkbox" value="${v.id}">
-                </td>
+                <td class="checkbox-cell"><input type="checkbox" class="row-checkbox" value="${v.id}"></td>
                 <td><strong>${v.name}</strong></td>
                 <td><code class="roll-no">${v.roll_no}</code></td>
                 <td>${v.level}</td>
@@ -1084,33 +667,16 @@ function renderTablePage() {
                 <td>${v.entry_time || "-"}</td>
                 <td>${v.exit_time || "-"}</td>
                 <td>${v.visit_date}</td>
-                <td>
-                    <span class="status-badge ${v.exit_time ? 'exited' : 'active'}">
-                        <i class="fas ${v.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i>
-                        ${v.exit_time ? 'Exited' : 'Active'}
-                    </span>
-                </td>
+                <td><span class="status-badge ${v.exit_time ? 'exited' : 'active'}"><i class="fas ${v.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i> ${v.exit_time ? 'Exited' : 'Active'}</span></td>
                 <td>${duration}</td>
-                <td>
-                    ${!v.exit_time ? `
-                        <button class="btn-exit" onclick="markExit(${v.id})">
-                            <i class="fas fa-sign-out-alt"></i> Exit
-                        </button>
-                    ` : ''}
-                    <button class="btn btn-secondary view-details-btn" onclick="viewDetails(${v.id})" style="margin-left: 5px; padding: 6px 10px; font-size: 12px;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
+                <td>${!v.exit_time ? `<button class="btn-exit" onclick="markExit(${v.id})"><i class="fas fa-sign-out-alt"></i> Exit</button>` : ''}<button class="btn btn-secondary view-details-btn" onclick="viewDetails(${v.id})" style="margin-left: 5px; padding: 6px 10px; font-size: 12px;"><i class="fas fa-eye"></i></button></td>
             </tr>
         `;
     });
     
     table.innerHTML = tableHTML;
-    
-    // Update pagination
     updatePagination();
     
-    // Update select all checkbox
     const selectAll = document.getElementById('selectAll');
     if (selectAll) selectAll.checked = false;
     
@@ -1126,88 +692,90 @@ function updateRecordCount(count) {
 
 // ==================== TEACHER VISIT FUNCTIONS ====================
 
+async function loadTeacherStats() {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        const allResponse = await fetch('/admin/teachers/all');
+        const allTeachersData = await allResponse.json();
+        
+        const todayResponse = await fetch(`/admin/teachers/filter?start_date=${today}&end_date=${today}`);
+        const todayTeachers = await todayResponse.json();
+        
+        const teacherTotalVisits = allTeachersData.length;
+        const teacherTodayVisits = todayTeachers.length;
+        const teacherActiveNow = todayTeachers.filter(t => !t.exit_time).length;
+        const uniqueTeachers = [...new Set(allTeachersData.map(t => t.name))].length;
+        
+        let totalDuration = 0;
+        let count = 0;
+        todayTeachers.forEach(t => {
+            if (t.entry_time && t.exit_time) {
+                const entry = new Date(`2000-01-01 ${t.entry_time}`);
+                const exit = new Date(`2000-01-01 ${t.exit_time}`);
+                totalDuration += (exit - entry) / 60000;
+                count++;
+            }
+        });
+        const teacherAvgDuration = count > 0 ? Math.round(totalDuration / count) : 0;
+        
+        const now = new Date();
+        const thisMonth = now.getMonth() + 1;
+        const thisYear = now.getFullYear();
+        const thisMonthTeachers = allTeachersData.filter(t => {
+            if (!t.visit_date) return false;
+            const visitDate = new Date(t.visit_date);
+            return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
+        });
+        const teacherThisMonth = thisMonthTeachers.length;
+        
+        if (document.getElementById('teacherTotalVisits')) {
+            document.getElementById('teacherTotalVisits').textContent = teacherTotalVisits;
+            document.getElementById('teacherTodayVisits').textContent = teacherTodayVisits;
+            document.getElementById('teacherActiveNow').textContent = teacherActiveNow;
+            document.getElementById('teacherUnique').textContent = uniqueTeachers;
+            document.getElementById('teacherAvgDuration').textContent = teacherAvgDuration;
+            document.getElementById('teacherThisMonth').textContent = teacherThisMonth;
+        }
+        
+    } catch (error) {
+        console.error('Error loading teacher stats:', error);
+    }
+}
+
 async function loadTeacherVisits() {
     try {
-        console.log("👨‍🏫 Loading teacher visits...");
-        
         const table = document.getElementById('teacherTable');
-        if (!table) {
-            console.warn("⚠️ Teacher table not found");
-            return;
-        }
+        if (!table) return;
         
-        // Show loading
-        table.innerHTML = `
-            <tr>
-                <td colspan="11" class="loading-row">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <div>Loading teacher data...</div>
-                </td>
-             </tr>
-        `;
+        table.innerHTML = `<tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td></tr>`;
         
-        // Get filters
-        const statusFilter = document.getElementById('teacherFilter') || document.getElementById('statusFilter');
         const startDate = currentDateRange.start || '';
         const endDate = currentDateRange.end || '';
-        
-        // Build URL
-        let url = '/admin/teachers/filter';
-        const params = new URLSearchParams();
-        
-        if (statusFilter && statusFilter.value) {
-            params.append('status', statusFilter.value);
-        }
+        let url = '/admin/teachers/all';
         
         if (startDate && endDate) {
-            params.append('start_date', startDate);
-            params.append('end_date', endDate);
-        }
-        
-        if (params.toString()) {
-            url += '?' + params.toString();
+            url = `/admin/teachers/filter?start_date=${startDate}&end_date=${endDate}`;
         }
         
         const response = await fetch(url);
-        
-        if (response.status === 401) {
-            window.location.href = '/admin/login';
-            return;
-        }
-        
         const teachers = await response.json();
         
         allTeachers = Array.isArray(teachers) ? teachers : [];
         teacherTotalRecords = allTeachers.length;
         
-        // Update teacher record count
-        updateTeacherRecordCount(teacherTotalRecords);
-        
-        // Render teacher table
         renderTeacherTablePage();
         
-        console.log("✅ Teacher visits loaded:", teacherTotalRecords);
-        
     } catch (error) {
-        console.error('❌ Error loading teacher visits:', error);
+        console.error('Error loading teacher visits:', error);
         const table = document.getElementById('teacherTable');
         if (table) {
-            table.innerHTML = `
-                <tr>
-                    <td colspan="11" class="loading-row" style="color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>Error loading teacher data</div>
-                    </td>
-                 </tr>
-            `;
+            table.innerHTML = `<tr><td colspan="10" class="loading-row" style="color: #ef4444;">Error loading teacher data</td></tr>`;
         }
-        showNotification('Error loading teacher data', 'error');
     }
 }
 
 function renderTeacherTablePage() {
-    console.log("📄 Rendering teacher page", currentTeacherPage);
-    
     const table = document.getElementById('teacherTable');
     if (!table) return;
     
@@ -1216,83 +784,40 @@ function renderTeacherTablePage() {
     const pageTeachers = allTeachers.slice(startIndex, endIndex);
     
     if (pageTeachers.length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="11" class="loading-row">
-                    <i class="fas fa-inbox"></i>
-                    <div>No teacher visits found</div>
-                </td>
-             </tr>
-        `;
+        table.innerHTML = `<tr><td colspan="10" class="loading-row">No teacher records found</td></tr>`;
         return;
     }
     
     let tableHTML = '';
-    
     pageTeachers.forEach(t => {
         tableHTML += `
             <tr>
-                <td class="checkbox-cell">
-                    <input type="checkbox" class="teacher-row-checkbox" value="${t.id}">
-                </td>
+                <td class="checkbox-cell"><input type="checkbox" class="teacher-row-checkbox" value="${t.id}"></td>
                 <td><strong>${t.name}</strong></td>
                 <td>${t.employee_id || '-'}</td>
-                <td>${t.purpose}</td>
+                <td>${t.designation || '-'}</td>
+                <td>${t.nature_of_work || '-'}</td>
                 <td>${t.entry_time || '-'}</td>
                 <td>${t.exit_time || '-'}</td>
                 <td>${t.visit_date}</td>
-                <td>${t.visit_day}</td>
-                <td>${t.notes || '-'}</td>
-                <td>
-                    <span class="status-badge ${t.exit_time ? 'exited' : 'active'}">
-                        <i class="fas ${t.exit_time ? 'fa-door-closed' : 'fa-door-open'}"></i>
-                        ${t.exit_time ? 'Exited' : 'Active'}
-                    </span>
-                </td>
-                <td>
-                    ${!t.exit_time ? `
-                        <button class="btn-exit" onclick="markTeacherExit(${t.id})">
-                            <i class="fas fa-sign-out-alt"></i> Exit
-                        </button>
-                    ` : ''}
-                    <button class="btn btn-secondary view-details-btn" onclick="viewTeacherDetails(${t.id})" style="margin-left: 5px; padding: 6px 10px; font-size: 12px;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
+                <td><span class="status-badge ${t.exit_time ? 'exited' : 'active'}">${t.exit_time ? 'Exited' : 'Active'}</span></td>
+                <td>${!t.exit_time ? `<button class="btn-exit" onclick="markTeacherExit(${t.id})"><i class="fas fa-sign-out-alt"></i> Exit</button>` : '-'}</td>
             </tr>
         `;
     });
     
     table.innerHTML = tableHTML;
-    
-    // Update teacher pagination
     updateTeacherPagination();
-    
-    // Update select all checkbox
-    const selectAll = document.getElementById('selectAllTeachers');
-    if (selectAll) selectAll.checked = false;
-    
-    console.log("✅ Teacher table page rendered");
-}
-
-function updateTeacherRecordCount(count) {
-    const recordCountEl = document.getElementById('teacherRecordCount');
-    if (recordCountEl) {
-        recordCountEl.textContent = count;
-    }
 }
 
 function updateTeacherPagination() {
-    const currentPageEl = document.getElementById('teacherCurrentPage');
-    const totalPagesEl = document.getElementById('teacherTotalPages');
-    const prevBtn = document.getElementById('prevTeacherBtn');
-    const nextBtn = document.getElementById('nextTeacherBtn');
-    
-    if (currentPageEl) currentPageEl.textContent = currentTeacherPage;
-    if (totalPagesEl) totalPagesEl.textContent = Math.ceil(teacherTotalRecords / teacherPageSize) || 1;
-    
-    if (prevBtn) prevBtn.disabled = currentTeacherPage === 1;
-    if (nextBtn) nextBtn.disabled = currentTeacherPage * teacherPageSize >= teacherTotalRecords;
+    const totalPages = Math.ceil(teacherTotalRecords / teacherPageSize) || 1;
+    if (document.getElementById('teacherCurrentPage')) {
+        document.getElementById('teacherCurrentPage').textContent = currentTeacherPage;
+        document.getElementById('teacherTotalPages').textContent = totalPages;
+        document.getElementById('prevTeacherBtn').disabled = currentTeacherPage === 1;
+        document.getElementById('nextTeacherBtn').disabled = currentTeacherPage * teacherPageSize >= teacherTotalRecords;
+    }
 }
 
 function prevTeacherPage() {
@@ -1306,6 +831,57 @@ function nextTeacherPage() {
     if (currentTeacherPage * teacherPageSize < teacherTotalRecords) {
         currentTeacherPage++;
         renderTeacherTablePage();
+    }
+}
+
+function toggleSelectAllTeachers() {
+    const selectAll = document.getElementById('selectAllTeachers');
+    if (!selectAll) return;
+    const isChecked = selectAll.checked;
+    document.querySelectorAll('.teacher-row-checkbox').forEach(cb => cb.checked = isChecked);
+}
+
+function selectAllTeacherRows() {
+    const selectAll = document.getElementById('selectAllTeachers');
+    if (selectAll) selectAll.checked = true;
+    document.querySelectorAll('.teacher-row-checkbox').forEach(cb => cb.checked = true);
+}
+
+async function applyTeacherBulkAction() {
+    const action = document.getElementById('teacherBulkAction').value;
+    const selectedIds = [];
+    document.querySelectorAll('.teacher-row-checkbox:checked').forEach(cb => selectedIds.push(parseInt(cb.value)));
+    
+    if (selectedIds.length === 0) {
+        alert('Please select at least one teacher record');
+        return;
+    }
+    
+    if (action === 'mark_exit') {
+        if (!confirm(`Mark ${selectedIds.length} teacher(s) as exited?`)) return;
+        
+        let successCount = 0;
+        for (const id of selectedIds) {
+            const response = await fetch(`/admin/teachers/mark_exit/${id}`, { method: 'PUT' });
+            if (response.ok) successCount++;
+        }
+        
+        showNotification(`Marked ${successCount} teacher(s) as exited`, 'success');
+        loadTeacherVisits();
+        loadTeacherStats();
+    }
+}
+
+async function markTeacherExit(teacherId) {
+    if (!confirm('Mark this teacher as exited?')) return;
+    
+    const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, { method: 'PUT' });
+    if (response.ok) {
+        showNotification('Teacher exit marked successfully', 'success');
+        loadTeacherVisits();
+        loadTeacherStats();
+    } else {
+        showNotification('Failed to mark exit', 'error');
     }
 }
 
@@ -1341,56 +917,25 @@ function nextPage() {
 function toggleSelectAll() {
     const selectAll = document.getElementById('selectAll');
     if (!selectAll) return;
-    
     const isChecked = selectAll.checked;
-    document.querySelectorAll('.row-checkbox').forEach(cb => {
-        cb.checked = isChecked;
-    });
-}
-
-function toggleSelectAllTeachers() {
-    const selectAll = document.getElementById('selectAllTeachers');
-    if (!selectAll) return;
-    
-    const isChecked = selectAll.checked;
-    document.querySelectorAll('.teacher-row-checkbox').forEach(cb => {
-        cb.checked = isChecked;
-    });
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
 }
 
 function selectAllRows() {
     const selectAll = document.getElementById('selectAll');
-    if (selectAll) {
-        selectAll.checked = true;
-        document.querySelectorAll('.row-checkbox').forEach(cb => {
-            cb.checked = true;
-        });
-    }
-}
-
-function selectAllTeacherRows() {
-    const selectAll = document.getElementById('selectAllTeachers');
-    if (selectAll) {
-        selectAll.checked = true;
-        document.querySelectorAll('.teacher-row-checkbox').forEach(cb => {
-            cb.checked = true;
-        });
-    }
+    if (selectAll) selectAll.checked = true;
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = true);
 }
 
 function getSelectedVisitorIds() {
     const selected = [];
-    document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-        selected.push(parseInt(cb.value));
-    });
+    document.querySelectorAll('.row-checkbox:checked').forEach(cb => selected.push(parseInt(cb.value)));
     return selected;
 }
 
 function getSelectedTeacherIds() {
     const selected = [];
-    document.querySelectorAll('.teacher-row-checkbox:checked').forEach(cb => {
-        selected.push(parseInt(cb.value));
-    });
+    document.querySelectorAll('.teacher-row-checkbox:checked').forEach(cb => selected.push(parseInt(cb.value)));
     return selected;
 }
 
@@ -1430,7 +975,6 @@ async function applyBulkAction() {
             showNotification(result.message, 'success');
             loadVisitors();
             loadAnalytics();
-            loadDailyStats();
         } else {
             showNotification(result.error, 'error');
         }
@@ -1440,69 +984,16 @@ async function applyBulkAction() {
     }
 }
 
-async function applyTeacherBulkAction() {
-    const bulkActionSelect = document.getElementById('teacherBulkAction');
-    if (!bulkActionSelect) return;
-    
-    const action = bulkActionSelect.value;
-    const teacherIds = getSelectedTeacherIds();
-    
-    if (teacherIds.length === 0) {
-        alert('Please select at least one teacher visit');
-        return;
-    }
-    
-    if (!action) {
-        alert('Please select an action');
-        return;
-    }
-    
-    if (action === 'mark_exit') {
-        if (!confirm(`Are you sure you want to mark ${teacherIds.length} teacher visits as exited?`)) {
-            return;
-        }
-        
-        try {
-            let successCount = 0;
-            for (const teacherId of teacherIds) {
-                const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, {
-                    method: 'PUT'
-                });
-                
-                if (response.ok) {
-                    successCount++;
-                }
-            }
-            
-            showNotification(`Marked ${successCount} teacher visits as exited`, 'success');
-            loadTeacherVisits();
-            loadTeacherStats();
-        } catch (error) {
-            console.error('Teacher bulk action error:', error);
-            showNotification('Error performing bulk action', 'error');
-        }
-    }
-}
-
 // ==================== FILTER FUNCTIONS ====================
-
-function applyFilters() {
-    currentPage = 1; // Reset to first page
-    loadVisitors();
-}
 
 function resetFilters() {
     const levelFilter = document.getElementById('levelFilter');
     const statusFilter = document.getElementById('statusFilter');
-    const dataTypeFilter = document.getElementById('dataTypeFilter');
-    const teacherFilter = document.getElementById('teacherFilter');
     const startDate = document.getElementById('startDate');
     const endDate = document.getElementById('endDate');
     
     if (levelFilter) levelFilter.value = '';
     if (statusFilter) statusFilter.value = '';
-    if (dataTypeFilter) dataTypeFilter.value = 'students';
-    if (teacherFilter) teacherFilter.value = '';
     
     if (startDate && endDate) {
         const today = new Date().toISOString().split('T')[0];
@@ -1524,15 +1015,7 @@ function resetFilters() {
     loadAnalytics();
     loadVisitors();
     loadTeacherVisits();
-    
-    // Refresh stats based on active tab
-    if (document.getElementById('dailyStats').classList.contains('active')) {
-        loadDailyStats();
-    } else if (document.getElementById('lifetimeStats').classList.contains('active')) {
-        loadLifetimeStats();
-    } else if (document.getElementById('teacherStats').classList.contains('active')) {
-        loadTeacherStats();
-    }
+    loadTeacherStats();
 }
 
 // ==================== VISITOR ACTIONS ====================
@@ -1547,7 +1030,6 @@ async function markExit(visitorId) {
             showNotification('Exit marked successfully!', 'success');
             loadVisitors();
             loadAnalytics();
-            loadDailyStats();
         } else {
             const data = await response.json();
             showNotification(data.error || 'Failed to mark exit', 'error');
@@ -1555,28 +1037,6 @@ async function markExit(visitorId) {
     } catch (error) {
         console.error('Error marking exit:', error);
         showNotification('Error marking exit', 'error');
-    }
-}
-
-async function markTeacherExit(teacherId) {
-    if (!confirm('Mark this teacher visit as exited?')) return;
-    
-    try {
-        const response = await fetch(`/admin/teachers/mark_exit/${teacherId}`, {
-            method: 'PUT'
-        });
-        
-        if (response.ok) {
-            showNotification('Teacher exit marked successfully!', 'success');
-            loadTeacherVisits();
-            loadTeacherStats();
-        } else {
-            const data = await response.json();
-            showNotification(data.error || 'Failed to mark teacher exit', 'error');
-        }
-    } catch (error) {
-        console.error('Error marking teacher exit:', error);
-        showNotification('Error marking teacher exit', 'error');
     }
 }
 
@@ -1654,15 +1114,12 @@ async function exportData(format) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-        
             const fileExtension = format === 'excel' ? 'xlsx' : format;
             a.download = `library_export_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
-            
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             a.remove();
-            
             showNotification(`Data exported successfully as ${format.toUpperCase()}`, 'success');
         } else {
             showNotification('Error exporting data', 'error');
@@ -1744,16 +1201,9 @@ function showModal(title, content) {
     modal.innerHTML = `
         <div class="modal-overlay" onclick="closeModal()"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>${title}</h3>
-                <button onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                ${content}
-            </div>
-            <div class="modal-footer">
-                <button onclick="closeModal()" class="btn btn-primary">Close</button>
-            </div>
+            <div class="modal-header"><h3>${title}</h3><button onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">${content}</div>
+            <div class="modal-footer"><button onclick="closeModal()" class="btn btn-primary">Close</button></div>
         </div>
     `;
     
@@ -1797,34 +1247,12 @@ function showModal(title, content) {
                 justify-content: space-between;
                 align-items: center;
             }
-            .modal-header h3 {
-                margin: 0;
-                color: #1e293b;
-            }
-            .modal-header button {
-                background: none;
-                border: none;
-                color: #64748b;
-                cursor: pointer;
-                font-size: 1.25rem;
-            }
-            .modal-body {
-                padding: 1.5rem;
-                max-height: 50vh;
-                overflow-y: auto;
-            }
-            .modal-body p {
-                margin: 0.5rem 0;
-            }
-            .modal-footer {
-                padding: 1rem 1.5rem;
-                border-top: 1px solid #e2e8f0;
-                text-align: right;
-            }
-            @keyframes modalFadeIn {
-                from { opacity: 0; transform: scale(0.9); }
-                to { opacity: 1; transform: scale(1); }
-            }
+            .modal-header h3 { margin: 0; color: #1e293b; }
+            .modal-header button { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1.25rem; }
+            .modal-body { padding: 1.5rem; max-height: 50vh; overflow-y: auto; }
+            .modal-body p { margin: 0.5rem 0; }
+            .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0; text-align: right; }
+            @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         `;
         document.head.appendChild(style);
     }
@@ -1839,64 +1267,40 @@ function closeModal() {
 
 function logoutUser() {
     if (!confirm('Are you sure you want to logout?')) return;
-    
-    // Direct redirect to logout endpoint
     window.location.href = '/admin/logout';
-    
-    // OR with timeout to ensure cookies cleared
-    setTimeout(() => {
-        window.location.href = '/';
-    }, 1000);
+    setTimeout(() => { window.location.href = '/'; }, 1000);
 }
 
 // ==================== EMAIL REPORT FUNCTIONS ====================
 
 async function sendMonthlyReport() {
-    if (!confirm('📧 Send monthly report via email?\n\nThis will send the previous month\'s visitor data as CSV and Excel files.')) {
-        return;
-    }
-    
+    if (!confirm('📧 Send monthly report via email?\n\nThis will send the previous month\'s visitor data as CSV and Excel files.')) return;
     showNotification('📤 Sending monthly report... Please wait.', 'info');
-    
     try {
-        const response = await fetch('/admin/send_monthly_report', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const response = await fetch('/admin/send_monthly_report', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const result = await response.json();
-        
         if (result.success) {
             showNotification('✅ Monthly report sent successfully! Check your email inbox.', 'success');
         } else {
             showNotification('❌ ' + (result.error || 'Failed to send monthly report'), 'error');
         }
     } catch (error) {
-        console.error('Error sending monthly report:', error);
         showNotification('❌ Connection error. Please try again.', 'error');
     }
 }
 
 async function sendLifetimeReport() {
-    if (!confirm('📧 Send lifetime report via email?\n\nThis will send ALL visitor data as CSV and Excel files.')) {
-        return;
-    }
-    
+    if (!confirm('📧 Send lifetime report via email?\n\nThis will send ALL visitor data as CSV and Excel files.')) return;
     showNotification('📤 Sending lifetime report... Please wait.', 'info');
-    
     try {
-        const response = await fetch('/admin/send_lifetime_report', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const response = await fetch('/admin/send_lifetime_report', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const result = await response.json();
-        
         if (result.success) {
             showNotification('✅ Lifetime report sent successfully! Check your email inbox.', 'success');
         } else {
             showNotification('❌ ' + (result.error || 'Failed to send lifetime report'), 'error');
         }
     } catch (error) {
-        console.error('Error sending lifetime report:', error);
         showNotification('❌ Connection error. Please try again.', 'error');
     }
 }
