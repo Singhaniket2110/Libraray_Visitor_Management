@@ -22,14 +22,7 @@
     flex-wrap: wrap;
     gap: 1rem;
 
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    z-index: 9999;
-}
-.dashboard {
-    padding-top: 140px;
+    position: relative; /* or simply remove position completely */
 }
 
 .header-content {
