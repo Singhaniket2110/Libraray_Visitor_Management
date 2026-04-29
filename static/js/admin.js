@@ -691,16 +691,21 @@ function updateRecordCount(count) {
 }
 
 // ==================== TEACHER VISIT FUNCTIONS ====================
-
 async function loadTeacherStats() {
     try {
+        console.log("📊 Loading teacher stats...");
+        
         const today = new Date().toISOString().split('T')[0];
         
         const allResponse = await fetch('/admin/teachers/all');
         const allTeachersData = await allResponse.json();
         
+        console.log("All teachers data:", allTeachersData);
+        
         const todayResponse = await fetch(`/admin/teachers/filter?start_date=${today}&end_date=${today}`);
         const todayTeachers = await todayResponse.json();
+        
+        console.log("Today teachers:", todayTeachers);
         
         const teacherTotalVisits = allTeachersData.length;
         const teacherTodayVisits = todayTeachers.length;
@@ -729,13 +734,33 @@ async function loadTeacherStats() {
         });
         const teacherThisMonth = thisMonthTeachers.length;
         
-        if (document.getElementById('teacherTotalVisits')) {
-            document.getElementById('teacherTotalVisits').textContent = teacherTotalVisits;
-            document.getElementById('teacherTodayVisits').textContent = teacherTodayVisits;
-            document.getElementById('teacherActiveNow').textContent = teacherActiveNow;
-            document.getElementById('teacherUnique').textContent = uniqueTeachers;
-            document.getElementById('teacherAvgDuration').textContent = teacherAvgDuration;
-            document.getElementById('teacherThisMonth').textContent = teacherThisMonth;
+        console.log("Values to display:", {
+            teacherTotalVisits,
+            teacherTodayVisits,
+            teacherActiveNow,
+            uniqueTeachers,
+            teacherAvgDuration,
+            teacherThisMonth
+        });
+        
+        // Try to update each element with null check and console log
+        const elements = {
+            teacherTotalVisits: document.getElementById('teacherTotalVisits'),
+            teacherTodayVisits: document.getElementById('teacherTodayVisits'),
+            teacherActiveNow: document.getElementById('teacherActiveNow'),
+            teacherUnique: document.getElementById('teacherUnique'),
+            teacherAvgDuration: document.getElementById('teacherAvgDuration'),
+            teacherThisMonth: document.getElementById('teacherThisMonth')
+        };
+        
+        for (const [key, element] of Object.entries(elements)) {
+            if (element) {
+                const value = eval(key);
+                element.textContent = value;
+                console.log(`✅ Updated ${key} to ${value}`);
+            } else {
+                console.log(`❌ Element ${key} not found in DOM`);
+            }
         }
         
     } catch (error) {
