@@ -1,0 +1,431 @@
+/* ============================================
+   Teacher Portal Styles - Complete
+   ============================================ */
+
+/* --------------------------------------------
+   Global & Body Styles
+   -------------------------------------------- */
+
+/* Body background for teacher pages */
+body.teacher-page {
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 100%, #2c5364 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+/* Utility Classes */
+.input-uppercase {
+    text-transform: uppercase;
+}
+
+.text-success {
+    color: #10b981;
+}
+
+.text-error {
+    color: #ef4444;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --------------------------------------------
+   Form Elements (Shared)
+   -------------------------------------------- */
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-control:focus {
+    transform: translateY(-2px);
+}
+
+select.form-control {
+    cursor: pointer;
+    background: white;
+}
+
+.message {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 600;
+    display: none;
+}
+
+.message.success {
+    background: #d1fae5;
+    color: #065f46;
+    display: block;
+    border-left: 4px solid #10b981;
+}
+
+.message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    display: block;
+    border-left: 4px solid #ef4444;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* --------------------------------------------
+   Teacher Exit Portal Styles
+   -------------------------------------------- */
+
+.teacher-exit-container {
+    max-width: 550px;
+    margin: 0 auto;
+}
+
+.exit-card {
+    background: white;
+    border-radius: 32px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease;
+}
+
+.exit-header {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    padding: 40px 30px;
+    text-align: center;
+    color: white;
+}
+
+.exit-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.exit-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.exit-header p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.exit-form {
+    padding: 40px;
+}
+
+.exit-form .form-label i {
+    color: #e74c3c;
+    width: 20px;
+}
+
+.exit-form .form-control:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.teacher-details {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 4px solid #e74c3c;
+    display: none;
+}
+
+.teacher-details h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.detail-value {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.exit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.exit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+}
+
+.exit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --------------------------------------------
+   Teacher Entry Portal Styles
+   -------------------------------------------- */
+
+.teacher-entry-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.entry-card {
+    background: white;
+    border-radius: 32px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease;
+}
+
+.entry-header {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    padding: 40px 30px;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.entry-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.entry-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.entry-header p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.entry-form {
+    padding: 40px;
+}
+
+.entry-form .form-label i {
+    color: #3498db;
+    width: 20px;
+}
+
+.entry-form .form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Nature of Work Options */
+.nature-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 5px;
+}
+
+.nature-option {
+    padding: 12px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nature-option:hover {
+    border-color: #3498db;
+    background: #eff6ff;
+}
+
+.nature-option.selected {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-color: #3498db;
+    color: white;
+}
+
+.nature-option i {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+/* Auto Info Section */
+.auto-info {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    padding: 20px;
+    border-radius: 16px;
+    margin: 25px 0;
+    border-left: 4px solid #3498db;
+}
+
+.auto-info p {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 0.95rem;
+}
+
+.auto-info strong {
+    color: #2c3e50;
+}
+
+.auto-info span {
+    color: #3498db;
+    font-weight: 700;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --------------------------------------------
+   Responsive Styles
+   -------------------------------------------- */
+
+@media (max-width: 640px) {
+    body.teacher-page {
+        padding: 20px 15px;
+    }
+
+    /* Exit Portal Responsive */
+    .exit-form {
+        padding: 25px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .exit-header h1 {
+        font-size: 1.5rem;
+    }
+
+    /* Entry Portal Responsive */
+    .entry-form {
+        padding: 25px;
+    }
+
+    .nature-options {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .auto-info p {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
