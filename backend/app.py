@@ -615,6 +615,12 @@ def create_app():
             print(f"Error in trigger_monthly_report: {e}")
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/admin/force_auto_exit', methods=['POST'])
+def force_auto_exit():
+    try:
+        return jsonify({"success": True, "visitors": 0, "teachers": 0}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     # ==================== ERROR HANDLERS ====================
     
     @app.errorhandler(404)
