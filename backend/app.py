@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, jsonify, request
 from backend.config import Config
 import os
 
@@ -50,13 +50,17 @@ def create_app():
     try:
         from backend.routes.student_routes import student_bp
         from backend.routes.admin_routes import admin_bp
+        from backend.routes.teacher_routes import teacher_bp
         
         app.register_blueprint(student_bp)
         app.register_blueprint(admin_bp)
+        app.register_blueprint(teacher_bp)
         
         print("✅ Blueprints registered")
     except Exception as e:
         print(f"❌ Blueprint registration error: {e}")
+
+    
     
     # ==================== HOME ROUTE ====================
     
@@ -520,6 +524,7 @@ def create_app():
     </div>
 </body>
 </html>'''
+
     
     # ==================== OTHER PAGE ROUTES ====================
     
@@ -539,6 +544,77 @@ def create_app():
     def services():
         return render_template('library_services.html')
     
+    @app.route('/admin/teachers/all')
+    def admin_teachers_all():
+        """Get all teachers for admin dashboard"""
+        try:
+            from backend.supabase_direct import SupabaseDirect as Database
+            teachers = Database.get_all_teachers()
+            return jsonify(teachers), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    @app.route('/admin/teachers/filter')
+    def admin_teachers_filter():
+        """Get filtered teachers for admin dashboard"""
+        try:
+            from backend.supabase_direct import SupabaseDirect as Database
+            start_date = request.args.get('start_date', '')
+            end_date = request.args.get('end_date', '')
+            status = request.args.get('status', '')
+            
+            if start_date and end_date:
+                teachers = Database.get_teachers_by_date_range(start_date, end_date)
+            else:
+                teachers = Database.get_all_teachers()
+            
+            # Apply status filter
+            if status == 'active':
+                teachers = [t for t in teachers if not t.get('exit_time')]
+            elif status == 'exited':
+                teachers = [t for t in teachers if t.get('exit_time')]
+            
+            return jsonify(teachers), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    @app.route('/admin/teachers/mark_exit/<int:teacher_id>', methods=['PUT'])
+    def admin_mark_teacher_exit(teacher_id):
+        """Admin force exit for teacher"""
+        try:
+            from backend.supabase_direct import SupabaseDirect as Database
+            result = Database.update_teacher_exit_by_id(teacher_id)
+            if result:
+                return jsonify({"success": True}), 200
+            else:
+                return jsonify({"error": "Failed to mark exit"}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # ==================== AUTO MONTHLY REPORT TRIGGER (for cron-job.org) ====================
+    
+    @app.route('/admin/trigger_monthly_report', methods=['GET'])
+    def trigger_monthly_report():
+        """Public endpoint for cron job to trigger monthly report"""
+        try:
+            from backend.email_service import EmailService
+            
+            # Optional: Add secret key for security
+            secret = request.args.get('secret', '')
+            expected_secret = os.getenv('CRON_SECRET', '')
+            
+            if expected_secret and secret != expected_secret:
+                return jsonify({"error": "Unauthorized"}), 401
+            
+            success = EmailService.send_monthly_report()
+            if success:
+                return jsonify({"success": True, "message": "Monthly report sent successfully"}), 200
+            else:
+                return jsonify({"success": False, "error": "Failed to send monthly report"}), 500
+        except Exception as e:
+            print(f"Error in trigger_monthly_report: {e}")
+            return jsonify({"error": str(e)}), 500
+
     # ==================== ERROR HANDLERS ====================
     
     @app.errorhandler(404)
@@ -569,6 +645,4 @@ def create_app():
 </body>
 </html>''', 500
 
-    return app 
-
-
+    return app
