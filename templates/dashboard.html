@@ -9,7 +9,42 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* Add Visitor Modal Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f1f5f9;
+        }
+
+        .dashboard {
+            padding-top: 100px;
+        }
+
+        /* FIXED HEADER - STAYS AT TOP */
+        .dashboard-header {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 1rem 2rem !important;
+        }
+
+        /* Make sure content doesn't hide behind header */
+        .stats-tabs-container {
+            margin-top: 20px;
+        }
+
+        /* Modal Styles */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -18,7 +53,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
+            z-index: 10000;
             animation: fadeIn 0.3s ease;
         }
 
@@ -42,7 +77,6 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
 
-        /* Stats Tabs Styles */
         .stats-tabs-container {
             display: flex;
             gap: 10px;
@@ -88,14 +122,8 @@
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-header {
@@ -198,106 +226,295 @@
             text-transform: uppercase;
         }
 
-        /* Sticky Header */
-        .dashboard-header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            border-top: 4px solid #6366f1;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Charts */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .date-range-picker {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .quick-dates {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-dates button {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .quick-dates button.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        thead th {
+            padding: 1rem;
+            color: white;
+            text-align: left;
+        }
+
+        tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-badge.exited {
+            background: rgba(148, 163, 184, 0.1);
+            color: #64748b;
+        }
+
+        .btn-exit {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .loading-row {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .pagination-container {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .form-control {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
         }
     </style>
 </head>
 <body>
 <div class="dashboard">
-    <!-- Header - Sticky at top -->
+    <!-- FIXED HEADER -->
     <header class="dashboard-header">
-        <div class="header-content">
-            <div class="header-icon">
-                <i class="fas fa-chart-line"></i>
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="header-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 1.5rem; margin: 0;">Library Analytics Admin Dashboard</h1>
+                    <p style="margin: 0; color: #64748b;">Welcome, {{ session.get('admin_username', 'Admin') }} | Real-time analytics & insights</p>
+                </div>
             </div>
-            <div class="header-text">
-                <h1><i class="fas fa-chart-bar"></i> Library Analytics Admin Dashboard</h1>
-                <p>Welcome, {{ session.get('admin_username', 'Admin') }} | Real-time analytics & insights</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button onclick="forceAutoExit()" class="btn btn-warning">Force Auto-Exit (4 PM)</button>
+                <button onclick="sendMonthlyReport()" class="btn btn-info">Monthly Report</button>
+                <button onclick="sendLifetimeReport()" class="btn btn-info">Lifetime Report</button>
+                <button onclick="openAddVisitorModal()" class="btn btn-success">Add New Visitor</button>
+                <button onclick="loadAnalytics()" class="btn btn-secondary">Refresh Analytics</button>
+                <button onclick="logoutUser()" class="btn btn-danger">Logout</button>
             </div>
-        </div>
-        <div class="header-actions">
-            <button onclick="forceAutoExit()" class="btn btn-warning" title="Force mark all overdue visitors as exited at 4 PM">
-                <i class="fas fa-clock"></i> Force Auto-Exit (4 PM)
-            </button>
-            <button onclick="sendMonthlyReport()" class="btn btn-info" title="Send monthly report via email">
-                <i class="fas fa-calendar-alt"></i> Monthly Report
-            </button>
-            <button onclick="sendLifetimeReport()" class="btn btn-info" title="Send lifetime report via email">
-                <i class="fas fa-database"></i> Lifetime Report
-            </button>
-            <button onclick="openAddVisitorModal()" class="btn btn-success" title="Add a new visitor record">
-                <i class="fas fa-user-plus"></i> Add New Visitor
-            </button>
-            <button onclick="loadAnalytics()" class="btn btn-secondary" title="Refresh analytics data">
-                <i class="fas fa-sync-alt"></i> Refresh Analytics
-            </button>
-            <button onclick="logoutUser()" class="btn btn-danger" title="Logout from admin dashboard">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
         </div>
     </header>
 
     <!-- Date Range Picker -->
     <section class="filters-section">
-        <h3 class="chart-title">
-            <i class="fas fa-calendar-alt"></i> Date Range Selection
-        </h3>
+        <h3>Date Range Selection</h3>
         <div class="date-range-picker">
             <div class="quick-dates">
-                <button class="active" onclick="selectDateRange('today')" title="Show today's data">
-                    <i class="fas fa-calendar-day"></i> Today
-                </button>
-                <button onclick="selectDateRange('yesterday')" title="Show yesterday's data">
-                    <i class="fas fa-calendar-minus"></i> Yesterday
-                </button>
-                <button onclick="selectDateRange('week')" title="Show last 7 days data">
-                    <i class="fas fa-calendar-week"></i> Last 7 Days
-                </button>
-                <button onclick="selectDateRange('month')" title="Show last 30 days data">
-                    <i class="fas fa-calendar-alt"></i> Last 30 Days
-                </button>
+                <button class="active" onclick="selectDateRange('today')">Today</button>
+                <button onclick="selectDateRange('yesterday')">Yesterday</button>
+                <button onclick="selectDateRange('week')">Last 7 Days</button>
+                <button onclick="selectDateRange('month')">Last 30 Days</button>
             </div>
-            
-            <div class="date-range-controls">
-                <label class="form-label" for="startDate">
-                    <i class="fas fa-calendar"></i> From:
-                </label>
-                <input type="date" id="startDate" class="form-control" title="Select start date for date range">
-                
-                <label class="form-label" for="endDate">To:</label>
-                <input type="date" id="endDate" class="form-control" title="Select end date for date range">
-                
-                <button onclick="applyCustomDateRange()" class="btn btn-primary" title="Apply custom date range">
-                    <i class="fas fa-search"></i> Apply
-                </button>
+            <div>
+                <label>From:</label>
+                <input type="date" id="startDate" class="form-control">
+                <label>To:</label>
+                <input type="date" id="endDate" class="form-control">
+                <button onclick="applyCustomDateRange()" class="btn btn-primary">Apply</button>
             </div>
         </div>
         
         <div class="filter-grid">
             <div>
-                <label class="form-label" for="levelFilter">
-                    <i class="fas fa-layer-group"></i> Level Filter
-                </label>
-                <select id="levelFilter" class="form-control" onchange="loadVisitors()" title="Filter visitors by education level">
+                <label>Level Filter</label>
+                <select id="levelFilter" class="form-control" onchange="loadVisitors()">
                     <option value="">All Levels</option>
                     <option value="JC">Junior College (JC)</option>
                     <option value="UG">Undergraduate (UG)</option>
                     <option value="PG">Postgraduate (PG)</option>
                 </select>
             </div>
-            
             <div>
-                <label class="form-label" for="statusFilter">
-                    <i class="fas fa-door-open"></i> Status Filter
-                </label>
-                <select id="statusFilter" class="form-control" onchange="loadVisitors()" title="Filter visitors by status">
+                <label>Status Filter</label>
+                <select id="statusFilter" class="form-control" onchange="loadVisitors()">
                     <option value="">All Status</option>
                     <option value="active">Active Only</option>
                     <option value="exited">Exited Only</option>
@@ -306,285 +523,92 @@
         </div>
         
         <div class="data-actions">
-            <button onclick="loadVisitors()" class="btn btn-primary" title="Refresh visitor data">
-                <i class="fas fa-sync-alt"></i> Refresh Data
-            </button>
-            <button onclick="resetFilters()" class="btn btn-secondary" title="Clear all filters">
-                <i class="fas fa-times"></i> Clear Filters
-            </button>
+            <button onclick="loadVisitors()" class="btn btn-primary">Refresh Data</button>
+            <button onclick="resetFilters()" class="btn btn-secondary">Clear Filters</button>
             <div class="export-buttons">
-                <button onclick="exportData('csv')" class="btn btn-success" title="Export data to CSV file">
-                    <i class="fas fa-file-csv"></i> Export CSV
-                </button>
-                <button onclick="exportData('excel')" class="btn btn-success" title="Export data to Excel file">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </button>
+                <button onclick="exportData('csv')" class="btn btn-success">Export CSV</button>
+                <button onclick="exportData('excel')" class="btn btn-success">Export Excel</button>
             </div>
         </div>
     </section>
 
-    <!-- Statistics Tabs - Only Student Stats and Teacher Stats -->
+    <!-- TABS - Only Student and Teacher -->
     <div class="stats-tabs-container">
-        <button class="stats-tab active" onclick="showStatsTab('student')" title="View student statistics">
-            <i class="fas fa-user-graduate"></i> Student Stats
-        </button>
-        <button class="stats-tab" onclick="showStatsTab('teachers')" title="View teacher statistics">
-            <i class="fas fa-chalkboard-user"></i> Teacher Stats
-        </button>
+        <button class="stats-tab active" onclick="showStatsTab('student')">Student Stats</button>
+        <button class="stats-tab" onclick="showStatsTab('teachers')">Teacher Stats</button>
     </div>
 
-    <!-- Student Stats Section -->
+    <!-- STUDENT STATS SECTION -->
     <div id="studentStats" class="stats-section active">
-        <!-- Student Statistics Cards -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-value" id="totalVisitors">0</div>
-                <div class="stat-label">TOTAL VISITORS</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div class="stat-value" id="currentVisitors">0</div>
-                <div class="stat-label">CURRENTLY INSIDE</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
-                <div class="stat-value" id="jcCount">0</div>
-                <div class="stat-label">JC STUDENTS</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
-                <div class="stat-value" id="ugCount">0</div>
-                <div class="stat-label">UG STUDENTS</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
-                <div class="stat-value" id="pgCount">0</div>
-                <div class="stat-label">PG STUDENTS</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-value" id="avgDuration">0</div>
-                <div class="stat-label">AVG DURATION (MIN)</div>
-            </div>
+            <div class="stat-card"><div class="stat-value" id="totalVisitors">0</div><div class="stat-label">Total Visitors</div></div>
+            <div class="stat-card"><div class="stat-value" id="currentVisitors">0</div><div class="stat-label">Currently Inside</div></div>
+            <div class="stat-card"><div class="stat-value" id="jcCount">0</div><div class="stat-label">JC Students</div></div>
+            <div class="stat-card"><div class="stat-value" id="ugCount">0</div><div class="stat-label">UG Students</div></div>
+            <div class="stat-card"><div class="stat-value" id="pgCount">0</div><div class="stat-label">PG Students</div></div>
+            <div class="stat-card"><div class="stat-value" id="avgDuration">0</div><div class="stat-label">Avg Duration (min)</div></div>
         </div>
 
-        <!-- Charts Section -->
-        <section class="charts-section">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
-                    <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
-                        <option value="pie">Pie Chart</option>
-                        <option value="doughnut">Doughnut Chart</option>
-                        <option value="bar">Bar Chart</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="levelChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
-                    <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
-                        <option value="line">Line Chart</option>
-                        <option value="bar">Bar Chart</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="trendChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
-                    <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
-                        <option value="bar">Vertical Bar Chart</option>
-                        <option value="horizontalBar">Horizontal Bar Chart</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="courseChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
-                    <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
-                        <option value="doughnut">Doughnut Chart</option>
-                        <option value="pie">Pie Chart</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="purposeChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-clock"></i> Peak Hours</h3>
-                    <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
-                        <option value="line">Line Chart</option>
-                        <option value="bar">Bar Chart</option>
-                    </select>
-                </div>
-                <div class="chart-container">
-                    <canvas id="peakHoursChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="durationChart"></canvas>
-                </div>
-            </div>
-        </section>
+        <!-- Charts -->
+        <div class="charts-section">
+            <div class="chart-card"><div class="chart-header"><h3>Level Distribution</h3><select id="chartLevelType" class="form-control" onchange="updateCharts()"><option value="pie">Pie Chart</option><option value="doughnut">Doughnut Chart</option><option value="bar">Bar Chart</option></select></div><div class="chart-container"><canvas id="levelChart"></canvas></div></div>
+            <div class="chart-card"><div class="chart-header"><h3>Daily Trend</h3><select id="chartTrendType" class="form-control" onchange="updateCharts()"><option value="line">Line Chart</option><option value="bar">Bar Chart</option></select></div><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+            <div class="chart-card"><div class="chart-header"><h3>Course Distribution</h3><select id="chartCourseType" class="form-control" onchange="updateCharts()"><option value="bar">Vertical Bar Chart</option><option value="horizontalBar">Horizontal Bar Chart</option></select></div><div class="chart-container"><canvas id="courseChart"></canvas></div></div>
+            <div class="chart-card"><div class="chart-header"><h3>Purpose Distribution</h3><select id="chartPurposeType" class="form-control" onchange="updateCharts()"><option value="doughnut">Doughnut Chart</option><option value="pie">Pie Chart</option></select></div><div class="chart-container"><canvas id="purposeChart"></canvas></div></div>
+            <div class="chart-card"><div class="chart-header"><h3>Peak Hours</h3><select id="chartHoursType" class="form-control" onchange="updateCharts()"><option value="line">Line Chart</option><option value="bar">Bar Chart</option></select></div><div class="chart-container"><canvas id="peakHoursChart"></canvas></div></div>
+            <div class="chart-card"><div class="chart-header"><h3>Duration Analysis</h3></div><div class="chart-container"><canvas id="durationChart"></canvas></div></div>
+        </div>
 
-        <!-- Student Visitor Table -->
+        <!-- Student Table -->
         <div class="table-container">
             <div class="table-header">
-                <h2>
-                    <i class="fas fa-table"></i> Visitor Records
-                    <span class="record-count">Showing <span id="recordCount">0</span> records</span>
-                </h2>
-                <div class="table-actions">
-                    <div class="bulk-actions">
-                        <select id="bulkAction" class="form-control bulk-select" title="Select bulk action">
-                            <option value="">Bulk Actions</option>
-                            <option value="mark_exit">Mark as Exited</option>
-                            <option value="delete">Delete Selected</option>
-                        </select>
-                        <button onclick="applyBulkAction()" class="btn btn-secondary">Apply</button>
-                    </div>
+                <h2>Student Visitor Records <span id="recordCount">(0 records)</span></h2>
+                <div>
+                    <select id="bulkAction" class="form-control" style="width: auto; display: inline-block;"><option value="">Bulk Actions</option><option value="mark_exit">Mark as Exited</option><option value="delete">Delete Selected</option></select>
+                    <button onclick="applyBulkAction()" class="btn btn-secondary">Apply</button>
                     <button onclick="selectAllRows()" class="btn btn-secondary">Select All</button>
-                    <button onclick="loadVisitors()" class="btn btn-primary refresh-btn">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
+                    <button onclick="loadVisitors()" class="btn btn-primary">Refresh</button>
                 </div>
             </div>
             <div class="table-wrapper">
                 <table>
-                    <thead>
-                        <tr>
-                            <th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
-                            <th>Name</th>
-                            <th>Roll No</th>
-                            <th>Level</th>
-                            <th>Course/Stream</th>
-                            <th>Year</th>
-                            <th>Purpose</th>
-                            <th>Entry Time</th>
-                            <th>Exit Time</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Duration</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="visitorTable">
-                        <tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading visitor data...</td><tr>
-                    </tbody>
+                    <thead><tr><th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th><th>Name</th><th>Roll No</th><th>Level</th><th>Course/Stream</th><th>Year</th><th>Purpose</th><th>Entry Time</th><th>Exit Time</th><th>Date</th><th>Status</th><th>Duration</th><th>Actions</th></tr></thead>
+                    <tbody id="visitorTable"><tr><td colspan="13" class="loading-row">Loading student data...</td></tr></tbody>
                 </table>
             </div>
-            <div class="pagination-container">
-                <div class="pagination-controls">
-                    <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled><i class="fas fa-chevron-left"></i> Previous</button>
-                    <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-                    <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>Next <i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
+            <div class="pagination-container"><button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled>Previous</button> <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span> <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>Next</button></div>
         </div>
     </div>
 
-    <!-- Teacher Stats Section -->
+    <!-- TEACHER STATS SECTION -->
     <div id="teachersStats" class="stats-section" style="display: none;">
-        <!-- Teacher Statistics Cards -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-value" id="teacherTotalVisits">0</div>
-                <div class="stat-label">Total Teacher Visits</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
-                <div class="stat-value" id="teacherTodayVisits">0</div>
-                <div class="stat-label">Today's Visits</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
-                <div class="stat-value" id="teacherActiveNow">0</div>
-                <div class="stat-label">Currently Inside</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-value" id="teacherAvgDuration">0</div>
-                <div class="stat-label">Avg Duration (min)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-value" id="teacherUnique">0</div>
-                <div class="stat-label">Unique Teachers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-month"></i></div>
-                <div class="stat-value" id="teacherThisMonth">0</div>
-                <div class="stat-label">This Month</div>
-            </div>
+            <div class="stat-card"><div class="stat-value" id="teacherTotalVisits">0</div><div class="stat-label">Total Teacher Visits</div></div>
+            <div class="stat-card"><div class="stat-value" id="teacherTodayVisits">0</div><div class="stat-label">Today's Visits</div></div>
+            <div class="stat-card"><div class="stat-value" id="teacherActiveNow">0</div><div class="stat-label">Currently Inside</div></div>
+            <div class="stat-card"><div class="stat-value" id="teacherAvgDuration">0</div><div class="stat-label">Avg Duration (min)</div></div>
+            <div class="stat-card"><div class="stat-value" id="teacherUnique">0</div><div class="stat-label">Unique Teachers</div></div>
+            <div class="stat-card"><div class="stat-value" id="teacherThisMonth">0</div><div class="stat-label">This Month</div></div>
         </div>
 
         <!-- Teacher Table -->
         <div class="table-container">
             <div class="table-header">
-                <h2><i class="fas fa-chalkboard-user"></i> Teacher Visit Records</h2>
-                <div class="table-actions">
-                    <div class="bulk-actions">
-                        <select id="teacherBulkAction" class="form-control bulk-select" title="Select bulk action">
-                            <option value="">Bulk Actions</option>
-                            <option value="mark_exit">Mark as Exited</option>
-                        </select>
-                        <button onclick="applyTeacherBulkAction()" class="btn btn-secondary">Apply</button>
-                    </div>
+                <h2>Teacher Visit Records</h2>
+                <div>
+                    <select id="teacherBulkAction" class="form-control" style="width: auto; display: inline-block;"><option value="">Bulk Actions</option><option value="mark_exit">Mark as Exited</option></select>
+                    <button onclick="applyTeacherBulkAction()" class="btn btn-secondary">Apply</button>
                     <button onclick="selectAllTeacherRows()" class="btn btn-secondary">Select All</button>
-                    <button onclick="loadTeacherVisits()" class="btn btn-primary refresh-btn">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
+                    <button onclick="loadTeacherVisits()" class="btn btn-primary">Refresh</button>
                 </div>
             </div>
             <div class="table-wrapper">
                 <table>
-                    <thead>
-                        <tr>
-                            <th class="checkbox-cell"><input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()"></th>
-                            <th>Name</th>
-                            <th>Employee ID</th>
-                            <th>Designation</th>
-                            <th>Nature of Work</th>
-                            <th>Entry Time</th>
-                            <th>Exit Time</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teacherTable">
-                        <tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td><tr>
-                    </tbody>
+                    <thead><tr><th><input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()"></th><th>Name</th><th>Employee ID</th><th>Designation</th><th>Nature of Work</th><th>Entry Time</th><th>Exit Time</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="teacherTable"><tr><td colspan="10" class="loading-row">Loading teacher data...</td></tr></tbody>
                 </table>
             </div>
-            <div class="pagination-container">
-                <div class="pagination-controls">
-                    <button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn">Previous</button>
-                    <span>Page <span id="teacherCurrentPage">1</span> of <span id="teacherTotalPages">1</span></span>
-                    <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn">Next</button>
-                </div>
-            </div>
+            <div class="pagination-container"><button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn">Previous</button> <span>Page <span id="teacherCurrentPage">1</span> of <span id="teacherTotalPages">1</span></span> <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn">Next</button></div>
         </div>
     </div>
 </div>
@@ -592,134 +616,36 @@
 <!-- Add Visitor Modal -->
 <div id="addVisitorModal" class="modal-overlay">
     <div class="add-visitor-modal">
-        <div class="modal-header">
-            <h2><i class="fas fa-user-plus"></i> Add New Visitor</h2>
-            <button class="close-modal" onclick="closeAddVisitorModal()" title="Close modal"><i class="fas fa-times"></i></button>
-        </div>
-
-        <div id="pgNoteModal" class="pg-note-modal">
-            <i class="fas fa-graduation-cap"></i>
-            <strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).
-        </div>
-
+        <div class="modal-header"><h2>Add New Visitor</h2><button class="close-modal" onclick="closeAddVisitorModal()"><i class="fas fa-times"></i></button></div>
+        <div id="pgNoteModal" class="pg-note-modal"><strong>Post Graduate Selected:</strong> Please choose your course and year (1st/2nd Year).</div>
         <form id="addVisitorForm">
-            <div class="form-group">
-                <label class="form-label" for="modalName"><i class="fas fa-user-graduate"></i> Student Name</label>
-                <input type="text" id="modalName" class="form-control" placeholder="Enter full name" required title="Enter student's full name">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="modalRollNo"><i class="fas fa-id-card"></i> Roll Number</label>
-                <input type="text" id="modalRollNo" class="form-control input-uppercase" placeholder="Enter roll number" required title="Enter student's roll number">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="modalLevel"><i class="fas fa-layer-group"></i> Education Level</label>
-                <select id="modalLevel" class="form-control" required title="Select education level">
-                    <option value="">Select Level</option>
-                    <option value="JC">Junior College (JC)</option>
-                    <option value="UG">Undergraduate (UG)</option>
-                    <option value="PG">Postgraduate (PG)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="modalCourse"><i class="fas fa-book-open"></i> Course / Stream</label>
-                <select id="modalCourse" class="form-control" required title="Select course or stream">
-                    <option value="">Select Course / Stream</option>
-                </select>
-            </div>
-            
-            <div id="jcFieldsModal" class="jc-fields-modal">
-                <div class="form-group">
-                    <label class="form-label" for="modalJcYear"><i class="fas fa-calendar-alt"></i> JC Year</label>
-                    <select id="modalJcYear" class="form-control" title="Select Junior College year">
-                        <option value="">Select JC Year</option>
-                        <option value="FYJC">First Year Junior College (FYJC)</option>
-                        <option value="SYJC">Second Year Junior College (SYJC)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="modalJcStream"><i class="fas fa-stream"></i> Stream</label>
-                    <select id="modalJcStream" class="form-control" title="Select stream">
-                        <option value="">Select Stream</option>
-                        <option value="Science">Science</option>
-                        <option value="Arts">Arts</option>
-                        <option value="Commerce">Commerce</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group" id="modalYearGroup" style="display: none;">
-                <label class="form-label" for="modalYear"><i class="fas fa-calendar-alt"></i> Year</label>
-                <select id="modalYear" class="form-control" title="Select year of study">
-                    <option value="">Select Year</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="modalPurpose"><i class="fas fa-bullseye"></i> Purpose of Visit</label>
-                <select id="modalPurpose" class="form-control" required title="Select purpose of visit">
-                    <option value="">Purpose of Visit</option>
-                    <option>Reading</option>
-                    <option>Book Issue</option>
-                    <option>Book Return</option>
-                    <option>Project / Assignment</option>
-                    <option>Reference</option>
-                    <option>Newspaper</option>
-                    <option>Internet / Research</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="modalVisitDate"><i class="fas fa-calendar"></i> Visit Date</label>
-                <input type="date" id="modalVisitDate" class="form-control" required title="Select visit date">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="modalEntryTime"><i class="fas fa-clock"></i> Entry Time</label>
-                <input type="time" id="modalEntryTime" class="form-control" required title="Select entry time">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="modalExitTime"><i class="fas fa-door-open"></i> Exit Time (Optional)</label>
-                <input type="time" id="modalExitTime" class="form-control" title="Select exit time (optional)">
-                <small style="color: #64748b; display: block; margin-top: 5px;">Leave empty if visitor is still inside</small>
-            </div>
-
+            <div class="form-group"><label>Student Name</label><input type="text" id="modalName" class="form-control" required></div>
+            <div class="form-group"><label>Roll Number</label><input type="text" id="modalRollNo" class="form-control input-uppercase" required></div>
+            <div class="form-group"><label>Education Level</label><select id="modalLevel" class="form-control" required><option value="">Select Level</option><option value="JC">Junior College (JC)</option><option value="UG">Undergraduate (UG)</option><option value="PG">Postgraduate (PG)</option></select></div>
+            <div class="form-group"><label>Course / Stream</label><select id="modalCourse" class="form-control" required><option value="">Select Course / Stream</option></select></div>
+            <div id="jcFieldsModal" class="jc-fields-modal"><div class="form-group"><label>JC Year</label><select id="modalJcYear" class="form-control"><option value="">Select JC Year</option><option value="FYJC">FYJC</option><option value="SYJC">SYJC</option></select></div><div class="form-group"><label>Stream</label><select id="modalJcStream" class="form-control"><option value="">Select Stream</option><option value="Science">Science</option><option value="Arts">Arts</option><option value="Commerce">Commerce</option></select></div></div>
+            <div class="form-group" id="modalYearGroup" style="display: none;"><label>Year</label><select id="modalYear" class="form-control"><option value="">Select Year</option></select></div>
+            <div class="form-group"><label>Purpose of Visit</label><select id="modalPurpose" class="form-control" required><option value="">Purpose of Visit</option><option>Reading</option><option>Book Issue</option><option>Book Return</option><option>Project / Assignment</option><option>Reference</option><option>Newspaper</option><option>Internet / Research</option><option>Other</option></select></div>
+            <div class="form-group"><label>Visit Date</label><input type="date" id="modalVisitDate" class="form-control" required></div>
+            <div class="form-group"><label>Entry Time</label><input type="time" id="modalEntryTime" class="form-control" required></div>
+            <div class="form-group"><label>Exit Time (Optional)</label><input type="time" id="modalExitTime" class="form-control"><small>Leave empty if still inside</small></div>
             <div id="addVisitorMessage"></div>
-            
-            <button type="submit" class="btn btn-primary w-full" style="margin-top: 20px;" title="Add visitor record">
-                <i class="fas fa-paper-plane"></i> Add Visitor
-            </button>
+            <button type="submit" class="btn btn-primary">Add Visitor</button>
         </form>
     </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
-    const courses = {
-        UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
-        PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
-        JC: ["Science", "Arts", "Commerce"]
-    };
-
-    const years = {
-        UG: ["First Year", "Second Year", "Third Year"],
-        PG: ["First Year", "Second Year"]
-    };
+    const courses = { UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"], PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"], JC: ["Science", "Arts", "Commerce"] };
+    const years = { UG: ["First Year", "Second Year", "Third Year"], PG: ["First Year", "Second Year"] };
 
     function openAddVisitorModal() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('modalVisitDate').value = today;
-        const now = new Date();
-        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        document.getElementById('modalEntryTime').value = currentTime;
+        document.getElementById('modalVisitDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('modalEntryTime').value = new Date().toHours().toString().padStart(2,'0') + ':' + new Date().getMinutes().toString().padStart(2,'0');
         document.getElementById('addVisitorModal').classList.add('active');
         document.body.style.overflow = 'hidden';
     }
-
     function closeAddVisitorModal() {
         document.getElementById('addVisitorModal').classList.remove('active');
         document.body.style.overflow = 'auto';
@@ -729,172 +655,102 @@
         document.getElementById('pgNoteModal').style.display = 'none';
         document.getElementById('addVisitorMessage').style.display = 'none';
     }
-
     document.getElementById('modalLevel').addEventListener('change', function() {
         const level = this.value;
         const courseSelect = document.getElementById('modalCourse');
         const yearSelect = document.getElementById('modalYear');
-        const jcFields = document.getElementById('jcFieldsModal');
-        const yearGroup = document.getElementById('modalYearGroup');
-        const pgNote = document.getElementById('pgNoteModal');
-        
         courseSelect.innerHTML = '<option value="">Select Course / Stream</option>';
         yearSelect.innerHTML = '<option value="">Select Year</option>';
-        jcFields.style.display = 'none';
-        yearGroup.style.display = 'none';
-        pgNote.style.display = 'none';
-
+        document.getElementById('jcFieldsModal').style.display = 'none';
+        document.getElementById('modalYearGroup').style.display = 'none';
+        document.getElementById('pgNoteModal').style.display = 'none';
         if (!level) return;
-
-        if (courses[level]) {
-            courses[level].forEach(course => {
-                const option = document.createElement('option');
-                option.value = course;
-                option.textContent = course;
-                courseSelect.appendChild(option);
-            });
-        }
-
-        if (level === 'JC') {
-            jcFields.style.display = 'block';
-        } else if (level === 'UG' || level === 'PG') {
-            yearGroup.style.display = 'block';
-            if (years[level]) {
-                years[level].forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    yearSelect.appendChild(option);
-                });
-            }
-            if (level === 'PG') {
-                pgNote.style.display = 'block';
-            }
+        if (courses[level]) courses[level].forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; courseSelect.appendChild(o); });
+        if (level === 'JC') document.getElementById('jcFieldsModal').style.display = 'block';
+        else if (level === 'UG' || level === 'PG') {
+            document.getElementById('modalYearGroup').style.display = 'block';
+            if (years[level]) years[level].forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; yearSelect.appendChild(o); });
+            if (level === 'PG') document.getElementById('pgNoteModal').style.display = 'block';
         }
     });
-
     document.getElementById('addVisitorForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        const messageDiv = document.getElementById('addVisitorMessage');
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.innerHTML;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-        
-        const visitDate = document.getElementById('modalVisitDate').value;
-        const entryTime = document.getElementById('modalEntryTime').value;
-        const exitTime = document.getElementById('modalExitTime').value;
-        
+        const msg = document.getElementById('addVisitorMessage');
+        const btn = this.querySelector('button[type="submit"]');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
         const formData = {
             name: document.getElementById('modalName').value.trim(),
             roll_no: document.getElementById('modalRollNo').value.trim().toUpperCase(),
             level: document.getElementById('modalLevel').value,
             purpose: document.getElementById('modalPurpose').value,
-            visit_date: visitDate,
-            entry_time: entryTime,
-            exit_time: exitTime || null
+            visit_date: document.getElementById('modalVisitDate').value,
+            entry_time: document.getElementById('modalEntryTime').value,
+            exit_time: document.getElementById('modalExitTime').value || null
         };
-        
         if (formData.level === 'JC') {
             formData.course = 'Junior College';
             formData.jc_year = document.getElementById('modalJcYear').value;
             formData.jc_stream = document.getElementById('modalJcStream').value;
-            formData.year = null;
         } else {
             formData.course = document.getElementById('modalCourse').value;
-            formData.year = document.getElementById('modalYear').value || null;
-            formData.jc_year = null;
-            formData.jc_stream = null;
+            formData.year = document.getElementById('modalYear').value;
         }
-        
         try {
-            const response = await fetch('/admin/add_visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-            const result = await response.json();
-            
-            if (response.ok) {
-                messageDiv.textContent = '✓ Visitor added successfully!';
-                messageDiv.className = 'success';
-                messageDiv.style.display = 'block';
-                loadVisitors();
-                loadAnalytics();
-                setTimeout(() => { closeAddVisitorModal(); }, 2000);
+            const res = await fetch('/admin/add_visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+            const result = await res.json();
+            if (res.ok) {
+                msg.textContent = '✓ Visitor added successfully!';
+                msg.className = 'success';
+                msg.style.display = 'block';
+                loadVisitors(); loadAnalytics();
+                setTimeout(() => closeAddVisitorModal(), 2000);
             } else {
-                messageDiv.textContent = result.error || 'Failed to add visitor';
-                messageDiv.className = 'error';
-                messageDiv.style.display = 'block';
-                setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
+                msg.textContent = result.error || 'Failed to add visitor';
+                msg.className = 'error';
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
             }
         } catch (error) {
-            messageDiv.textContent = 'Connection error. Please try again.';
-            messageDiv.className = 'error';
-            messageDiv.style.display = 'block';
-            setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
+            msg.textContent = 'Connection error';
+            msg.className = 'error';
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
+            btn.disabled = false;
+            btn.innerHTML = original;
         }
     });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closeAddVisitorModal(); }
-    });
-
-    document.getElementById('addVisitorModal').addEventListener('click', function(e) {
-        if (e.target === this) { closeAddVisitorModal(); }
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAddVisitorModal(); });
+    document.getElementById('addVisitorModal').addEventListener('click', e => { if (e.target === this) closeAddVisitorModal(); });
 
     async function forceAutoExit() {
-        if (!confirm('Force mark all overdue visitors as exited?')) return;
-        try {
-            const response = await fetch('/admin/force_auto_exit', { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                showNotification(`Auto-exit completed: ${result.visitors} visitors, ${result.teachers} teachers`, 'success');
-                loadVisitors();
-                loadAnalytics();
-                if (typeof loadTeacherVisits === 'function') loadTeacherVisits();
-                if (typeof loadTeacherStats === 'function') loadTeacherStats();
-            } else {
-                showNotification('Auto-exit failed', 'error');
-            }
-        } catch (error) {
-            showNotification('Error running auto-exit', 'error');
-        }
+        if (!confirm('Force exit all?')) return;
+        const res = await fetch('/admin/force_auto_exit', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) showNotification('Auto-exit completed', 'success');
+        else showNotification('Auto-exit failed', 'error');
+        loadVisitors(); loadAnalytics(); if(typeof loadTeacherVisits === 'function') loadTeacherVisits();
     }
-
     async function sendMonthlyReport() {
-        if (!confirm('📧 Send monthly report via email?')) return;
-        showNotification('📤 Sending monthly report...', 'info');
-        try {
-            const response = await fetch('/admin/send_monthly_report', { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                showNotification('✅ Monthly report sent successfully!', 'success');
-            } else {
-                showNotification('❌ ' + (result.error || 'Failed'), 'error');
-            }
-        } catch (error) {
-            showNotification('❌ Connection error', 'error');
-        }
+        if(!confirm('Send monthly report?')) return;
+        showNotification('Sending...', 'info');
+        const res = await fetch('/admin/send_monthly_report', { method: 'POST' });
+        const data = await res.json();
+        if(data.success) showNotification('Monthly report sent!', 'success');
+        else showNotification('Failed', 'error');
     }
-
     async function sendLifetimeReport() {
-        if (!confirm('📧 Send lifetime report via email?')) return;
-        showNotification('📤 Sending lifetime report...', 'info');
-        try {
-            const response = await fetch('/admin/send_lifetime_report', { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                showNotification('✅ Lifetime report sent successfully!', 'success');
-            } else {
-                showNotification('❌ ' + (result.error || 'Failed'), 'error');
-            }
-        } catch (error) {
-            showNotification('❌ Connection error', 'error');
-        }
+        if(!confirm('Send lifetime report?')) return;
+        showNotification('Sending...', 'info');
+        const res = await fetch('/admin/send_lifetime_report', { method: 'POST' });
+        const data = await res.json();
+        if(data.success) showNotification('Lifetime report sent!', 'success');
+        else showNotification('Failed', 'error');
     }
+    function showNotification(msg, type) { alert(msg); }
+    function logoutUser() { if(confirm('Logout?')) window.location.href = '/admin/logout'; }
 </script>
 </body>
 </html>
