@@ -15,6 +15,9 @@ def exit_form():
 def check_visitor(roll_no):
     """Check if a visitor with given roll number is currently inside"""
     try:
+        # 🔴 TRIGGER AUTO-EXIT CHECK (runs at 4 PM)
+        Database.auto_exit_overdue_visitors()
+        
         # ✅ USE DIRECT API
         visitor = Database.get_active_visitor_by_rollno(roll_no)
         
