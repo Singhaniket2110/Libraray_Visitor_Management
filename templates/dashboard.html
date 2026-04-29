@@ -197,11 +197,21 @@
         .input-uppercase {
             text-transform: uppercase;
         }
+
+        /* Sticky Header */
+        .dashboard-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
     </style>
 </head>
 <body>
 <div class="dashboard">
-    <!-- Header -->
+    <!-- Header - Sticky at top -->
     <header class="dashboard-header">
         <div class="header-content">
             <div class="header-icon">
@@ -313,132 +323,189 @@
         </div>
     </section>
 
-    <!-- Statistics Cards -->
-    <section class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-value" id="totalVisitors">0</div>
-            <div class="stat-label">TOTAL VISITORS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-door-open"></i>
-            </div>
-            <div class="stat-value" id="currentVisitors">0</div>
-            <div class="stat-label">CURRENTLY INSIDE</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <div class="stat-value" id="jcCount">0</div>
-            <div class="stat-label">JC STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="stat-value" id="ugCount">0</div>
-            <div class="stat-label">UG STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-user-tie"></i>
-            </div>
-            <div class="stat-value" id="pgCount">0</div>
-            <div class="stat-label">PG STUDENTS</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-value" id="avgDuration">0</div>
-            <div class="stat-label">AVG DURATION (MIN)</div>
-        </div>
-    </section>
-
-    <!-- Statistics Tabs -->
+    <!-- Statistics Tabs - Only Student Stats and Teacher Stats -->
     <div class="stats-tabs-container">
-        <button class="stats-tab active" onclick="showStatsTab('daily')" title="View daily statistics">
-            <i class="fas fa-calendar-day"></i> Daily Stats
-        </button>
-        <button class="stats-tab" onclick="showStatsTab('lifetime')" title="View lifetime statistics">
-            <i class="fas fa-chart-line"></i> Lifetime Stats
+        <button class="stats-tab active" onclick="showStatsTab('student')" title="View student statistics">
+            <i class="fas fa-user-graduate"></i> Student Stats
         </button>
         <button class="stats-tab" onclick="showStatsTab('teachers')" title="View teacher statistics">
             <i class="fas fa-chalkboard-user"></i> Teacher Stats
         </button>
     </div>
 
-    <!-- Daily Stats Section -->
-    <div id="dailyStats" class="stats-section active">
+    <!-- Student Stats Section -->
+    <div id="studentStats" class="stats-section active">
+        <!-- Student Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="dailyTotalVisitors">0</div>
-                <div class="stat-label">Today's Visitors</div>
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="totalVisitors">0</div>
+                <div class="stat-label">TOTAL VISITORS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyCurrentVisitors">0</div>
-                <div class="stat-label">Currently Inside</div>
+                <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+                <div class="stat-value" id="currentVisitors">0</div>
+                <div class="stat-label">CURRENTLY INSIDE</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyAvgDuration">0</div>
-                <div class="stat-label">Avg Duration (min)</div>
+                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                <div class="stat-value" id="jcCount">0</div>
+                <div class="stat-label">JC STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyJcCount">0</div>
-                <div class="stat-label">JC Today</div>
+                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="stat-value" id="ugCount">0</div>
+                <div class="stat-label">UG STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyUgCount">0</div>
-                <div class="stat-label">UG Today</div>
+                <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-value" id="pgCount">0</div>
+                <div class="stat-label">PG STUDENTS</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="dailyPgCount">0</div>
-                <div class="stat-label">PG Today</div>
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-value" id="avgDuration">0</div>
+                <div class="stat-label">AVG DURATION (MIN)</div>
             </div>
         </div>
-    </div>
 
-    <!-- Lifetime Stats Section -->
-    <div id="lifetimeStats" class="stats-section" style="display: none;">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeTotalVisitors">0</div>
-                <div class="stat-label">All Time Visitors</div>
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
+                    <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
+                        <option value="pie">Pie Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="levelChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeJcCount">0</div>
-                <div class="stat-label">Total JC</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
+                    <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimeUgCount">0</div>
-                <div class="stat-label">Total UG</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
+                    <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
+                        <option value="bar">Vertical Bar Chart</option>
+                        <option value="horizontalBar">Horizontal Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="courseChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lifetimePgCount">0</div>
-                <div class="stat-label">Total PG</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
+                    <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="pie">Pie Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="purposeChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalDays">0</div>
-                <div class="stat-label">Days of Operation</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-clock"></i> Peak Hours</h3>
+                    <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="peakHoursChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgDaily">0</div>
-                <div class="stat-label">Avg Daily Visitors</div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="durationChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Student Visitor Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>
+                    <i class="fas fa-table"></i> Visitor Records
+                    <span class="record-count">Showing <span id="recordCount">0</span> records</span>
+                </h2>
+                <div class="table-actions">
+                    <div class="bulk-actions">
+                        <select id="bulkAction" class="form-control bulk-select" title="Select bulk action">
+                            <option value="">Bulk Actions</option>
+                            <option value="mark_exit">Mark as Exited</option>
+                            <option value="delete">Delete Selected</option>
+                        </select>
+                        <button onclick="applyBulkAction()" class="btn btn-secondary">Apply</button>
+                    </div>
+                    <button onclick="selectAllRows()" class="btn btn-secondary">Select All</button>
+                    <button onclick="loadVisitors()" class="btn btn-primary refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th>Name</th>
+                            <th>Roll No</th>
+                            <th>Level</th>
+                            <th>Course/Stream</th>
+                            <th>Year</th>
+                            <th>Purpose</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitorTable">
+                        <tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading visitor data...</td><tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container">
+                <div class="pagination-controls">
+                    <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+                    <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                    <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled>Next <i class="fas fa-chevron-right"></i></button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Teacher Stats Section -->
     <div id="teachersStats" class="stats-section" style="display: none;">
+        <!-- Teacher Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -460,20 +527,32 @@
                 <div class="stat-value" id="teacherAvgDuration">0</div>
                 <div class="stat-label">Avg Duration (min)</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="teacherUnique">0</div>
+                <div class="stat-label">Unique Teachers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-calendar-month"></i></div>
+                <div class="stat-value" id="teacherThisMonth">0</div>
+                <div class="stat-label">This Month</div>
+            </div>
         </div>
-        
+
         <!-- Teacher Table -->
-        <div class="table-container" style="margin-top: 30px;">
+        <div class="table-container">
             <div class="table-header">
                 <h2><i class="fas fa-chalkboard-user"></i> Teacher Visit Records</h2>
                 <div class="table-actions">
-                    <select id="teacherBulkAction" class="form-control bulk-select" title="Select bulk action for teachers">
-                        <option value="">Bulk Actions</option>
-                        <option value="mark_exit">Mark as Exited</option>
-                    </select>
-                    <button onclick="applyTeacherBulkAction()" class="btn btn-secondary" title="Apply bulk action">Apply</button>
-                    <button onclick="selectAllTeacherRows()" class="btn btn-secondary" title="Select all teacher records">Select All</button>
-                    <button onclick="loadTeacherVisits()" class="btn btn-primary refresh-btn" title="Refresh teacher data">
+                    <div class="bulk-actions">
+                        <select id="teacherBulkAction" class="form-control bulk-select" title="Select bulk action">
+                            <option value="">Bulk Actions</option>
+                            <option value="mark_exit">Mark as Exited</option>
+                        </select>
+                        <button onclick="applyTeacherBulkAction()" class="btn btn-secondary">Apply</button>
+                    </div>
+                    <button onclick="selectAllTeacherRows()" class="btn btn-secondary">Select All</button>
+                    <button onclick="loadTeacherVisits()" class="btn btn-primary refresh-btn">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
@@ -482,7 +561,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th class="checkbox-cell"><input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()" title="Select all teachers"></th>
+                            <th class="checkbox-cell"><input type="checkbox" id="selectAllTeachers" onchange="toggleSelectAllTeachers()"></th>
                             <th>Name</th>
                             <th>Employee ID</th>
                             <th>Designation</th>
@@ -495,176 +574,19 @@
                         </tr>
                     </thead>
                     <tbody id="teacherTable">
-                        <tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td></tr>
+                        <tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td><tr>
                     </tbody>
                 </table>
             </div>
             <div class="pagination-container">
                 <div class="pagination-controls">
-                    <button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn" title="Previous page">Previous</button>
+                    <button onclick="prevTeacherPage()" class="btn btn-secondary" id="prevTeacherBtn">Previous</button>
                     <span>Page <span id="teacherCurrentPage">1</span> of <span id="teacherTotalPages">1</span></span>
-                    <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn" title="Next page">Next</button>
+                    <button onclick="nextTeacherPage()" class="btn btn-secondary" id="nextTeacherBtn">Next</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Charts Section -->
-    <section class="charts-section">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-pie"></i> Level Distribution</h3>
-                <select id="chartLevelType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for level distribution">
-                    <option value="pie">Pie Chart</option>
-                    <option value="doughnut">Doughnut Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="levelChart" aria-label="Level Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-line"></i> Daily Trend</h3>
-                <select id="chartTrendType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for daily trend">
-                    <option value="line">Line Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="trendChart" aria-label="Daily Trend Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-bar"></i> Course Distribution</h3>
-                <select id="chartCourseType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for course distribution">
-                    <option value="bar">Vertical Bar Chart</option>
-                    <option value="horizontalBar">Horizontal Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="courseChart" aria-label="Course Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-tasks"></i> Purpose Distribution</h3>
-                <select id="chartPurposeType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for purpose distribution">
-                    <option value="doughnut">Doughnut Chart</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="purposeChart" aria-label="Purpose Distribution Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-clock"></i> Peak Hours</h3>
-                <select id="chartHoursType" class="form-control chart-select" onchange="updateCharts()" title="Select chart type for peak hours">
-                    <option value="line">Line Chart</option>
-                    <option value="bar">Bar Chart</option>
-                </select>
-            </div>
-            <div class="chart-container">
-                <canvas id="peakHoursChart" aria-label="Peak Hours Chart" role="img"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3><i class="fas fa-chart-area"></i> Duration Analysis</h3>
-            </div>
-            <div class="chart-container">
-                <canvas id="durationChart" aria-label="Duration Analysis Chart" role="img"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <!-- Visitor Table -->
-    <section class="table-container">
-        <div class="table-header">
-            <h2>
-                <i class="fas fa-table"></i> Visitor Records
-                <span class="record-count">
-                    Showing <span id="recordCount">0</span> records
-                </span>
-            </h2>
-            
-            <div class="table-actions">
-                <div class="bulk-actions">
-                    <select id="bulkAction" class="form-control bulk-select" title="Select bulk action for visitors">
-                        <option value="">Bulk Actions</option>
-                        <option value="mark_exit">Mark as Exited</option>
-                        <option value="delete">Delete Selected</option>
-                    </select>
-                    <button onclick="applyBulkAction()" class="btn btn-secondary" title="Apply bulk action">
-                        <i class="fas fa-play"></i> Apply
-                    </button>
-                </div>
-                
-                <button onclick="selectAllRows()" class="btn btn-secondary" title="Select all visitor records">
-                    <i class="fas fa-check-square"></i> Select All
-                </button>
-                
-                <button onclick="loadVisitors()" class="btn btn-primary refresh-btn" title="Refresh visitor data">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="checkbox-cell">
-                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="Select all visitors">
-                        </th>
-                        <th>Name</th>
-                        <th>Roll No</th>
-                        <th>Level</th>
-                        <th>Course/Stream</th>
-                        <th>Year</th>
-                        <th>Purpose</th>
-                        <th>Entry Time</th>
-                        <th>Exit Time</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Duration</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="visitorTable">
-                    <tr>
-                        <td colspan="13" class="loading-row">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <div>Loading visitor data...</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container">
-            <div class="pagination-controls">
-                <button onclick="prevPage()" class="btn btn-secondary" id="prevBtn" disabled title="Previous page">
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="page-info">
-                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-                </span>
-                <button onclick="nextPage()" class="btn btn-secondary" id="nextBtn" disabled title="Next page">
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </section>
 </div>
 
 <!-- Add Visitor Modal -->
@@ -672,9 +594,7 @@
     <div class="add-visitor-modal">
         <div class="modal-header">
             <h2><i class="fas fa-user-plus"></i> Add New Visitor</h2>
-            <button class="close-modal" onclick="closeAddVisitorModal()" title="Close modal">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="close-modal" onclick="closeAddVisitorModal()" title="Close modal"><i class="fas fa-times"></i></button>
         </div>
 
         <div id="pgNoteModal" class="pg-note-modal">
@@ -684,23 +604,17 @@
 
         <form id="addVisitorForm">
             <div class="form-group">
-                <label class="form-label" for="modalName">
-                    <i class="fas fa-user-graduate"></i> Student Name
-                </label>
+                <label class="form-label" for="modalName"><i class="fas fa-user-graduate"></i> Student Name</label>
                 <input type="text" id="modalName" class="form-control" placeholder="Enter full name" required title="Enter student's full name">
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="modalRollNo">
-                    <i class="fas fa-id-card"></i> Roll Number
-                </label>
+                <label class="form-label" for="modalRollNo"><i class="fas fa-id-card"></i> Roll Number</label>
                 <input type="text" id="modalRollNo" class="form-control input-uppercase" placeholder="Enter roll number" required title="Enter student's roll number">
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="modalLevel">
-                    <i class="fas fa-layer-group"></i> Education Level
-                </label>
+                <label class="form-label" for="modalLevel"><i class="fas fa-layer-group"></i> Education Level</label>
                 <select id="modalLevel" class="form-control" required title="Select education level">
                     <option value="">Select Level</option>
                     <option value="JC">Junior College (JC)</option>
@@ -710,31 +624,23 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="modalCourse">
-                    <i class="fas fa-book-open"></i> Course / Stream
-                </label>
+                <label class="form-label" for="modalCourse"><i class="fas fa-book-open"></i> Course / Stream</label>
                 <select id="modalCourse" class="form-control" required title="Select course or stream">
                     <option value="">Select Course / Stream</option>
                 </select>
             </div>
             
-            <!-- JC Specific Fields -->
             <div id="jcFieldsModal" class="jc-fields-modal">
                 <div class="form-group">
-                    <label class="form-label" for="modalJcYear">
-                        <i class="fas fa-calendar-alt"></i> JC Year
-                    </label>
+                    <label class="form-label" for="modalJcYear"><i class="fas fa-calendar-alt"></i> JC Year</label>
                     <select id="modalJcYear" class="form-control" title="Select Junior College year">
                         <option value="">Select JC Year</option>
                         <option value="FYJC">First Year Junior College (FYJC)</option>
                         <option value="SYJC">Second Year Junior College (SYJC)</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
-                    <label class="form-label" for="modalJcStream">
-                        <i class="fas fa-stream"></i> Stream
-                    </label>
+                    <label class="form-label" for="modalJcStream"><i class="fas fa-stream"></i> Stream</label>
                     <select id="modalJcStream" class="form-control" title="Select stream">
                         <option value="">Select Stream</option>
                         <option value="Science">Science</option>
@@ -744,20 +650,15 @@
                 </div>
             </div>
             
-            <!-- UG/PG Year Field -->
             <div class="form-group" id="modalYearGroup" style="display: none;">
-                <label class="form-label" for="modalYear">
-                    <i class="fas fa-calendar-alt"></i> Year
-                </label>
+                <label class="form-label" for="modalYear"><i class="fas fa-calendar-alt"></i> Year</label>
                 <select id="modalYear" class="form-control" title="Select year of study">
                     <option value="">Select Year</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="modalPurpose">
-                    <i class="fas fa-bullseye"></i> Purpose of Visit
-                </label>
+                <label class="form-label" for="modalPurpose"><i class="fas fa-bullseye"></i> Purpose of Visit</label>
                 <select id="modalPurpose" class="form-control" required title="Select purpose of visit">
                     <option value="">Purpose of Visit</option>
                     <option>Reading</option>
@@ -771,29 +672,20 @@
                 </select>
             </div>
 
-            <!-- Date and Time Fields -->
             <div class="form-group">
-                <label class="form-label" for="modalVisitDate">
-                    <i class="fas fa-calendar"></i> Visit Date
-                </label>
+                <label class="form-label" for="modalVisitDate"><i class="fas fa-calendar"></i> Visit Date</label>
                 <input type="date" id="modalVisitDate" class="form-control" required title="Select visit date">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="modalEntryTime">
-                    <i class="fas fa-clock"></i> Entry Time
-                </label>
+                <label class="form-label" for="modalEntryTime"><i class="fas fa-clock"></i> Entry Time</label>
                 <input type="time" id="modalEntryTime" class="form-control" required title="Select entry time">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="modalExitTime">
-                    <i class="fas fa-door-open"></i> Exit Time (Optional)
-                </label>
+                <label class="form-label" for="modalExitTime"><i class="fas fa-door-open"></i> Exit Time (Optional)</label>
                 <input type="time" id="modalExitTime" class="form-control" title="Select exit time (optional)">
-                <small style="color: #64748b; display: block; margin-top: 5px;">
-                    Leave empty if visitor is still inside
-                </small>
+                <small style="color: #64748b; display: block; margin-top: 5px;">Leave empty if visitor is still inside</small>
             </div>
 
             <div id="addVisitorMessage"></div>
@@ -807,7 +699,6 @@
 
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script>
-    // Add Visitor Modal Functions
     const courses = {
         UG: ["BA(PSY)", "BA(MMC)", "B.COM", "BMS", "BAF", "B.Sc-IT", "BCA"],
         PG: ["M.Com(Accountancy)", "M.Com(Business Management)", "M.Sc-IT"],
@@ -822,12 +713,9 @@
     function openAddVisitorModal() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('modalVisitDate').value = today;
-        
         const now = new Date();
-        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
-                           now.getMinutes().toString().padStart(2, '0');
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
         document.getElementById('modalEntryTime').value = currentTime;
-        
         document.getElementById('addVisitorModal').classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -842,7 +730,6 @@
         document.getElementById('addVisitorMessage').style.display = 'none';
     }
 
-    // Level change handler for modal
     document.getElementById('modalLevel').addEventListener('change', function() {
         const level = this.value;
         const courseSelect = document.getElementById('modalCourse');
@@ -872,7 +759,6 @@
             jcFields.style.display = 'block';
         } else if (level === 'UG' || level === 'PG') {
             yearGroup.style.display = 'block';
-            
             if (years[level]) {
                 years[level].forEach(year => {
                     const option = document.createElement('option');
@@ -881,14 +767,12 @@
                     yearSelect.appendChild(option);
                 });
             }
-            
             if (level === 'PG') {
                 pgNote.style.display = 'block';
             }
         }
     });
 
-    // Form submission for modal with auto-hide messages
     document.getElementById('addVisitorForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -926,68 +810,46 @@
         }
         
         try {
-            const response = await fetch('/admin/add_visitor', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            
+            const response = await fetch('/admin/add_visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
             const result = await response.json();
             
             if (response.ok) {
                 messageDiv.textContent = '✓ Visitor added successfully!';
                 messageDiv.className = 'success';
                 messageDiv.style.display = 'block';
-                
                 loadVisitors();
                 loadAnalytics();
-                
-                setTimeout(() => {
-                    closeAddVisitorModal();
-                }, 2000);
+                setTimeout(() => { closeAddVisitorModal(); }, 2000);
             } else {
                 messageDiv.textContent = result.error || 'Failed to add visitor';
                 messageDiv.className = 'error';
                 messageDiv.style.display = 'block';
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 3000);
+                setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
             }
         } catch (error) {
             messageDiv.textContent = 'Connection error. Please try again.';
             messageDiv.className = 'error';
             messageDiv.style.display = 'block';
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 3000);
+            setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
         }
     });
 
-    // Close modal on escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAddVisitorModal();
-        }
+        if (e.key === 'Escape') { closeAddVisitorModal(); }
     });
 
-    // Close modal when clicking outside
     document.getElementById('addVisitorModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeAddVisitorModal();
-        }
+        if (e.target === this) { closeAddVisitorModal(); }
     });
 
-    // Force Auto-Exit function
     async function forceAutoExit() {
-        if (!confirm('Force mark all overdue visitors as exited? This will exit everyone still inside.')) return;
-        
+        if (!confirm('Force mark all overdue visitors as exited?')) return;
         try {
             const response = await fetch('/admin/force_auto_exit', { method: 'POST' });
             const result = await response.json();
-            
             if (result.success) {
                 showNotification(`Auto-exit completed: ${result.visitors} visitors, ${result.teachers} teachers`, 'success');
                 loadVisitors();
@@ -1002,54 +864,35 @@
         }
     }
 
-    // Email Report Functions
     async function sendMonthlyReport() {
-        if (!confirm('📧 Send monthly report via email?\n\nThis will send the previous month\'s visitor data as CSV and Excel files.')) {
-            return;
-        }
-        
-        showNotification('📤 Sending monthly report... Please wait.', 'info');
-        
+        if (!confirm('📧 Send monthly report via email?')) return;
+        showNotification('📤 Sending monthly report...', 'info');
         try {
-            const response = await fetch('/admin/send_monthly_report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await fetch('/admin/send_monthly_report', { method: 'POST' });
             const result = await response.json();
-            
             if (result.success) {
-                showNotification('✅ Monthly report sent successfully! Check your email inbox.', 'success');
+                showNotification('✅ Monthly report sent successfully!', 'success');
             } else {
-                showNotification('❌ ' + (result.error || 'Failed to send monthly report'), 'error');
+                showNotification('❌ ' + (result.error || 'Failed'), 'error');
             }
         } catch (error) {
-            console.error('Error sending monthly report:', error);
-            showNotification('❌ Connection error. Please try again.', 'error');
+            showNotification('❌ Connection error', 'error');
         }
     }
 
     async function sendLifetimeReport() {
-        if (!confirm('📧 Send lifetime report via email?\n\nThis will send ALL visitor data as CSV and Excel files.')) {
-            return;
-        }
-        
-        showNotification('📤 Sending lifetime report... Please wait.', 'info');
-        
+        if (!confirm('📧 Send lifetime report via email?')) return;
+        showNotification('📤 Sending lifetime report...', 'info');
         try {
-            const response = await fetch('/admin/send_lifetime_report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await fetch('/admin/send_lifetime_report', { method: 'POST' });
             const result = await response.json();
-            
             if (result.success) {
-                showNotification('✅ Lifetime report sent successfully! Check your email inbox.', 'success');
+                showNotification('✅ Lifetime report sent successfully!', 'success');
             } else {
-                showNotification('❌ ' + (result.error || 'Failed to send lifetime report'), 'error');
+                showNotification('❌ ' + (result.error || 'Failed'), 'error');
             }
         } catch (error) {
-            console.error('Error sending lifetime report:', error);
-            showNotification('❌ Connection error. Please try again.', 'error');
+            showNotification('❌ Connection error', 'error');
         }
     }
 </script>
