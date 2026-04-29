@@ -696,6 +696,20 @@ def admin_mark_teacher_exit(teacher_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@admin_bp.route('/teachers/delete/<int:teacher_id>', methods=['DELETE'])
+@login_required
+def admin_delete_teacher(teacher_id):
+    """Admin delete teacher record"""
+    try:
+        from backend.supabase_direct import SupabaseDirect as Database
+        result = Database.delete_teacher(teacher_id)
+        if result:
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"error": "Failed to delete teacher"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ==================== EMAIL REPORT ROUTES ====================
 
 @admin_bp.route('/send_monthly_report', methods=['POST'])
