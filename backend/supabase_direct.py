@@ -585,6 +585,24 @@ class SupabaseDirect:
             return 0
 
     @classmethod
+def delete_teacher(cls, teacher_id):
+    """Delete teacher record"""
+    try:
+        url = f"{Config.SUPABASE_URL}/rest/v1/teachers"
+        params = {'id': f'eq.{teacher_id}'}
+        
+        response = requests.delete(url, headers=cls._get_headers(), params=params)
+        
+        if response.status_code == 204:
+            print(f"✅ Teacher {teacher_id} deleted successfully")
+            return True
+        return False
+        
+    except Exception as e:
+        print(f"❌ Delete teacher error: {e}")
+        return False
+    
+    @classmethod
     def auto_exit_overdue_teachers(cls):
         """Automatically mark exit for teachers still inside after 4 PM"""
         try:
