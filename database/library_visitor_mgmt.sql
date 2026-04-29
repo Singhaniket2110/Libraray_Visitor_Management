@@ -48,6 +48,36 @@ CREATE TABLE visitors (
     INDEX idx_roll_no (roll_no)
 );
 
+-- ============================================
+-- COMPLETE TEACHER TABLE SETUP
+-- Run this entire script at once in Supabase SQL Editor
+-- ============================================
+
+-- 1. Create the teachers table
+CREATE TABLE IF NOT EXISTS teachers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    employee_id VARCHAR(50) UNIQUE NOT NULL,
+    designation VARCHAR(100) NOT NULL,
+    nature_of_work VARCHAR(100) NOT NULL,
+    purpose VARCHAR(100),
+    notes TEXT,
+    entry_time TIME NOT NULL,
+    exit_time TIME,
+    visit_date DATE NOT NULL,
+    visit_day VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 2. Create index for faster employee ID search
+CREATE INDEX IF NOT EXISTS idx_teachers_employee_id ON teachers(employee_id);
+
+-- 3. Create index for date filtering
+CREATE INDEX IF NOT EXISTS idx_teachers_visit_date ON teachers(visit_date);
+
+-- 4. Create index for finding active teachers (exit_time is NULL)
+CREATE INDEX IF NOT EXISTS idx_teachers_exit_time ON teachers(exit_time);
+
 -- Create views for reports
 CREATE VIEW today_stats AS
 SELECT 
