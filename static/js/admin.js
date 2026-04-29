@@ -907,8 +907,8 @@ async function loadVisitors() {
                 <td colspan="13" class="loading-row">
                     <i class="fas fa-spinner fa-spin"></i>
                     <div>Loading student data...</div>
-                </td>
-            </tr>
+                 </td>
+             </tr>
         `;
         
         // Get filters
@@ -972,7 +972,7 @@ async function loadVisitors() {
                         <i class="fas fa-inbox"></i>
                         <div>No student visitors found</div>
                     </td>
-                </tr>
+                 </tr>
             `;
             updateRecordCount(totalRecords);
             return;
@@ -993,7 +993,7 @@ async function loadVisitors() {
                         <i class="fas fa-exclamation-triangle"></i>
                         <div>Error loading student data. Please try again.</div>
                     </td>
-                </tr>
+                 </tr>
             `;
         }
         showNotification('Error loading student data', 'error');
@@ -1017,7 +1017,7 @@ function renderTablePage() {
                     <i class="fas fa-inbox"></i>
                     <div>No student visitors found</div>
                 </td>
-            </tr>
+             </tr>
         `;
         return;
     }
@@ -1033,16 +1033,39 @@ function renderTablePage() {
             yearDisplay = v.jc_year || "-";
         }
         
-        // Calculate duration
+        // Calculate duration - FIXED for next day exits
         let duration = '-';
         if (v.entry_time && v.exit_time) {
             try {
-                const entry = new Date(`2000-01-01 ${v.entry_time}`);
-                const exit = new Date(`2000-01-01 ${v.exit_time}`);
-                const diffMs = exit - entry;
+                const entryTime = v.entry_time;
+                const exitTime = v.exit_time;
+                const visitDate = v.visit_date;
+                
+                // Parse entry date and time
+                const entryDateTime = new Date(`${visitDate}T${entryTime}`);
+                
+                // Parse exit - check if exit is on next day
+                let exitDateTime = new Date(`${visitDate}T${exitTime}`);
+                
+                // If exit time is earlier than entry time, it's next day
+                if (exitDateTime < entryDateTime) {
+                    // Add one day to exit
+                    exitDateTime = new Date(exitDateTime);
+                    exitDateTime.setDate(exitDateTime.getDate() + 1);
+                }
+                
+                const diffMs = exitDateTime - entryDateTime;
                 const minutes = Math.floor(diffMs / 60000);
-                duration = `${minutes}m`;
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                
+                if (hours > 0) {
+                    duration = `${hours}h ${remainingMinutes}m`;
+                } else {
+                    duration = `${minutes}m`;
+                }
             } catch (e) {
+                console.warn('Duration calculation error:', e);
                 duration = '-';
             }
         }
@@ -1120,7 +1143,7 @@ async function loadTeacherVisits() {
                     <i class="fas fa-spinner fa-spin"></i>
                     <div>Loading teacher data...</div>
                 </td>
-            </tr>
+             </tr>
         `;
         
         // Get filters
@@ -1175,7 +1198,7 @@ async function loadTeacherVisits() {
                         <i class="fas fa-exclamation-triangle"></i>
                         <div>Error loading teacher data</div>
                     </td>
-                </tr>
+                 </tr>
             `;
         }
         showNotification('Error loading teacher data', 'error');
@@ -1199,7 +1222,7 @@ function renderTeacherTablePage() {
                     <i class="fas fa-inbox"></i>
                     <div>No teacher visits found</div>
                 </td>
-            </tr>
+             </tr>
         `;
         return;
     }
@@ -1649,6 +1672,7 @@ async function exportData(format) {
         showNotification('Error exporting data', 'error');
     }
 }
+
 // ==================== UTILITY FUNCTIONS ====================
 
 function showNotification(message, type = 'info') {
@@ -1825,5 +1849,56 @@ function logoutUser() {
     }, 1000);
 }
 
-console.log("✅ Admin.js loaded successfully!");
+// ==================== EMAIL REPORT FUNCTIONS ====================
 
+async function sendMonthlyReport() {
+    if (!confirm('📧 Send monthly report via email?\n\nThis will send the previous month\'s visitor data as CSV and Excel files.')) {
+        return;
+    }
+    
+    showNotification('📤 Sending monthly report... Please wait.', 'info');
+    
+    try {
+        const response = await fetch('/admin/send_monthly_report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Monthly report sent successfully! Check your email inbox.', 'success');
+        } else {
+            showNotification('❌ ' + (result.error || 'Failed to send monthly report'), 'error');
+        }
+    } catch (error) {
+        console.error('Error sending monthly report:', error);
+        showNotification('❌ Connection error. Please try again.', 'error');
+    }
+}
+
+async function sendLifetimeReport() {
+    if (!confirm('📧 Send lifetime report via email?\n\nThis will send ALL visitor data as CSV and Excel files.')) {
+        return;
+    }
+    
+    showNotification('📤 Sending lifetime report... Please wait.', 'info');
+    
+    try {
+        const response = await fetch('/admin/send_lifetime_report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Lifetime report sent successfully! Check your email inbox.', 'success');
+        } else {
+            showNotification('❌ ' + (result.error || 'Failed to send lifetime report'), 'error');
+        }
+    } catch (error) {
+        console.error('Error sending lifetime report:', error);
+        showNotification('❌ Connection error. Please try again.', 'error');
+    }
+}
+
+console.log("✅ Admin.js loaded successfully!");
