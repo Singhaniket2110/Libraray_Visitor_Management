@@ -240,6 +240,12 @@ def add_visitor_admin():
         result = Database.insert_visitor(visitor_data)
         
         if result:
+            # Refresh teacher stats as well
+            try:
+                Database.auto_exit_overdue_teachers()
+            except:
+                pass
+            
             return jsonify({
                 "success": True,
                 "message": "Visitor added successfully",
@@ -739,7 +745,6 @@ def send_lifetime_report():
     except Exception as e:
         print(f"Error sending lifetime report: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 # ==================== ADD TEACHER (ADMIN ONLY) ====================
 
