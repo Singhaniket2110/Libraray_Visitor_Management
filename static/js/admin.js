@@ -89,28 +89,30 @@ async function checkLoginStatus() {
 // ==================== STATISTICS TABS ====================
 
 function showStatsTab(tabName) {
-    // Hide all tabs
+    // Hide all sections
     document.querySelectorAll('.stats-section').forEach(section => {
         section.classList.remove('active');
+        section.style.display = 'none';
     });
     
-    // Remove active class from all tab buttons
+    // Remove active class from buttons
     document.querySelectorAll('.stats-tab').forEach(button => {
         button.classList.remove('active');
     });
     
-    // Show selected tab
+    // Show selected section
     const targetSection = document.getElementById(tabName + 'Stats');
     if (targetSection) {
         targetSection.classList.add('active');
+        targetSection.style.display = 'block';
     }
     
-    // Activate selected button
+    // Activate clicked button
     if (event && event.target) {
         event.target.classList.add('active');
     }
     
-    // Load appropriate data
+    // Load data
     if (tabName === 'student') {
         loadAnalytics();
         loadVisitors();
@@ -538,7 +540,7 @@ async function loadVisitors() {
             return;
         }
         
-        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i><div>Loading student data...</div></td></tr>`;
+        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-spinner fa-spin"></i><div>Loading student data...</div>不懈</div>`;
         
         const levelFilter = document.getElementById('levelFilter');
         const statusFilter = document.getElementById('statusFilter');
@@ -583,7 +585,7 @@ async function loadVisitors() {
         totalRecords = allVisitors.length;
         
         if (allVisitors.length === 0) {
-            table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
+            table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div>不懈</div>`;
             updateRecordCount(totalRecords);
             return;
         }
@@ -597,7 +599,7 @@ async function loadVisitors() {
         console.error('❌ Error loading visitors:', error);
         const table = document.getElementById('visitorTable');
         if (table) {
-            table.innerHTML = `</table><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div>不懈`;
+            table.innerHTML = `<tr><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div>不懈</div>`;
         }
         showNotification('Error loading student data', 'error');
     }
@@ -614,7 +616,7 @@ function renderTablePage() {
     const pageVisitors = allVisitors.slice(startIndex, endIndex);
     
     if (pageVisitors.length === 0) {
-        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
+        table.innerHTML = `</td><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div>不懈</div>`;
         return;
     }
     
@@ -690,7 +692,7 @@ function updateRecordCount(count) {
     }
 }
 
-// ==================== TEACHER VISIT FUNCTIONS - FIXED ====================
+// ==================== TEACHER VISIT FUNCTIONS ====================
 
 async function loadTeacherStats() {
     try {
@@ -775,7 +777,7 @@ async function loadTeacherVisits() {
             return;
         }
         
-        table.innerHTML = `</td><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td></tr>`;
+        table.innerHTML = `<table><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...不懈</div>`;
         
         const startDate = currentDateRange.start || '';
         const endDate = currentDateRange.end || '';
