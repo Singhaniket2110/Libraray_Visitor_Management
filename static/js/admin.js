@@ -597,7 +597,7 @@ async function loadVisitors() {
         console.error('❌ Error loading visitors:', error);
         const table = document.getElementById('visitorTable');
         if (table) {
-            table.innerHTML = `<tr><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div>不懈`;
+            table.innerHTML = `</table><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div>不懈`;
         }
         showNotification('Error loading student data', 'error');
     }
@@ -614,7 +614,7 @@ function renderTablePage() {
     const pageVisitors = allVisitors.slice(startIndex, endIndex);
     
     if (pageVisitors.length === 0) {
-        table.innerHTML = `<table><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></table>`;
+        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
         return;
     }
     
@@ -690,7 +690,7 @@ function updateRecordCount(count) {
     }
 }
 
-// ==================== TEACHER VISIT FUNCTIONS ====================
+// ==================== TEACHER VISIT FUNCTIONS - FIXED ====================
 
 async function loadTeacherStats() {
     try {
@@ -767,10 +767,15 @@ async function loadTeacherStats() {
 
 async function loadTeacherVisits() {
     try {
-        const table = document.getElementById('teacherTable');
-        if (!table) return;
+        console.log("👨‍🏫 Loading teacher visits...");
         
-        table.innerHTML = `<tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td></tr>`;
+        const table = document.getElementById('teacherTable');
+        if (!table) {
+            console.error("❌ teacherTable element not found in DOM!");
+            return;
+        }
+        
+        table.innerHTML = `</td><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading teacher data...</td></tr>`;
         
         const startDate = currentDateRange.start || '';
         const endDate = currentDateRange.end || '';
@@ -780,11 +785,17 @@ async function loadTeacherVisits() {
             url = `/admin/teachers/filter?start_date=${startDate}&end_date=${endDate}`;
         }
         
+        console.log("Fetching teachers from:", url);
+        
         const response = await fetch(url);
         const teachers = await response.json();
         
+        console.log("Teachers response:", teachers);
+        
         allTeachers = Array.isArray(teachers) ? teachers : [];
         teacherTotalRecords = allTeachers.length;
+        
+        console.log("Total teacher records:", teacherTotalRecords);
         
         renderTeacherTablePage();
         
@@ -792,21 +803,27 @@ async function loadTeacherVisits() {
         console.error('Error loading teacher visits:', error);
         const table = document.getElementById('teacherTable');
         if (table) {
-            table.innerHTML = `<tr><td colspan="10" class="loading-row" style="color: #ef4444;">Error loading teacher data</th>`;
+            table.innerHTML = `<td colspan="10" class="loading-row" style="color: #ef4444;">Error loading teacher data</td>`;
         }
     }
 }
 
 function renderTeacherTablePage() {
     const table = document.getElementById('teacherTable');
-    if (!table) return;
+    if (!table) {
+        console.error("❌ teacherTable element not found while rendering!");
+        return;
+    }
+    
+    console.log("Rendering teacher table. Total records:", teacherTotalRecords);
+    console.log("All teachers data:", allTeachers);
     
     const startIndex = (currentTeacherPage - 1) * teacherPageSize;
     const endIndex = Math.min(startIndex + teacherPageSize, teacherTotalRecords);
     const pageTeachers = allTeachers.slice(startIndex, endIndex);
     
     if (pageTeachers.length === 0) {
-        table.innerHTML = `<tr><td colspan="10" class="loading-row">No teacher records found</th>`;
+        table.innerHTML = `<td colspan="10" class="loading-row">No teacher records found</td>`;
         return;
     }
     
@@ -830,6 +847,7 @@ function renderTeacherTablePage() {
     
     table.innerHTML = tableHTML;
     updateTeacherPagination();
+    console.log("✅ Teacher table rendered with", pageTeachers.length, "records");
 }
 
 function updateTeacherPagination() {
