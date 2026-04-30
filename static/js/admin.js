@@ -597,7 +597,7 @@ async function loadVisitors() {
         console.error('❌ Error loading visitors:', error);
         const table = document.getElementById('visitorTable');
         if (table) {
-            table.innerHTML = `<tr><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div></td></tr>`;
+            table.innerHTML = `<tr><td colspan="13" class="loading-row" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i><div>Error loading student data. Please try again.</div>不懈`;
         }
         showNotification('Error loading student data', 'error');
     }
@@ -614,7 +614,7 @@ function renderTablePage() {
     const pageVisitors = allVisitors.slice(startIndex, endIndex);
     
     if (pageVisitors.length === 0) {
-        table.innerHTML = `<tr><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></tr>`;
+        table.innerHTML = `<table><td colspan="13" class="loading-row"><i class="fas fa-inbox"></i><div>No student visitors found</div></td></table>`;
         return;
     }
     
@@ -691,6 +691,7 @@ function updateRecordCount(count) {
 }
 
 // ==================== TEACHER VISIT FUNCTIONS ====================
+
 async function loadTeacherStats() {
     try {
         console.log("📊 Loading teacher stats...");
@@ -710,16 +711,23 @@ async function loadTeacherStats() {
         const teacherTotalVisits = allTeachersData.length;
         const teacherTodayVisits = todayTeachers.length;
         const teacherActiveNow = todayTeachers.filter(t => !t.exit_time).length;
-        const uniqueTeachers = [...new Set(allTeachersData.map(t => t.name))].length;
+        
+        let uniqueTeachers = 0;
+        if (allTeachersData.length > 0) {
+            const uniqueNames = [...new Set(allTeachersData.map(t => t.name).filter(name => name))];
+            uniqueTeachers = uniqueNames.length;
+        }
         
         let totalDuration = 0;
         let count = 0;
         todayTeachers.forEach(t => {
             if (t.entry_time && t.exit_time) {
-                const entry = new Date(`2000-01-01 ${t.entry_time}`);
-                const exit = new Date(`2000-01-01 ${t.exit_time}`);
-                totalDuration += (exit - entry) / 60000;
-                count++;
+                try {
+                    const entry = new Date(`2000-01-01 ${t.entry_time}`);
+                    const exit = new Date(`2000-01-01 ${t.exit_time}`);
+                    totalDuration += (exit - entry) / 60000;
+                    count++;
+                } catch(e) {}
             }
         });
         const teacherAvgDuration = count > 0 ? Math.round(totalDuration / count) : 0;
@@ -729,39 +737,28 @@ async function loadTeacherStats() {
         const thisYear = now.getFullYear();
         const thisMonthTeachers = allTeachersData.filter(t => {
             if (!t.visit_date) return false;
-            const visitDate = new Date(t.visit_date);
-            return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
+            try {
+                const visitDate = new Date(t.visit_date);
+                return visitDate.getMonth() + 1 === thisMonth && visitDate.getFullYear() === thisYear;
+            } catch(e) { return false; }
         });
         const teacherThisMonth = thisMonthTeachers.length;
         
-        console.log("Values to display:", {
-            teacherTotalVisits,
-            teacherTodayVisits,
-            teacherActiveNow,
-            uniqueTeachers,
-            teacherAvgDuration,
-            teacherThisMonth
-        });
+        console.log("Values:", {teacherTotalVisits, teacherTodayVisits, teacherActiveNow, uniqueTeachers, teacherAvgDuration, teacherThisMonth});
         
-        // Try to update each element with null check and console log
-        const elements = {
-            teacherTotalVisits: document.getElementById('teacherTotalVisits'),
-            teacherTodayVisits: document.getElementById('teacherTodayVisits'),
-            teacherActiveNow: document.getElementById('teacherActiveNow'),
-            teacherUnique: document.getElementById('teacherUnique'),
-            teacherAvgDuration: document.getElementById('teacherAvgDuration'),
-            teacherThisMonth: document.getElementById('teacherThisMonth')
-        };
+        const el_total = document.getElementById('teacherTotalVisits');
+        const el_today = document.getElementById('teacherTodayVisits');
+        const el_active = document.getElementById('teacherActiveNow');
+        const el_unique = document.getElementById('teacherUnique');
+        const el_avg = document.getElementById('teacherAvgDuration');
+        const el_month = document.getElementById('teacherThisMonth');
         
-        for (const [key, element] of Object.entries(elements)) {
-            if (element) {
-                const value = eval(key);
-                element.textContent = value;
-                console.log(`✅ Updated ${key} to ${value}`);
-            } else {
-                console.log(`❌ Element ${key} not found in DOM`);
-            }
-        }
+        if (el_total) el_total.textContent = teacherTotalVisits;
+        if (el_today) el_today.textContent = teacherTodayVisits;
+        if (el_active) el_active.textContent = teacherActiveNow;
+        if (el_unique) el_unique.textContent = uniqueTeachers;
+        if (el_avg) el_avg.textContent = teacherAvgDuration;
+        if (el_month) el_month.textContent = teacherThisMonth;
         
     } catch (error) {
         console.error('Error loading teacher stats:', error);
@@ -795,7 +792,7 @@ async function loadTeacherVisits() {
         console.error('Error loading teacher visits:', error);
         const table = document.getElementById('teacherTable');
         if (table) {
-            table.innerHTML = `<tr><td colspan="10" class="loading-row" style="color: #ef4444;">Error loading teacher data</td></tr>`;
+            table.innerHTML = `<tr><td colspan="10" class="loading-row" style="color: #ef4444;">Error loading teacher data</th>`;
         }
     }
 }
@@ -809,7 +806,7 @@ function renderTeacherTablePage() {
     const pageTeachers = allTeachers.slice(startIndex, endIndex);
     
     if (pageTeachers.length === 0) {
-        table.innerHTML = `<tr><td colspan="10" class="loading-row">No teacher records found</td></tr>`;
+        table.innerHTML = `<tr><td colspan="10" class="loading-row">No teacher records found</th>`;
         return;
     }
     
@@ -818,13 +815,13 @@ function renderTeacherTablePage() {
         tableHTML += `
             <tr>
                 <td class="checkbox-cell"><input type="checkbox" class="teacher-row-checkbox" value="${t.id}"></td>
-                <td><strong>${t.name}</strong></td>
+                <td><strong>${t.name || '-'}</strong></td>
                 <td>${t.employee_id || '-'}</td>
                 <td>${t.designation || '-'}</td>
                 <td>${t.nature_of_work || '-'}</td>
                 <td>${t.entry_time || '-'}</td>
                 <td>${t.exit_time || '-'}</td>
-                <td>${t.visit_date}</td>
+                <td>${t.visit_date || '-'}</td>
                 <td><span class="status-badge ${t.exit_time ? 'exited' : 'active'}">${t.exit_time ? 'Exited' : 'Active'}</span></td>
                 <td>${!t.exit_time ? `<button class="btn-exit" onclick="markTeacherExit(${t.id})"><i class="fas fa-sign-out-alt"></i> Exit</button>` : '-'}</td>
             </tr>
@@ -837,12 +834,15 @@ function renderTeacherTablePage() {
 
 function updateTeacherPagination() {
     const totalPages = Math.ceil(teacherTotalRecords / teacherPageSize) || 1;
-    if (document.getElementById('teacherCurrentPage')) {
-        document.getElementById('teacherCurrentPage').textContent = currentTeacherPage;
-        document.getElementById('teacherTotalPages').textContent = totalPages;
-        document.getElementById('prevTeacherBtn').disabled = currentTeacherPage === 1;
-        document.getElementById('nextTeacherBtn').disabled = currentTeacherPage * teacherPageSize >= teacherTotalRecords;
-    }
+    const currPageEl = document.getElementById('teacherCurrentPage');
+    const totalPagesEl = document.getElementById('teacherTotalPages');
+    const prevBtn = document.getElementById('prevTeacherBtn');
+    const nextBtn = document.getElementById('nextTeacherBtn');
+    
+    if (currPageEl) currPageEl.textContent = currentTeacherPage;
+    if (totalPagesEl) totalPagesEl.textContent = totalPages;
+    if (prevBtn) prevBtn.disabled = currentTeacherPage === 1;
+    if (nextBtn) nextBtn.disabled = currentTeacherPage * teacherPageSize >= teacherTotalRecords;
 }
 
 function prevTeacherPage() {
