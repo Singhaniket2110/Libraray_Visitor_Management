@@ -6,6 +6,8 @@ import io
 import csv
 import pandas as pd
 import jwt
+import zipfile
+from io import BytesIO
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -510,70 +512,54 @@ def import_data():
         print(f"Import error: {e}")
         return jsonify({"error": f"Import failed: {str(e)}"}), 500
 
+# ==================== EXPORT DATA ROUTE (UPDATED - Students + Teachers) ====================
+
 @admin_bp.route('/export_data', methods=['GET'])
 @login_required
 def export_data():
-    """Export data to CSV or Excel"""
+    """Export data to CSV or Excel with both Students and Teachers"""
     try:
         from flask import send_file
+        import zipfile
+        from io import BytesIO
         
         format_type = request.args.get('format', 'csv')
         start_date = request.args.get('start_date', '')
         end_date = request.args.get('end_date', '')
         
-        # ✅ USE DIRECT API
+        # Get student data
         if start_date and end_date:
-            visitors = Database.get_visitors_by_date_range(start_date, end_date)
+            students = Database.get_visitors_by_date_range(start_date, end_date)
         else:
-            visitors = Database.get_all_visitors()
+            students = Database.get_all_visitors()
         
-        if format_type == 'csv':
-            output = io.StringIO()
-            writer = csv.writer(output)
-            
-            writer.writerow([
-                'ID', 'Name', 'Roll No', 'Level', 'Course', 
-                'Year', 'JC Year', 'JC Stream', 'Purpose',
-                'Entry Time', 'Exit Time', 'Visit Date', 'Day'
-            ])
-            
-            for v in visitors:
-                writer.writerow([
-                    v.get('id', ''),
-                    v.get('name', ''),
-                    v.get('roll_no', ''),
-                    v.get('level', ''),
-                    v.get('course', ''),
-                    v.get('year', ''),
-                    v.get('jc_year', ''),
-                    v.get('jc_stream', ''),
-                    v.get('purpose', ''),
-                    str(v.get('entry_time', '')),
-                    str(v.get('exit_time', '')),
-                    str(v.get('visit_date', '')),
-                    v.get('visit_day', '')
-                ])
-            
-            output.seek(0)
-            return send_file(
-                io.BytesIO(output.getvalue().encode('utf-8')),
-                mimetype='text/csv',
-                as_attachment=True,
-                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.csv'
-            )
+        # Get teacher data
+        if start_date and end_date:
+            teachers = Database.get_teachers_by_date_range(start_date, end_date)
+        else:
+            teachers = Database.get_all_teachers()
         
-        elif format_type == 'excel':
-            data = []
-            for v in visitors:
-                data.append({
+        # ==================== EXCEL FORMAT (2 sheets) ====================
+        if format_type == 'excel':
+            output = io.BytesIO()
+            
+            # Create DataFrames
+            student_data = []
+            for v in students:
+                if v.get('level') == 'JC':
+                    course_val = v.get('jc_stream', '')
+                    year_val = v.get('jc_year', '')
+                else:
+                    course_val = v.get('course', '')
+                    year_val = v.get('year', '')
+                
+                student_data.append({
                     'ID': v.get('id', ''),
                     'Name': v.get('name', ''),
                     'Roll No': v.get('roll_no', ''),
                     'Level': v.get('level', ''),
-                    'Course': v.get('course', ''),
-                    'Year': v.get('year', ''),
-                    'JC Year': v.get('jc_year', ''),
-                    'JC Stream': v.get('jc_stream', ''),
+                    'Course/Stream': course_val,
+                    'Year': year_val,
                     'Purpose': v.get('purpose', ''),
                     'Entry Time': str(v.get('entry_time', '')),
                     'Exit Time': str(v.get('exit_time', '')),
@@ -581,18 +567,101 @@ def export_data():
                     'Day': v.get('visit_day', '')
                 })
             
-            df = pd.DataFrame(data)
-            output = io.BytesIO()
+            teacher_data = []
+            for t in teachers:
+                teacher_data.append({
+                    'ID': t.get('id', ''),
+                    'Name': t.get('name', ''),
+                    'Employee ID': t.get('employee_id', ''),
+                    'Designation': t.get('designation', ''),
+                    'Nature of Work': t.get('nature_of_work', ''),
+                    'Purpose': t.get('purpose', ''),
+                    'Notes': t.get('notes', ''),
+                    'Entry Time': str(t.get('entry_time', '')),
+                    'Exit Time': str(t.get('exit_time', '')),
+                    'Visit Date': str(t.get('visit_date', '')),
+                    'Day': t.get('visit_day', '')
+                })
+            
+            df_students = pd.DataFrame(student_data)
+            df_teachers = pd.DataFrame(teacher_data)
             
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name='Visitors', index=False)
+                df_students.to_excel(writer, sheet_name='Students', index=False)
+                df_teachers.to_excel(writer, sheet_name='Teachers', index=False)
             
             output.seek(0)
             return send_file(
                 output,
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 as_attachment=True,
-                download_name=f'library_visitors_{datetime.now().strftime("%Y%m%d")}.xlsx'
+                download_name=f'library_export_{datetime.now().strftime("%Y%m%d")}.xlsx'
+            )
+        
+        # ==================== CSV FORMAT (2 files in ZIP) ====================
+        elif format_type == 'csv':
+            zip_buffer = BytesIO()
+            
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                # Students CSV
+                student_output = io.StringIO()
+                student_writer = csv.writer(student_output)
+                student_writer.writerow(['ID', 'Name', 'Roll No', 'Level', 'Course/Stream', 'Year', 'Purpose', 'Entry Time', 'Exit Time', 'Visit Date', 'Day'])
+                
+                for v in students:
+                    if v.get('level') == 'JC':
+                        course_val = v.get('jc_stream', '')
+                        year_val = v.get('jc_year', '')
+                    else:
+                        course_val = v.get('course', '')
+                        year_val = v.get('year', '')
+                    
+                    student_writer.writerow([
+                        v.get('id', ''),
+                        v.get('name', ''),
+                        v.get('roll_no', ''),
+                        v.get('level', ''),
+                        course_val,
+                        year_val,
+                        v.get('purpose', ''),
+                        str(v.get('entry_time', '')),
+                        str(v.get('exit_time', '')),
+                        str(v.get('visit_date', '')),
+                        v.get('visit_day', '')
+                    ])
+                
+                student_output.seek(0)
+                zip_file.writestr(f'students_{datetime.now().strftime("%Y%m%d")}.csv', student_output.getvalue().encode('utf-8'))
+                
+                # Teachers CSV
+                teacher_output = io.StringIO()
+                teacher_writer = csv.writer(teacher_output)
+                teacher_writer.writerow(['ID', 'Name', 'Employee ID', 'Designation', 'Nature of Work', 'Purpose', 'Notes', 'Entry Time', 'Exit Time', 'Visit Date', 'Day'])
+                
+                for t in teachers:
+                    teacher_writer.writerow([
+                        t.get('id', ''),
+                        t.get('name', ''),
+                        t.get('employee_id', ''),
+                        t.get('designation', ''),
+                        t.get('nature_of_work', ''),
+                        t.get('purpose', ''),
+                        t.get('notes', ''),
+                        str(t.get('entry_time', '')),
+                        str(t.get('exit_time', '')),
+                        str(t.get('visit_date', '')),
+                        t.get('visit_day', '')
+                    ])
+                
+                teacher_output.seek(0)
+                zip_file.writestr(f'teachers_{datetime.now().strftime("%Y%m%d")}.csv', teacher_output.getvalue().encode('utf-8'))
+            
+            zip_buffer.seek(0)
+            return send_file(
+                zip_buffer,
+                mimetype='application/zip',
+                as_attachment=True,
+                download_name=f'library_export_{datetime.now().strftime("%Y%m%d")}.zip'
             )
         
         else:
