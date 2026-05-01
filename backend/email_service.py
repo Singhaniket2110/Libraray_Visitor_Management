@@ -355,3 +355,280 @@ class EmailService:
         except Exception as e:
             print(f"❌ Failed to send lifetime report: {e}")
             return False
+
+    # ==================== NEW TEACHER REPORT FUNCTIONS ====================
+    
+    @classmethod
+    def send_monthly_report_teachers(cls):
+        """Send monthly teacher report email (previous month's data)"""
+        try:
+            if not cls._is_configured():
+                print("❌ Email not configured")
+                return False
+            
+            config = cls._get_email_config()
+            
+            # Calculate previous month's date range
+            today = datetime.now()
+            first_day_current_month = today.replace(day=1)
+            last_day_previous_month = first_day_current_month - timedelta(days=1)
+            first_day_previous_month = last_day_previous_month.replace(day=1)
+            
+            start_date = first_day_previous_month.strftime('%Y-%m-%d')
+            end_date = last_day_previous_month.strftime('%Y-%m-%d')
+            month_name = last_day_previous_month.strftime('%B %Y')
+            
+            print(f"📊 Generating monthly teacher report for {month_name}")
+            
+            # Fetch teachers for the month
+            teachers = Database.get_teachers_by_date_range(start_date, end_date)
+            
+            if not teachers:
+                print(f"⚠️ No teacher data found for {month_name}")
+                return False
+            
+            # Generate attachments
+            csv_data = cls._generate_csv_attachment(teachers, f"teachers_monthly_{start_date}.csv")
+            excel_data = cls._generate_excel_attachment(teachers, f"teachers_monthly_{start_date}.xlsx")
+            
+            if not csv_data or not excel_data:
+                print("❌ Failed to generate attachments")
+                return False
+            
+            # Calculate statistics
+            active_count = sum(1 for t in teachers if t.get('exit_time') is None)
+            unique_teachers = len(set(t.get('name', '') for t in teachers if t.get('name')))
+            
+            # Create email
+            msg = MIMEMultipart()
+            msg['From'] = config['sender']
+            msg['To'] = config['recipient']
+            msg['Subject'] = f"📚 Library Monthly Teacher Report - {month_name}"
+            
+            body = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                    .header {{ background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 20px; text-align: center; border-radius: 10px; }}
+                    .summary {{ background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0; }}
+                    .stats {{ display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }}
+                    .stat-box {{ background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; min-width: 120px; text-align: center; }}
+                    .stat-number {{ font-size: 28px; font-weight: bold; color: #8b5cf6; }}
+                    .stat-label {{ color: #64748b; font-size: 12px; }}
+                    .footer {{ font-size: 12px; color: #64748b; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>📚 Smt. Kesardevi Mishra Memorial Library</h2>
+                    <p>Monthly Teacher Report - {month_name}</p>
+                </div>
+                
+                <div class="summary">
+                    <h3>📅 Report Period: {month_name}</h3>
+                    <p><strong>Date Range:</strong> {start_date} to {end_date}</p>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number">{len(teachers)}</div>
+                        <div class="stat-label">Total Teacher Visits</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{unique_teachers}</div>
+                        <div class="stat-label">Unique Teachers</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{active_count}</div>
+                        <div class="stat-label">Currently Inside</div>
+                    </div>
+                </div>
+                
+                <h3>📎 Attachments</h3>
+                <ul>
+                    <li><strong>CSV File:</strong> {len(teachers)} teacher records</li>
+                    <li><strong>Excel File:</strong> {len(teachers)} teacher records</li>
+                </ul>
+                
+                <div class="footer">
+                    <p>This is an automated report generated by Navneet College Library Management System.</p>
+                    <p>© 2026 Navneet College of Arts, Science &amp; Commerce</p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            msg.attach(MIMEText(body, 'html'))
+            
+            # Attach CSV
+            csv_part = MIMEBase('application', 'octet-stream')
+            csv_part.set_payload(csv_data)
+            encoders.encode_base64(csv_part)
+            csv_part.add_header('Content-Disposition', f'attachment; filename=teachers_monthly_{start_date}.csv')
+            msg.attach(csv_part)
+            
+            # Attach Excel
+            excel_part = MIMEBase('application', 'octet-stream')
+            excel_part.set_payload(excel_data)
+            encoders.encode_base64(excel_part)
+            excel_part.add_header('Content-Disposition', f'attachment; filename=teachers_monthly_{start_date}.xlsx')
+            msg.attach(excel_part)
+            
+            # Send email
+            server = smtplib.SMTP(config['server'], config['port'])
+            server.starttls()
+            server.login(config['username'], config['password'])
+            server.send_message(msg)
+            server.quit()
+            
+            print(f"✅ Monthly teacher report sent for {month_name}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to send monthly teacher report: {e}")
+            return False
+    
+    @classmethod
+    def send_lifetime_report_teachers(cls):
+        """Send lifetime teacher report email (all teacher data)"""
+        try:
+            if not cls._is_configured():
+                print("❌ Email not configured")
+                return False
+            
+            config = cls._get_email_config()
+            
+            print("📊 Generating lifetime teacher report")
+            
+            # Fetch all teachers
+            teachers = Database.get_all_teachers()
+            
+            if not teachers:
+                print("⚠️ No teacher data found")
+                return False
+            
+            # Get unique dates for statistics
+            unique_dates = set()
+            for t in teachers:
+                if t.get('visit_date'):
+                    unique_dates.add(t['visit_date'])
+            
+            # Calculate statistics
+            unique_teachers = len(set(t.get('name', '') for t in teachers if t.get('name')))
+            active_count = sum(1 for t in teachers if t.get('exit_time') is None)
+            
+            # Get first and last visit dates
+            all_dates = [t.get('visit_date') for t in teachers if t.get('visit_date')]
+            first_visit = min(all_dates) if all_dates else 'N/A'
+            last_visit = max(all_dates) if all_dates else 'N/A'
+            
+            today = datetime.now().strftime('%Y-%m-%d')
+            avg_daily = round(len(teachers) / len(unique_dates), 1) if unique_dates else 0
+            
+            # Generate attachments
+            csv_data = cls._generate_csv_attachment(teachers, f"teachers_lifetime_{today}.csv")
+            excel_data = cls._generate_excel_attachment(teachers, f"teachers_lifetime_{today}.xlsx")
+            
+            if not csv_data or not excel_data:
+                print("❌ Failed to generate attachments")
+                return False
+            
+            # Create email
+            msg = MIMEMultipart()
+            msg['From'] = config['sender']
+            msg['To'] = config['recipient']
+            msg['Subject'] = f"📚 Library Lifetime Teacher Report - {today}"
+            
+            body = f"""
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                    .header {{ background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 20px; text-align: center; border-radius: 10px; }}
+                    .summary {{ background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0; }}
+                    .stats {{ display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }}
+                    .stat-box {{ background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; min-width: 120px; text-align: center; }}
+                    .stat-number {{ font-size: 28px; font-weight: bold; color: #8b5cf6; }}
+                    .stat-label {{ color: #64748b; font-size: 12px; }}
+                    .footer {{ font-size: 12px; color: #64748b; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>📚 Smt. Kesardevi Mishra Memorial Library</h2>
+                    <p>Lifetime Teacher Report</p>
+                </div>
+                
+                <div class="summary">
+                    <h3>📅 Report Generated: {today}</h3>
+                    <p><strong>Data Period:</strong> {first_visit} to {last_visit}</p>
+                    <p><strong>Total Days of Operation:</strong> {len(unique_dates)} days</p>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number">{len(teachers)}</div>
+                        <div class="stat-label">Total Teacher Visits</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{unique_teachers}</div>
+                        <div class="stat-label">Unique Teachers</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{avg_daily}</div>
+                        <div class="stat-label">Avg Daily Teachers</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{len(unique_dates)}</div>
+                        <div class="stat-label">Days of Operation</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{active_count}</div>
+                        <div class="stat-label">Currently Inside</div>
+                    </div>
+                </div>
+                
+                <h3>📎 Attachments</h3>
+                <ul>
+                    <li><strong>CSV File:</strong> {len(teachers)} teacher records</li>
+                    <li><strong>Excel File:</strong> {len(teachers)} teacher records</li>
+                </ul>
+                
+                <div class="footer">
+                    <p>This is an automated report generated by Navneet College Library Management System.</p>
+                    <p>© 2026 Navneet College of Arts, Science &amp; Commerce</p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            msg.attach(MIMEText(body, 'html'))
+            
+            # Attach CSV
+            csv_part = MIMEBase('application', 'octet-stream')
+            csv_part.set_payload(csv_data)
+            encoders.encode_base64(csv_part)
+            csv_part.add_header('Content-Disposition', f'attachment; filename=teachers_lifetime_{today}.csv')
+            msg.attach(csv_part)
+            
+            # Attach Excel
+            excel_part = MIMEBase('application', 'octet-stream')
+            excel_part.set_payload(excel_data)
+            encoders.encode_base64(excel_part)
+            excel_part.add_header('Content-Disposition', f'attachment; filename=teachers_lifetime_{today}.xlsx')
+            msg.attach(excel_part)
+            
+            # Send email
+            server = smtplib.SMTP(config['server'], config['port'])
+            server.starttls()
+            server.login(config['username'], config['password'])
+            server.send_message(msg)
+            server.quit()
+            
+            print(f"✅ Lifetime teacher report sent")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to send lifetime teacher report: {e}")
+            return False
