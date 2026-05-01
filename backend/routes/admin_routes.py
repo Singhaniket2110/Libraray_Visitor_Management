@@ -785,3 +785,33 @@ def add_teacher_admin():
     except Exception as e:
         print(f"Error adding teacher: {e}")
         return jsonify({"error": f"Failed to add teacher: {str(e)}"}), 500
+
+# ==================== TEACHER EMAIL REPORT ROUTES ====================
+
+@admin_bp.route('/send_monthly_report_teachers', methods=['POST'])
+@login_required
+def send_monthly_report_teachers():
+    """Send monthly teacher report email"""
+    try:
+        success = EmailService.send_monthly_report_teachers()
+        if success:
+            return jsonify({"success": True, "message": "Monthly teacher report sent successfully"}), 200
+        else:
+            return jsonify({"success": False, "error": "Failed to send monthly teacher report"}), 500
+    except Exception as e:
+        print(f"Error sending monthly teacher report: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/send_lifetime_report_teachers', methods=['POST'])
+@login_required
+def send_lifetime_report_teachers():
+    """Send lifetime teacher report email"""
+    try:
+        success = EmailService.send_lifetime_report_teachers()
+        if success:
+            return jsonify({"success": True, "message": "Lifetime teacher report sent successfully"}), 200
+        else:
+            return jsonify({"success": False, "error": "Failed to send lifetime teacher report"}), 500
+    except Exception as e:
+        print(f"Error sending lifetime teacher report: {e}")
+        return jsonify({"error": str(e)}), 500
